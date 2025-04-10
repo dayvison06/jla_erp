@@ -5,16 +5,15 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar
+    useSidebar
 } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
-import { ChevronRight, ChevronsUpDown, Plus, EllipsisVertical } from 'lucide-vue-next';
+import { Plus, EllipsisVertical } from 'lucide-vue-next';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     DropdownMenu,
     DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-    DropdownMenuSeparator, DropdownMenuShortcut,
+    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import type { Component } from 'vue';
