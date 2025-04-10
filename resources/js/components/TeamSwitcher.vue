@@ -16,14 +16,14 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { ChevronsUpDown, Plus } from 'lucide-vue-next'
-
 import { type Component, ref } from 'vue'
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import { appName } from '@/composables/useAppName.ts';
+
 
 const props = defineProps<{
   teams: {
     name: string
-    logo: Component
-    plan: string
   }[]
 }>()
 
@@ -40,14 +40,14 @@ const activeTeam = ref(props.teams[0])
             size="lg"
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <component :is="activeTeam.logo" class="size-4" />
+            <div class="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground">
+              <AppLogoIcon />
             </div>
             <div class="grid flex-1 text-left text-sm leading-tight">
               <span class="truncate font-medium">
-                {{ activeTeam.name }}
+                {{ appName }}
               </span>
-              <span class="truncate text-xs">{{ activeTeam.plan }}</span>
+              <span class="truncate text-xs">{{ activeTeam.name }}</span>
             </div>
             <ChevronsUpDown class="ml-auto" />
           </SidebarMenuButton>
@@ -59,7 +59,7 @@ const activeTeam = ref(props.teams[0])
           :side-offset="4"
         >
           <DropdownMenuLabel class="text-xs text-muted-foreground">
-            Teams
+            Times
           </DropdownMenuLabel>
           <DropdownMenuItem
             v-for="(team, index) in teams"
@@ -67,11 +67,10 @@ const activeTeam = ref(props.teams[0])
             class="gap-2 p-2"
             @click="activeTeam = team"
           >
-            <div class="flex size-6 items-center justify-center rounded-sm border">
-              <component :is="team.logo" class="size-3.5 shrink-0" />
-            </div>
+<!--            <div class="flex size-6 items-center justify-center rounded-sm border">-->
+<!--              <component :is="team.logo" class="size-3.5 shrink-0" />-->
+<!--            </div>-->
             {{ team.name }}
-            <DropdownMenuShortcut>⌘{{ index + 1 }}</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem class="gap-2 p-2">

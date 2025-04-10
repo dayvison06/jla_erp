@@ -13,7 +13,6 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     DropdownMenu,
     DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import type { Component } from 'vue';
@@ -32,7 +31,7 @@ const page = usePage<SharedData>();
         <SidebarMenu v-for="item in items" :key="item.title">
             <SidebarMenuItem>
 <!--                Menu sem sub-items-->
-                <SidebarMenuButton as-child v-if="!item.subItems" :tooltip="item.title">
+                <SidebarMenuButton as-child v-if="!item.subItems" :tooltip="item.title" :is-active="item.href === page.url">
                     <Link :href="item.href">
                         <component :is="item.icon" v-if="item.icon" />
                         <span>{{ item.title }}</span>
@@ -67,15 +66,6 @@ const page = usePage<SharedData>();
                                 <component :is="subItem.icon" />
                                 <span>{{ subItem.title}}</span>
                             </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem class="gap-2 p-2">
-                            <div class="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                                <Plus class="size-4" />
-                            </div>
-                            <div class="font-medium text-muted-foreground">
-                                Add team
-                            </div>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

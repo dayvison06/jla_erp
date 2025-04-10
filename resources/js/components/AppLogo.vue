@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import { ref } from 'vue';
+
+export const appName = ref('Liber Helper');
 </script>
 
 <template>
-    <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-        <AppLogoIcon class="size-5 fill-current text-white dark:text-black" />
+    <div class="flex size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
+        <AppLogoIcon class="size-8 fill-current text-white dark:text-black" />
     </div>
     <div class="ml-1 grid flex-1 text-left text-sm">
-        <span class="mb-0.5 truncate font-semibold leading-none">Laravel Starter Kit</span>
+        <span  class="mb-0.5 truncate font-semibold leading-none">{{ appName || 'Liber Helper' }}</span>
     </div>
 </template>
