@@ -3,10 +3,12 @@ import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
+import { type NavItem, NavTeams } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Flag, Folder, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import TeamSwitcher from '@/components/TeamSwitcher.vue';
+
 
 const mainNavItems: NavItem[] = [
     {
@@ -15,7 +17,16 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
-
+const teams = [
+    {
+        name: 'Team A',
+        logo: Flag,
+    },
+    {
+        name: 'Team B',
+        logo: Flag,
+    },
+];
 const footerNavItems: NavItem[] = [
     {
         title: 'Github Repo',
@@ -42,10 +53,12 @@ const footerNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
+            <TeamSwitcher :teams="teams" />
         </SidebarHeader>
 
         <SidebarContent>
             <NavMain :items="mainNavItems" />
+
         </SidebarContent>
 
         <SidebarFooter>
