@@ -11,7 +11,7 @@ import TeamSwitcher from '@/components/TeamSwitcher.vue';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '#',
+        href: '/dashboard',
         icon: LayoutGrid,
     },
 ];
