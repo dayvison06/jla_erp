@@ -2,8 +2,10 @@
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItemType } from '@/types';
-import Notifications from '@/components/ui/navbar/Notifications.vue';
 import Theme from '@/components/ui/navbar/Theme.vue';
+import Notification from '@/components/ui/navbar/Notification.vue';
+import { useNotification } from '@/composables/useNotification';
+const { notifications } = useNotification()
 
 defineProps<{
     breadcrumbs?: BreadcrumbItemType[];
@@ -22,7 +24,7 @@ defineProps<{
                 </template>
             </div>
             <div class="flex items-center gap-2">
-                <Notifications />
+                <Notification :notifications="notifications" />
                 <Theme/>
             </div>
         </div>

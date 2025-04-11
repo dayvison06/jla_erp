@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
+import { useNotification } from '@/composables/useNotification';
 import { ref, computed, onMounted } from 'vue';
 import {
     LayoutDashboard,
@@ -227,6 +228,18 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
 ];
+
+const { adicionar } = useNotification();
+
+function testarNotificacao() {
+    adicionar({
+        title: 'Teste de Notificação 🚀',
+        icon: ShoppingCart,
+        bgColor: 'bg-green-100',
+        iconColor: 'text-green-600',
+        time: 'Agora'
+    });
+}
 </script>
 
 <template>
@@ -250,6 +263,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </div>
                                 <div class="mt-4 md:mt-0">
                                     <button
+                                        @click="testarNotificacao"
                                         class="flex items-center rounded-lg bg-white px-4 py-2 font-medium text-emerald-600 shadow-sm transition-colors hover:bg-emerald-50"
                                     >
                                         <Download size="16" class="mr-2" />

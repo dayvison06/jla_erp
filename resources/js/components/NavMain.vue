@@ -31,7 +31,7 @@ const page = usePage<SharedData>();
         <SidebarMenu v-for="item in items" :key="item.title">
             <SidebarMenuItem>
 <!--                Menu sem sub-items-->
-                <SidebarMenuButton as-child v-if="!item.subItems" :tooltip="item.title" :is-active="item.href === page.url">
+                <SidebarMenuButton class="mb-2" as-child v-if="!item.subItems" :tooltip="item.title" :is-active="item.href === page.url">
                     <Link :href="item.href">
                         <component :is="item.icon" v-if="item.icon" />
                         <span>{{ item.title }}</span>
@@ -40,7 +40,7 @@ const page = usePage<SharedData>();
 <!--                Menu com sub-items-->
                 <DropdownMenu v-if="item.subItems">
                     <DropdownMenuTrigger as-child>
-                        <SidebarMenuButton :tooltip="item.title">
+                        <SidebarMenuButton class="mb-2" :tooltip="item.title">
                             <component :is="item.icon" v-if="item.icon" />
                             <span>{{ item.title }}</span>
                             <EllipsisVertical v-if="item.subItems" class="ml-auto"/>

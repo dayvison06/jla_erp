@@ -4,7 +4,7 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { BookOpen, Flag, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Flag, Folder, LayoutGrid, NotebookPen } from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 
 
@@ -14,6 +14,11 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
+    {
+        title: 'Tarefas',
+        href: '/tarefas',
+        icon: NotebookPen,
+    }
 ];
 const teams = [
     {
