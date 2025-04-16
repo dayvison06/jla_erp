@@ -4,16 +4,19 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return Inertia::render('auth/Login');
 })->name('home');
+
+Route::get('/admin', [
+    'as' => 'admin',
+    function () {
+        return Inertia::render('AdminPanel');
+    },
+])->middleware(['auth', 'verified']);
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::get('tarefas', function () {
-    return Inertia::render('Tarefas');
-})->middleware(['auth', 'verified'])->name('tarefas');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
