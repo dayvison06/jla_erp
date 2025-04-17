@@ -14,11 +14,6 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
-    {
-        title: 'Tarefas',
-        href: '/tarefas',
-        icon: NotebookPen,
-    }
 ];
 const teams = [
     {
@@ -37,8 +32,8 @@ const footerNavItems: NavItem[] = [
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
+        title: 'Wiki',
+        href: 'https://wiki.liberfly.com.br/login',
         icon: BookOpen,
     },
 ];

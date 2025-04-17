@@ -26,17 +26,18 @@ class User extends Authenticatable
 
     public function team()
     {
-        return $this->belongsToMany(Team::class);
+        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id')
+            ->withTimestamps();
     }
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'user_roles')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
     }
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, 'user_permissions')
+        return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id')
             ->withPivot('granted')
             ->withTimestamps();
     }

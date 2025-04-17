@@ -25,7 +25,6 @@ defineProps<{
             </div>
             <div class="flex items-center gap-2">
                 <Notification :notifications="notifications" />
-                <Theme/>
             </div>
         </div>
     </header>

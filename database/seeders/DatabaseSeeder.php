@@ -14,9 +14,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
 
-        $adminTeam = Team::factory(10)->create([
+        $adminTeam = Team::factory(1)->create([
             'name' => 'Administradores',
         ]);
 

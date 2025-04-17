@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 
 class Team extends Model
 {
 
-
+    use HasFactory;
 
     protected $fillable = [
         'name',
@@ -16,7 +17,8 @@ class Team extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'team_user', 'team_id', 'user_id' )
+            ->withTimestamps();
     }
 
 }
