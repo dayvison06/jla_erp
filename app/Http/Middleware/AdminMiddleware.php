@@ -15,12 +15,16 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()->permissions()->where('name', 'admin')->exists() || $request->user()->roles()->whereHas('permissions', function ($query) {
+        dd($request->user()->teams()->get());
+        if (($request->user()->permissions()->where('name', 'admin')->exists() ||
+            $request->user()->roles()->whereHas('permissions', function ($query) {
                 $query->where('name', 'admin');
-            })->exists()) {
+            })->exists()) ) {
             return redirect()->route('admin.dashboard');
-        } else {
-            return redirect()->intended()->with('unauthorized', 'Acesso negado!');
+        }
+
+        if (!$request->user()) {
+            return redirect()->route('login')->with('unauthorized', 'Acesso negado!');
         }
 
         return $next($request);

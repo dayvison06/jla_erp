@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -24,18 +25,19 @@ class User extends Authenticatable
         'team_id',
     ];
 
-    public function team()
+    public function teams() : BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id')
             ->withTimestamps();
     }
 
-    public function roles()
+    public function roles() : BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')
+            ->withTimestamps();
     }
 
-    public function permissions()
+    public function permissions() : BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id')
             ->withPivot('granted')
