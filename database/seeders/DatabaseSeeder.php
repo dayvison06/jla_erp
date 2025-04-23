@@ -21,18 +21,17 @@ class DatabaseSeeder extends Seeder
             'name' => 'Administradores',
         ]);
 
+
         $adminUser = User::factory()->create([
            'name' => 'Administrador',
            'email' => 'admin@admin.com',
            'password' => bcrypt('admin123'),
-            'team_id' => $adminTeam->first()->id,
         ]);
 
         $normalUser = User::factory()->create([
             'name' => 'User',
             'email' => 'user@user.com',
             'password' => bcrypt('user123'),
-            'team_id' => $adminTeam->first()->id,
         ]);
 
         $adminRole = Role::factory()->create(['name' => 'admin']);
@@ -47,6 +46,9 @@ class DatabaseSeeder extends Seeder
 
         $normalUser->roles()->attach($userRole);
         $adminUser->roles()->attach($adminRole);
+
+        $adminUser->teams()->attach($adminTeam);
+        $normalUser->teams()->attach($adminTeam);
 
         $adminTeam->permissions()->attach($managerPermission->id);
 

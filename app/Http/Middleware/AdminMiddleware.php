@@ -11,20 +11,23 @@ class AdminMiddleware
     /**
      * Intercepta a requisição e verifica se o usuário tem permissão de admin.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        dd($request->user()->teams()->get());
-        if (($request->user()->permissions()->where('name', 'admin')->exists() ||
-            $request->user()->roles()->whereHas('permissions', function ($query) {
-                $query->where('name', 'admin');
-            })->exists()) ) {
-            return redirect()->route('admin.dashboard');
-        }
 
-        if (!$request->user()) {
-            return redirect()->route('login')->with('unauthorized', 'Acesso negado!');
+        $teamAdmin = $request->user()->teams()->whereHas('permissions', function ($query) {
+            $query->where('name', 'administrator');
+        })->exists();
+
+        $permissionAdmin = $request->user()->permissions()->where('name', 'administrator')->exists();
+
+        $roleAdmin = $request->user()->roles()->whereHas('permissions', function ($query) {
+            $query->where('name', 'administrator');
+        })->exists();
+
+        if (!$teamAdmin || !$permissionAdmin || !$roleAdmin) {
+            return redirect()->route('dashboard')->with('unauthorized', 'Você não tem permissão para acessar esta página.');;
         }
 
         return $next($request);

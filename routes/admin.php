@@ -5,7 +5,7 @@ use Inertia\Inertia;
 
 Route::get('/admin', function (){
     return Inertia::render('admin/Dashboard');
-})->middleware(['auth', 'verified', 'admin'])->name('admin.dashboard');
+})->middleware(['auth','admin'])->name('admin.dashboard');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
