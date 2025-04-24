@@ -26,9 +26,9 @@ const props = defineProps<{
     name: string
   }[]
 }>()
-
+console.log('Times', props.teams)
 const { isMobile } = useSidebar()
-const activeTeam = ref(props.teams[0])
+const activeTeam = ref(props.teams[0] || { name: 'Sem time'})
 </script>
 
 <template>
@@ -49,10 +49,10 @@ const activeTeam = ref(props.teams[0])
               </span>
               <span class="truncate text-xs">{{ activeTeam.name }}</span>
             </div>
-            <ChevronsUpDown class="ml-auto" />
+            <ChevronsUpDown v-if="teams.length > 0" class="ml-auto" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent
+        <DropdownMenuContent v-if="teams.length > 0"
           class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
           align="start"
           :side="isMobile ? 'bottom' : 'right'"
@@ -62,24 +62,12 @@ const activeTeam = ref(props.teams[0])
             Times
           </DropdownMenuLabel>
           <DropdownMenuItem
-            v-for="(team, index) in teams"
+            v-for="(team) in teams"
             :key="team.name"
             class="gap-2 p-2"
             @click="activeTeam = team"
           >
-<!--            <div class="flex size-6 items-center justify-center rounded-sm border">-->
-<!--              <component :is="team.logo" class="size-3.5 shrink-0" />-->
-<!--            </div>-->
             {{ team.name }}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem class="gap-2 p-2">
-            <div class="flex size-6 items-center justify-center rounded-md border bg-transparent">
-              <Plus class="size-4" />
-            </div>
-            <div class="font-medium text-muted-foreground">
-              Add team
-            </div>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
