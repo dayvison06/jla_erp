@@ -25,7 +25,9 @@ onMounted(() => {
             position: 'top-center',
             classes: {
                 title: 'text-base font-semibold',
-            }
+                icon: 'text-red-500'
+            },
+            closeButton: true,
         });
     }
 });

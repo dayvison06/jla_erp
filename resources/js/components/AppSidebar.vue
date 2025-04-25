@@ -9,7 +9,7 @@ import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import { usePage } from '@inertiajs/vue3'
 
 const page = usePage();
-const userTeam = page.props.user.teams;
+const userTeam = page.props.auth.user.teams;
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',

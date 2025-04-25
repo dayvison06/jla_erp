@@ -26,8 +26,10 @@ class AdminMiddleware
             $query->where('name', 'administrator');
         })->exists();
 
-        if (!$teamAdmin || !$permissionAdmin || !$roleAdmin) {
-            return redirect()->route('dashboard')->with('unauthorized', 'Você não tem permissão para acessar esta página.');;
+        $hasAcessAdmin = $teamAdmin || $permissionAdmin || $roleAdmin;
+
+        if (!$hasAcessAdmin) {
+            return redirect()->route('dashboard')->with('unauthorized', 'Você não tem permissão para acessar esta página.');
         }
 
         return $next($request);
