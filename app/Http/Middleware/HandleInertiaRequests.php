@@ -48,6 +48,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'auth' => [
                 'user' => $request->user(),
+                'teams' => $request->user()->teams ?? null,
+                'roles' => $request->user()->roles ?? null,
+                'permissions' => $request->user()->permissions ?? null,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

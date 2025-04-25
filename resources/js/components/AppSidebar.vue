@@ -2,12 +2,14 @@
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { BookOpen, Flag, Folder, LayoutGrid, NotebookPen } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
+import { usePage } from '@inertiajs/vue3'
 
-
+const page = usePage();
+const userTeam = page.props.user.teams;
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
@@ -15,16 +17,9 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
-const teams = [
-    {
-        name: 'Comercial',
-        logo: Flag,
-    },
-    {
-        name: 'Marketing',
-        logo: Flag,
-    },
-];
+const teams = userTeam.map((team) => ({
+    name: team.name,
+}));
 const footerNavItems: NavItem[] = [
     {
         title: 'Github Repo',
