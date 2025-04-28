@@ -16,17 +16,8 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
 
-        $teamAdmin = $request->user()->teams()->whereHas('permissions', function ($query) {
-            $query->where('name', 'administrator');
-        })->exists();
-
-        $permissionAdmin = $request->user()->permissions()->where('name', 'administrator')->exists();
-
-        $roleAdmin = $request->user()->roles()->whereHas('permissions', function ($query) {
-            $query->where('name', 'administrator');
-        })->exists();
-
-        $hasAcessAdmin = $teamAdmin || $permissionAdmin || $roleAdmin;
+        // Verifica se o usuário é admin
+        $hasAcessAdmin = session()->has('hasAccessAdmin');
 
         if (!$hasAcessAdmin) {
             return redirect()->route('dashboard')->with('unauthorized', 'Você não tem permissão para acessar esta página.');

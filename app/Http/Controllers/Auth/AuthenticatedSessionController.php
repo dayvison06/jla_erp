@@ -33,6 +33,23 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $teamAdmin = $request->user()->teams()->whereHas('permissions', function ($query) {
+            $query->where('name', 'administrator');
+        })->exists();
+
+        $permissionAdmin = $request->user()->permissions()->where('name', 'administrator')->exists();
+
+        $roleAdmin = $request->user()->roles()->whereHas('permissions', function ($query) {
+            $query->where('name', 'administrator');
+        })->exists();
+
+        $hasAcessAdmin = $teamAdmin || $permissionAdmin || $roleAdmin;
+
+        if ($hasAcessAdmin) {
+            session()->put('hasAccessAdmin', true);
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
