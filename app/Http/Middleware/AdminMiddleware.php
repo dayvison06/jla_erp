@@ -15,7 +15,9 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $hasAcessAdmin = $request->session()->get('hasAcessAdmin');
+
+        // Verifica se o usuário é admin
+        $hasAcessAdmin = session()->has('hasAccessAdmin');
 
         if (!$hasAcessAdmin) {
             return redirect()->route('dashboard')->with('unauthorized', 'Você não tem permissão para acessar esta página.');

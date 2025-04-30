@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue';
+import AppAdminLayout from '@/layouts/AppAdminLayout.vue';
 import { ref, computed } from 'vue';
 import {
     MenuIcon,
@@ -140,7 +140,7 @@ const recentUsers = ref([
 
 <template>
     <Head title="Painel Admin" />
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <AppAdminLayout :breadcrumbs="breadcrumbs">
         <div class="p-6">
             <!-- Título da página -->
             <div class="mb-8">
@@ -329,5 +329,5 @@ const recentUsers = ref([
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </AppAdminLayout>
 </template>
