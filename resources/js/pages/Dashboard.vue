@@ -127,7 +127,6 @@ function testNotification() {
 
 <template>
     <Head title="Dashboard" />
-
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 bg-background text-foreground">
             <div class="flex flex-1 flex-col overflow-hidden">
