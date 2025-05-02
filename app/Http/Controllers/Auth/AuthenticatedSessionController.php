@@ -33,9 +33,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $hasAcessAdmin = $this->hasAcessAdmin($request);
+        $hasAcessAdmin = $this->hasAccessAdmin($request);
+
         // Adiciona a variável de sessão hasAcessAdmin  para validação no Middleware
-        $request->session()->put('hasAcessAdmin', $hasAcessAdmin);
+        $request->session()->put('hasAccessAdmin', $hasAcessAdmin);
 
         if ($hasAcessAdmin) {
             return redirect()->intended(route('admin.dashboard', absolute: false));
@@ -57,7 +58,7 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 
-    public function hasAcessAdmin(Request $request): bool
+    public function hasAccessAdmin(Request $request): bool
     {
         $teamAdmin = $request->user()->teams()->whereHas('permissions', function ($query) {
             $query->where('name', 'administrator');
