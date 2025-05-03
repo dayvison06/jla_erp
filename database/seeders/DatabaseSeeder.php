@@ -48,7 +48,6 @@ class DatabaseSeeder extends Seeder
         $adminUser->roles()->attach($adminRole);
 
         $adminUser->teams()->attach($adminTeam);
-        $normalUser->teams()->attach($adminTeam);
 
         $adminTeam->permissions()->attach($managerPermission->id);
 

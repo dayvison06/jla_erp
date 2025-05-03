@@ -20,18 +20,18 @@ const mainNavItems: NavItem[] = [
 const teams = userTeam.map((team) => ({
     name: team.name,
 }));
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Wiki',
-        href: 'https://wiki.liberfly.com.br/login',
-        icon: BookOpen,
-    },
-];
+// const footerNavItems: NavItem[] = [
+//     {
+//         title: 'Github Repo',
+//         href: 'https://github.com/laravel/vue-starter-kit',
+//         icon: Folder,
+//     },
+//     {
+//         title: 'Wiki',
+//         href: '#',
+//         icon: BookOpen,
+//     },
+// ];
 </script>
 
 <template>
