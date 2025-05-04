@@ -27,7 +27,7 @@ const page = usePage<SharedData>();
 
 <template>
     <SidebarGroup>
-        <SidebarGroupLabel>Platform</SidebarGroupLabel>
+        <SidebarGroupLabel>Menu</SidebarGroupLabel>
         <SidebarMenu v-for="item in items" :key="item.title">
             <SidebarMenuItem>
 <!--                Menu sem sub-items-->

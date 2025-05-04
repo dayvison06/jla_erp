@@ -4,7 +4,7 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { Users, LayoutGrid } from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import { usePage } from '@inertiajs/vue3'
 
@@ -15,6 +15,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Funcionários',
+        href: '/funcionarios',
+        icon: Users,
     },
 ];
 const teams = userTeam.map((team) => ({

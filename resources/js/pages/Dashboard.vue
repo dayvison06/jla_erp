@@ -2,21 +2,14 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
-import { useNotification } from '@/composables/useNotification';
 import { ref } from 'vue';
 import {
-    LayoutDashboard,
     BarChart2,
     FileText,
     ShoppingCart,
     TrendingUp,
     TrendingDown,
     DollarSign,
-    PlusCircle,
-    Download,
-    Clock,
-    Edit,
-    Trash2,
     Laptop,
     Headphones,
     Monitor,
@@ -24,9 +17,7 @@ import {
     Mouse,
 } from 'lucide-vue-next';
 
-const isDarkMode = ref(false);
 const page = usePage<SharedData>();
-const user = page.props.auth.user as User;
 
 const stats = ref([
     {
@@ -93,36 +84,10 @@ const topProducts = ref([
     { name: 'Mouse Gamer', category: 'Acessórios', sales: '$3,800', percentage: 30, icon: Mouse },
 ]);
 
-const recentTransactions = ref([
-    { id: 'INV-1234', customer: 'John Smith', date: 'Hoje, 13:45', amount: '$1,250.00', status: 'Concluído', statusClass: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' },
-    { id: 'INV-1233', customer: 'Alice Johnson', date: 'Hoje, 10:30', amount: '$890.50', status: 'Processando', statusClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400' },
-    { id: 'INV-1232', customer: 'Robert Brown', date: 'Ontem, 16:20', amount: '$1,890.00', status: 'Concluído', statusClass: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' },
-    { id: 'INV-1231', customer: 'Emily Davis', date: 'Ontem, 09:15', amount: '$450.25', status: 'Falhou', statusClass: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-400' },
-    { id: 'INV-1230', customer: 'Michael Wilson', date: '23 Mai, 2023', amount: '$2,500.00', status: 'Concluído', statusClass: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' },
-]);
-
-const tasks = ref([
-    { title: 'Atualizar inventário de produtos', completed: false, priority: 'Alta', priorityClass: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-400', dueDate: 'Hoje', assignee: { name: 'John Doe', initials: 'JD' }, timeLeft: '3h' },
-    { title: 'Revisar novos cadastros de clientes', completed: true, priority: 'Média', priorityClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400', dueDate: 'Hoje', assignee: { name: 'Alice Smith', initials: 'AS' }, timeLeft: '5h' },
-    { title: 'Preparar relatório financeiro mensal', completed: false, priority: 'Alta', priorityClass: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-400', dueDate: 'Amanhã', assignee: { name: 'Robert Johnson', initials: 'RJ' }, timeLeft: '1d' },
-    { title: 'Agendar reunião com fornecedores', completed: false, priority: 'Baixa', priorityClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400', dueDate: 'Próxima semana', assignee: { name: 'Emily Brown', initials: 'EB' }, timeLeft: '5d' },
-]);
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
 ];
 
-const { adicionar } = useNotification();
-
-function testNotification() {
-    adicionar({
-        title: 'Teste de Notificação 🚀',
-        icon: ShoppingCart,
-        bgColor: 'bg-green-100',
-        iconColor: 'text-green-600',
-        time: 'Agora'
-    });
-}
 </script>
 
 <template>
@@ -131,29 +96,6 @@ function testNotification() {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 bg-background text-foreground">
             <div class="flex flex-1 flex-col overflow-hidden">
                 <main class="flex-1 overflow-auto p-4 md:p-6">
-                    <div class="relative mb-6 overflow-hidden rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 shadow-md">
-                        <div class="absolute top-0 right-0 opacity-10">
-                            <LayoutDashboard size="180" class="text-white" />
-                        </div>
-                        <div class="relative z-10 p-6 md:p-8">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <h1 class="mb-2 text-2xl font-bold text-white md:text-3xl">Bem-vindo de volta, {{ user.name }}!</h1>
-                                    <p class="text-emerald-50">Aqui está o que está acontecendo com o seu negócio hoje.</p>
-                                </div>
-                                <div class="mt-4 md:mt-0">
-                                    <button
-                                        @click="testNotification"
-                                        class="flex items-center rounded-lg bg-white px-4 py-2 font-medium text-emerald-600 shadow-sm transition-colors hover:bg-emerald-50"
-                                    >
-                                        <Download size="16" class="mr-2" />
-                                        Baixar Relatório
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                         <div
                             v-for="(stat, index) in stats"

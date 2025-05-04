@@ -7,16 +7,13 @@ Route::get('/', function () {
     return Inertia::render('auth/Login');
 })->name('home');
 
-Route::get('/admin', [
-    'as' => 'admin',
-    function () {
-        return Inertia::render('AdminPanel');
-    },
-])->middleware(['auth', 'verified']);
-
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/funcionarios', function () {
+    return Inertia::render('Employees');
+})->middleware(['auth', 'verified'])->name('employees');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
