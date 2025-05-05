@@ -4,7 +4,7 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Users, LayoutGrid } from 'lucide-vue-next';
+import { Users, CircleGauge, Workflow, HandCoins, HardHat, Construction, CircleDollarSign, FileChartColumn } from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import { usePage } from '@inertiajs/vue3'
 
@@ -14,13 +14,38 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '/dashboard',
-        icon: LayoutGrid,
+        icon: CircleGauge,
+    },
+    {
+        title: 'Clientes',
+        href: '/clientes',
+        icon: Users,
+    },
+    {
+        title: 'Obras',
+        href: '/obras',
+        icon: Construction,
+    },
+    {
+        title: 'Orçamentos',
+        href: '/orcamentos',
+        icon: CircleDollarSign,
+    },
+    {
+        title: 'Serviços',
+        href: '/servicos',
+        icon: HandCoins,
     },
     {
         title: 'Funcionários',
         href: '/funcionarios',
-        icon: Users,
+        icon: HardHat,
     },
+    {
+        title: 'Relatórios',
+        href: '/relatorios',
+        icon: FileChartColumn,
+    }
 ];
 const teams = userTeam.map((team) => ({
     name: team.name,

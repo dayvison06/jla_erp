@@ -5,7 +5,6 @@ import {ref, reactive, computed, onMounted} from 'vue'
 import {
     PlusIcon,
     SearchIcon,
-    Users,
     EditIcon,
     TrashIcon,
     UploadIcon,
@@ -681,7 +680,6 @@ onMounted(() => {
                     <Header v-if="!showEmployeeForm" class="text-black mb-10">
                         <div class="mx-auto flex justify-between items-center">
                             <div class="flex items-center gap-2">
-                                <Users/>
                                 <h1 class="text-2xl font-bold">Funcionários</h1>
                             </div>
                             <button
