@@ -4,17 +4,14 @@ import {
     Search,
     UserPlus,
     Edit,
-    Shield,
     Ban,
     CheckCircle,
     ChevronLeft,
     ChevronRight,
-    X,
-    Plus,
-    Trash2
+    X
 } from 'lucide-vue-next'
-import AppAdminLayout from '@/layouts/AppAdminLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import AppAdminLayout from '@/layouts/AppAdminLayout.vue'
+import { Head } from '@inertiajs/vue3'
 
 // Types
 interface User {
@@ -44,19 +41,15 @@ interface Team {
 interface Permission {
     id: string
     name: string
-}
-
-interface PermissionGroup {
-    name: string
-    permissions: Permission[]
+    description: string
 }
 
 // State
 const users = ref<User[]>([])
 const roles = ref<Role[]>([])
 const teams = ref<Team[]>([])
+const permissions = ref<Permission[]>([])
 const searchQuery = ref('')
-const activeTab = ref('users')
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const filters = ref({
@@ -67,9 +60,7 @@ const filters = ref({
 
 // Modals
 const showUserModal = ref(false)
-const showPermissionsModal = ref(false)
-const showRoleModal = ref(false)
-const showTeamModal = ref(false)
+const activeUserTab = ref('info')
 
 // Editing state
 const editingUser = ref<User>({
@@ -80,71 +71,6 @@ const editingUser = ref<User>({
     roleId: '',
     teamId: '',
     permissions: []
-})
-const editingRole = ref<Role>({
-    id: '',
-    name: '',
-    description: ''
-})
-const editingTeam = ref<Team>({
-    id: '',
-    name: '',
-    description: ''
-})
-const selectedUser = ref<User | null>(null)
-const selectedUserPermissions = ref<string[]>([])
-
-// Tabs
-const tabs = [
-    { id: 'users', name: 'Usuários' },
-    { id: 'roles', name: 'Cargos' },
-    { id: 'teams', name: 'Times' }
-]
-
-// Table headers
-const userTableHeaders = [
-    { key: 'name', label: 'Nome', class: 'w-1/4' },
-    { key: 'status', label: 'Status', class: 'w-1/6' },
-    { key: 'role', label: 'Cargo', class: 'w-1/6' },
-    { key: 'team', label: 'Time', class: 'w-1/6' }
-]
-
-// Permission groups
-const permissionGroups = ref<Record<string, PermissionGroup>>({
-    users: {
-        name: 'Usuários',
-        permissions: [
-            { id: 'users.view', name: 'Visualizar usuários' },
-            { id: 'users.create', name: 'Criar usuários' },
-            { id: 'users.edit', name: 'Editar usuários' },
-            { id: 'users.delete', name: 'Excluir usuários' }
-        ]
-    },
-    roles: {
-        name: 'Cargos',
-        permissions: [
-            { id: 'roles.view', name: 'Visualizar cargos' },
-            { id: 'roles.create', name: 'Criar cargos' },
-            { id: 'roles.edit', name: 'Editar cargos' },
-            { id: 'roles.delete', name: 'Excluir cargos' }
-        ]
-    },
-    teams: {
-        name: 'Times',
-        permissions: [
-            { id: 'teams.view', name: 'Visualizar times' },
-            { id: 'teams.create', name: 'Criar times' },
-            { id: 'teams.edit', name: 'Editar times' },
-            { id: 'teams.delete', name: 'Excluir times' }
-        ]
-    },
-    reports: {
-        name: 'Relatórios',
-        permissions: [
-            { id: 'reports.view', name: 'Visualizar relatórios' },
-            { id: 'reports.export', name: 'Exportar relatórios' }
-        ]
-    }
 })
 
 // Computed properties
@@ -193,6 +119,21 @@ const paginationEnd = computed(() => {
     return Math.min(currentPage.value * itemsPerPage.value, filteredUsers.value.length)
 })
 
+// Group permissions by category
+const groupedPermissions = computed(() => {
+    const groups: Record<string, Permission[]> = {}
+
+    permissions.value.forEach(permission => {
+        const category = permission.id.split('.')[0]
+        if (!groups[category]) {
+            groups[category] = []
+        }
+        groups[category].push(permission)
+    })
+
+    return groups
+})
+
 // Methods
 function resetFilters() {
     filters.value = {
@@ -213,18 +154,6 @@ function getTeamName(teamId: string): string {
     return team ? team.name : 'Não atribuído'
 }
 
-function getUsersInTeam(teamId: string): number {
-    return users.value.filter(user => user.teamId === teamId).length
-}
-
-function isRoleInUse(roleId: string): boolean {
-    return users.value.some(user => user.roleId === roleId)
-}
-
-function isTeamInUse(teamId: string): boolean {
-    return users.value.some(user => user.teamId === teamId)
-}
-
 function openUserModal(user?: User) {
     if (user) {
         editingUser.value = { ...user }
@@ -239,39 +168,8 @@ function openUserModal(user?: User) {
             permissions: []
         }
     }
+    activeUserTab.value = 'info'
     showUserModal.value = true
-}
-
-function openPermissionsModal(user: User) {
-    selectedUser.value = user
-    selectedUserPermissions.value = [...user.permissions]
-    showPermissionsModal.value = true
-}
-
-function openRoleModal(role?: Role) {
-    if (role) {
-        editingRole.value = { ...role }
-    } else {
-        editingRole.value = {
-            id: '',
-            name: '',
-            description: ''
-        }
-    }
-    showRoleModal.value = true
-}
-
-function openTeamModal(team?: Team) {
-    if (team) {
-        editingTeam.value = { ...team }
-    } else {
-        editingTeam.value = {
-            id: '',
-            name: '',
-            description: ''
-        }
-    }
-    showTeamModal.value = true
 }
 
 function saveUser() {
@@ -285,58 +183,11 @@ function saveUser() {
         // Add new user
         const newUser = {
             ...editingUser.value,
-            id: generateId(),
-            permissions: []
+            id: generateId()
         }
         users.value.push(newUser)
     }
     showUserModal.value = false
-}
-
-function savePermissions() {
-    if (selectedUser.value) {
-        const index = users.value.findIndex(u => u.id === selectedUser.value?.id)
-        if (index !== -1) {
-            users.value[index].permissions = [...selectedUserPermissions.value]
-        }
-    }
-    showPermissionsModal.value = false
-}
-
-function saveRole() {
-    if (editingRole.value.id) {
-        // Update existing role
-        const index = roles.value.findIndex(r => r.id === editingRole.value.id)
-        if (index !== -1) {
-            roles.value[index] = { ...editingRole.value }
-        }
-    } else {
-        // Add new role
-        const newRole = {
-            ...editingRole.value,
-            id: generateId()
-        }
-        roles.value.push(newRole)
-    }
-    showRoleModal.value = false
-}
-
-function saveTeam() {
-    if (editingTeam.value.id) {
-        // Update existing team
-        const index = teams.value.findIndex(t => t.id === editingTeam.value.id)
-        if (index !== -1) {
-            teams.value[index] = { ...editingTeam.value }
-        }
-    } else {
-        // Add new team
-        const newTeam = {
-            ...editingTeam.value,
-            id: generateId()
-        }
-        teams.value.push(newTeam)
-    }
-    showTeamModal.value = false
 }
 
 function toggleUserStatus(user: User) {
@@ -346,16 +197,17 @@ function toggleUserStatus(user: User) {
     }
 }
 
-function deleteRole(roleId: string) {
-    if (!isRoleInUse(roleId)) {
-        roles.value = roles.value.filter(role => role.id !== roleId)
+function togglePermission(permissionId: string) {
+    const index = editingUser.value.permissions.indexOf(permissionId)
+    if (index === -1) {
+        editingUser.value.permissions.push(permissionId)
+    } else {
+        editingUser.value.permissions.splice(index, 1)
     }
 }
 
-function deleteTeam(teamId: string) {
-    if (!isTeamInUse(teamId)) {
-        teams.value = teams.value.filter(team => team.id !== teamId)
-    }
+function hasPermission(permissionId: string): boolean {
+    return editingUser.value.permissions.includes(permissionId)
 }
 
 function generateId(): string {
@@ -364,6 +216,24 @@ function generateId(): string {
 
 // Initialize with sample data
 onMounted(() => {
+    // Sample permissions
+    permissions.value = [
+        { id: 'users.view', name: 'Visualizar usuários', description: 'Permite visualizar a lista de usuários' },
+        { id: 'users.create', name: 'Criar usuários', description: 'Permite criar novos usuários' },
+        { id: 'users.edit', name: 'Editar usuários', description: 'Permite editar usuários existentes' },
+        { id: 'users.delete', name: 'Excluir usuários', description: 'Permite excluir usuários' },
+        { id: 'roles.view', name: 'Visualizar cargos', description: 'Permite visualizar a lista de cargos' },
+        { id: 'roles.create', name: 'Criar cargos', description: 'Permite criar novos cargos' },
+        { id: 'roles.edit', name: 'Editar cargos', description: 'Permite editar cargos existentes' },
+        { id: 'roles.delete', name: 'Excluir cargos', description: 'Permite excluir cargos' },
+        { id: 'teams.view', name: 'Visualizar times', description: 'Permite visualizar a lista de times' },
+        { id: 'teams.create', name: 'Criar times', description: 'Permite criar novos times' },
+        { id: 'teams.edit', name: 'Editar times', description: 'Permite editar times existentes' },
+        { id: 'teams.delete', name: 'Excluir times', description: 'Permite excluir times' },
+        { id: 'reports.view', name: 'Visualizar relatórios', description: 'Permite visualizar relatórios' },
+        { id: 'reports.export', name: 'Exportar relatórios', description: 'Permite exportar relatórios' }
+    ]
+
     // Sample roles
     roles.value = [
         { id: 'admin', name: 'Administrador', description: 'Acesso completo ao sistema' },
@@ -443,14 +313,14 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Painel Admin" />
+    <Head title="Usuários" />
     <AppAdminLayout :breadcrumbs="breadcrumbs">
         <div class="min-h-screen p-4 md:p-6">
             <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-sm">
                 <!-- Header -->
                 <div class="border-b p-4 md:p-6">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h1 class="text-2xl font-semibold text-gray-900">Gerenciamento de Usuários</h1>
+                        <h1 class="text-2xl font-semibold text-gray-900">Usuários</h1>
                         <div class="flex items-center gap-2">
                             <div class="relative flex-1 md:min-w-[300px]">
                                 <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size="18" />
@@ -470,28 +340,10 @@ onMounted(() => {
                             </button>
                         </div>
                     </div>
-
-                    <!-- Tabs -->
-                    <div class="flex mt-6 border-b">
-                        <button
-                            v-for="tab in tabs"
-                            :key="tab.id"
-                            @click="activeTab = tab.id"
-                            class="px-4 py-2 text-sm font-medium transition-colors relative"
-                            :class="activeTab === tab.id ? 'text-primary' : 'text-gray-500 hover:text-gray-700'"
-                        >
-                            {{ tab.name }}
-                            <div
-                                v-if="activeTab === tab.id"
-                                class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                            >
-                            </div>
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Content -->
-                <div v-if="activeTab === 'users'" class="p-4 md:p-6">
+                <div class="p-4 md:p-6">
                     <!-- Filters -->
                     <div class="flex flex-col md:flex-row gap-3 mb-6">
                         <div class="flex-1">
@@ -540,13 +392,17 @@ onMounted(() => {
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    v-for="header in tableHeaders"
-                                    :key="header.key"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                    :class="header.class"
-                                >
-                                    {{ header.label }}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Nome
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Cargo
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Time
                                 </th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Ações
@@ -554,7 +410,7 @@ onMounted(() => {
                             </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
+                            <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
@@ -571,16 +427,16 @@ onMounted(() => {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      :class="
-                      user.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    "
-                  >
-                    {{ user.status === 'active' ? 'Ativo' : 'Inativo' }}
-                  </span>
+                    <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        :class="
+                        user.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      "
+                    >
+                      {{ user.status === 'active' ? 'Ativo' : 'Inativo' }}
+                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ getRoleName(user.roleId) }}
@@ -598,19 +454,12 @@ onMounted(() => {
                                             <Edit size="18" />
                                         </button>
                                         <button
-                                            @click="openPermissionsModal(user)"
-                                            class="text-amber-600 hover:text-amber-500"
-                                            title="Permissões"
-                                        >
-                                            <Shield size="18" />
-                                        </button>
-                                        <button
                                             @click="toggleUserStatus(user)"
                                             :class="
-                        user.status === 'active'
-                          ? 'text-red-600 hover:text-red-500'
-                          : 'text-green-600 hover:text-green-500'
-                      "
+                          user.status === 'active'
+                            ? 'text-red-600 hover:text-red-500'
+                            : 'text-green-600 hover:text-green-500'
+                        "
                                             :title="user.status === 'active' ? 'Desativar' : 'Ativar'"
                                         >
                                             <component :is="user.status === 'active' ? Ban : CheckCircle" size="18" />
@@ -653,11 +502,11 @@ onMounted(() => {
                                         :key="page"
                                         @click="currentPage = page"
                                         :class="[
-                    currentPage === page
-                      ? 'z-10 bg-primary border-primary text-white'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
-                  ]"
+                      currentPage === page
+                        ? 'z-10 bg-primary border-primary text-white'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                      'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                    ]"
                                     >
                                         {{ page }}
                                     </button>
@@ -675,96 +524,9 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
-
-                <!-- Roles Tab -->
-                <div v-if="activeTab === 'roles'" class="p-4 md:p-6">
-                    <div class="flex justify-between mb-6">
-                        <h2 class="text-lg font-medium text-gray-900">Cargos</h2>
-                        <button
-                            @click="openRoleModal()"
-                            class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-                        >
-                            <Plus size="18" />
-                            <span>Novo Cargo</span>
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div
-                            v-for="role in roles"
-                            :key="role.id"
-                            class="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                        >
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-medium text-gray-900">{{ role.name }}</h3>
-                                    <p class="text-sm text-gray-500 mt-1">{{ role.description }}</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button @click="openRoleModal(role)" class="text-primary hover:text-primary/80">
-                                        <Edit size="18" />
-                                    </button>
-                                    <button
-                                        @click="deleteRole(role.id)"
-                                        class="text-red-600 hover:text-red-500"
-                                        :disabled="isRoleInUse(role.id)"
-                                        :class="{ 'opacity-50 cursor-not-allowed': isRoleInUse(role.id) }"
-                                    >
-                                        <Trash2 size="18" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Teams Tab -->
-                <div v-if="activeTab === 'teams'" class="p-4 md:p-6">
-                    <div class="flex justify-between mb-6">
-                        <h2 class="text-lg font-medium text-gray-900">Times</h2>
-                        <button
-                            @click="openTeamModal()"
-                            class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-                        >
-                            <Plus size="18" />
-                            <span>Novo Time</span>
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div
-                            v-for="team in teams"
-                            :key="team.id"
-                            class="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                        >
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-medium text-gray-900">{{ team.name }}</h3>
-                                    <p class="text-sm text-gray-500 mt-1">{{ team.description }}</p>
-                                    <p class="text-xs text-gray-400 mt-2">
-                                        {{ getUsersInTeam(team.id) }} membros
-                                    </p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button @click="openTeamModal(team)" class="text-primary hover:text-primary/80">
-                                        <Edit size="18" />
-                                    </button>
-                                    <button
-                                        @click="deleteTeam(team.id)"
-                                        class="text-red-600 hover:text-red-500"
-                                        :disabled="isTeamInUse(team.id)"
-                                        :class="{ 'opacity-50 cursor-not-allowed': isTeamInUse(team.id) }"
-                                    >
-                                        <Trash2 size="18" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- User Modal -->
+            <!-- User Modal with Tabs -->
             <Teleport to="body">
                 <div v-if="showUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -778,254 +540,151 @@ onMounted(() => {
                                 </button>
                             </div>
                         </div>
-                        <div class="p-6">
-                            <form @submit.prevent="saveUser">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                                        <input
-                                            v-model="editingUser.name"
-                                            type="text"
-                                            required
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                        <input
-                                            v-model="editingUser.email"
-                                            type="email"
-                                            required
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                                        <select
-                                            v-model="editingUser.roleId"
-                                            required
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        >
-                                            <option v-for="role in roles" :key="role.id" :value="role.id">
-                                                {{ role.name }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                                        <select
-                                            v-model="editingUser.teamId"
-                                            required
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        >
-                                            <option v-for="team in teams" :key="team.id" :value="team.id">
-                                                {{ team.name }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                        <select
-                                            v-model="editingUser.status"
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        >
-                                            <option value="active">Ativo</option>
-                                            <option value="inactive">Inativo</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                                        <input
-                                            v-model="editingUser.phone"
-                                            type="text"
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        />
-                                    </div>
-                                </div>
 
-                                <div class="flex justify-end gap-2 mt-6">
-                                    <button
-                                        type="button"
-                                        @click="showUserModal = false"
-                                        class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                                    >
-                                        Salvar
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </Teleport>
-
-            <!-- Permissions Modal -->
-            <Teleport to="body">
-                <div
-                    v-if="showPermissionsModal"
-                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                >
-                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div class="p-6 border-b">
-                            <div class="flex justify-between items-center">
-                                <h2 class="text-xl font-semibold text-gray-900">
-                                    Permissões - {{ selectedUser?.name }}
-                                </h2>
-                                <button @click="showPermissionsModal = false" class="text-gray-400 hover:text-gray-500">
-                                    <X size="24" />
+                        <!-- Tabs -->
+                        <div class="border-b">
+                            <div class="flex">
+                                <button
+                                    @click="activeUserTab = 'info'"
+                                    class="px-4 py-2 text-sm font-medium transition-colors relative"
+                                    :class="activeUserTab === 'info' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'"
+                                >
+                                    Informações Básicas
+                                    <div
+                                        v-if="activeUserTab === 'info'"
+                                        class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                                    ></div>
+                                </button>
+                                <button
+                                    @click="activeUserTab = 'access'"
+                                    class="px-4 py-2 text-sm font-medium transition-colors relative"
+                                    :class="activeUserTab === 'access' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'"
+                                >
+                                    Acesso e Permissões
+                                    <div
+                                        v-if="activeUserTab === 'access'"
+                                        class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                                    ></div>
                                 </button>
                             </div>
                         </div>
+
                         <div class="p-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div v-for="(group, groupKey) in permissionGroups" :key="groupKey" class="border rounded-lg p-4">
-                                    <h3 class="font-medium text-gray-900 mb-3">{{ group.name }}</h3>
-                                    <div class="space-y-3">
-                                        <div
-                                            v-for="permission in group.permissions"
-                                            :key="permission.id"
-                                            class="flex items-center"
-                                        >
+                            <form @submit.prevent="saveUser">
+                                <!-- Basic Info Tab -->
+                                <div v-if="activeUserTab === 'info'">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
                                             <input
-                                                :id="`permission-${permission.id}`"
-                                                v-model="selectedUserPermissions"
-                                                :value="permission.id"
-                                                type="checkbox"
-                                                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                                v-model="editingUser.name"
+                                                type="text"
+                                                required
+                                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
                                             />
-                                            <label
-                                                :for="`permission-${permission.id}`"
-                                                class="ml-2 block text-sm text-gray-700"
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                            <input
+                                                v-model="editingUser.email"
+                                                type="email"
+                                                required
+                                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                            <select
+                                                v-model="editingUser.status"
+                                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
                                             >
-                                                {{ permission.name }}
-                                            </label>
+                                                <option value="active">Ativo</option>
+                                                <option value="inactive">Inativo</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                                            <input
+                                                v-model="editingUser.phone"
+                                                type="text"
+                                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="flex justify-end gap-2 mt-6">
-                                <button
-                                    type="button"
-                                    @click="showPermissionsModal = false"
-                                    class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    @click="savePermissions"
-                                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                                >
-                                    Salvar Permissões
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Teleport>
-
-            <!-- Role Modal -->
-            <Teleport to="body">
-                <div v-if="showRoleModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                        <div class="p-6 border-b">
-                            <div class="flex justify-between items-center">
-                                <h2 class="text-xl font-semibold text-gray-900">
-                                    {{ editingRole.id ? 'Editar Cargo' : 'Novo Cargo' }}
-                                </h2>
-                                <button @click="showRoleModal = false" class="text-gray-400 hover:text-gray-500">
-                                    <X size="24" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <form @submit.prevent="saveRole">
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Cargo</label>
-                                        <input
-                                            v-model="editingRole.name"
-                                            type="text"
-                                            required
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        />
+                                <!-- Access and Permissions Tab -->
+                                <div v-if="activeUserTab === 'access'">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                                            <select
+                                                v-model="editingUser.roleId"
+                                                required
+                                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+                                            >
+                                                <option v-for="role in roles" :key="role.id" :value="role.id">
+                                                    {{ role.name }}
+                                                </option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ roles.find(r => r.id === editingUser.roleId)?.description || '' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                            <select
+                                                v-model="editingUser.teamId"
+                                                required
+                                                class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+                                            >
+                                                <option v-for="team in teams" :key="team.id" :value="team.id">
+                                                    {{ team.name }}
+                                                </option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ teams.find(t => t.id === editingUser.teamId)?.description || '' }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                                        <textarea
-                                            v-model="editingRole.description"
-                                            rows="3"
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        ></textarea>
+
+                                    <!-- Permissions -->
+                                    <div class="mt-6">
+                                        <h3 class="text-sm font-medium text-gray-700 mb-3">Permissões</h3>
+
+                                        <div class="space-y-4">
+                                            <div v-for="(perms, category) in groupedPermissions" :key="category" class="border rounded-lg p-4">
+                                                <h4 class="font-medium text-gray-900 mb-3 capitalize">{{ category }}</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div
+                                                        v-for="permission in perms"
+                                                        :key="permission.id"
+                                                        class="flex items-center"
+                                                    >
+                                                        <input
+                                                            :id="`permission-${permission.id}`"
+                                                            :checked="hasPermission(permission.id)"
+                                                            @change="togglePermission(permission.id)"
+                                                            type="checkbox"
+                                                            class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                                        />
+                                                        <label
+                                                            :for="`permission-${permission.id}`"
+                                                            class="ml-2 block text-sm text-gray-700"
+                                                        >
+                                                            {{ permission.name }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end gap-2 mt-6">
+                                <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
                                     <button
                                         type="button"
-                                        @click="showRoleModal = false"
-                                        class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                                    >
-                                        Salvar
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </Teleport>
-
-            <!-- Team Modal -->
-            <Teleport to="body">
-                <div v-if="showTeamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                        <div class="p-6 border-b">
-                            <div class="flex justify-between items-center">
-                                <h2 class="text-xl font-semibold text-gray-900">
-                                    {{ editingTeam.id ? 'Editar Time' : 'Novo Time' }}
-                                </h2>
-                                <button @click="showTeamModal = false" class="text-gray-400 hover:text-gray-500">
-                                    <X size="24" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <form @submit.prevent="saveTeam">
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Time</label>
-                                        <input
-                                            v-model="editingTeam.name"
-                                            type="text"
-                                            required
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                                        <textarea
-                                            v-model="editingTeam.description"
-                                            rows="3"
-                                            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-                                        ></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-end gap-2 mt-6">
-                                    <button
-                                        type="button"
-                                        @click="showTeamModal = false"
+                                        @click="showUserModal = false"
                                         class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
                                     >
                                         Cancelar

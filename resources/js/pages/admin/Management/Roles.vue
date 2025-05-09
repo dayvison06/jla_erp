@@ -356,7 +356,7 @@ onMounted(() => {
                 <div class="bg-white rounded-lg shadow-sm mb-6">
                     <div class="border-b p-4 md:p-6">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <h1 class="text-2xl font-semibold text-gray-900">Gerenciamento de Cargos</h1>
+                            <h1 class="text-2xl font-semibold text-gray-900">Cargos</h1>
                             <button
                                 @click="openRoleModal()"
                                 class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
