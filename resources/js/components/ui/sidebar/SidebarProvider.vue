@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<{
   open?: boolean
   class?: HTMLAttributes['class']
 }>(), {
-  defaultOpen: true,
+  defaultOpen: false,
   open: undefined,
 })
 
@@ -22,7 +22,7 @@ const isMobile = useMediaQuery('(max-width: 768px)')
 const openMobile = ref(false)
 
 const open = useVModel(props, 'open', emits, {
-  defaultValue: props.defaultOpen ?? false,
+  defaultValue: false,
   passive: (props.open === undefined) as false,
 }) as Ref<boolean>
 

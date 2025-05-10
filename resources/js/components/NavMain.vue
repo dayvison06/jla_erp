@@ -8,20 +8,21 @@ import {
     useSidebar
 } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
-import { Plus, EllipsisVertical } from 'lucide-vue-next';
+import { EllipsisVertical } from 'lucide-vue-next';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     DropdownMenu,
-    DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import type { Component } from 'vue';
 
 defineProps<{
     items: NavItem[];
 }>();
 
-const { isMobile } = useSidebar()
+const { isMobile } = useSidebar();
 const page = usePage<SharedData>();
 </script>
 
@@ -33,7 +34,7 @@ const page = usePage<SharedData>();
 <!--                Menu sem sub-items-->
                 <SidebarMenuButton class="mb-2" as-child v-if="!item.subItems" :tooltip="item.title" :is-active="item.href === page.url">
                     <Link :href="item.href">
-                        <component :is="item.icon" v-if="item.icon" />
+                        <component :is="item.icon" class="!size-5" v-if="item.icon" />
                         <span>{{ item.title }}</span>
                     </Link>
                 </SidebarMenuButton>

@@ -4,7 +4,7 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Users, CircleGauge, Workflow, HandCoins, HardHat, Construction, CircleDollarSign, FileChartColumn } from 'lucide-vue-next';
+import { Users, CircleGauge, HandCoins, HardHat, Construction, CircleDollarSign, FileChartColumn } from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import { usePage } from '@inertiajs/vue3'
 
@@ -50,18 +50,9 @@ const mainNavItems: NavItem[] = [
 const teams = userTeam.map((team) => ({
     name: team.name,
 }));
-// const footerNavItems: NavItem[] = [
-//     {
-//         title: 'Github Repo',
-//         href: 'https://github.com/laravel/vue-starter-kit',
-//         icon: Folder,
-//     },
-//     {
-//         title: 'Wiki',
-//         href: '#',
-//         icon: BookOpen,
-//     },
-// ];
+const footerNavItems: NavItem[] = [
+
+];
 </script>
 
 <template>

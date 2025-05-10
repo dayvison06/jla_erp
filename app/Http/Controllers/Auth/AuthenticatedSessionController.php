@@ -34,7 +34,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $hasAcessAdmin = $this->hasAccessAdmin($request);
-
         // Adiciona a variável de sessão hasAcessAdmin  para validação no Middleware
         $request->session()->put('hasAccessAdmin', $hasAcessAdmin);
 
