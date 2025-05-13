@@ -17,35 +17,10 @@ const mainNavItems: NavItem[] = [
         icon: CircleGauge,
     },
     {
-        title: 'Clientes',
-        href: '/clientes',
-        icon: Users,
-    },
-    {
-        title: 'Obras',
-        href: '/obras',
-        icon: Construction,
-    },
-    {
-        title: 'Orçamentos',
-        href: '/orcamentos',
-        icon: CircleDollarSign,
-    },
-    {
-        title: 'Serviços',
-        href: '/servicos',
-        icon: HandCoins,
-    },
-    {
         title: 'Funcionários',
         href: '/funcionarios',
         icon: HardHat,
     },
-    {
-        title: 'Relatórios',
-        href: '/relatorios',
-        icon: FileChartColumn,
-    }
 ];
 const teams = userTeam.map((team) => ({
     name: team.name,

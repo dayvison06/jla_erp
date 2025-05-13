@@ -4,6 +4,10 @@ import { Head } from '@inertiajs/vue3';
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
     PlusIcon,
+    Cross,
+    Banknote,
+    FilePenLine,
+    Users,
     SearchIcon,
     EditIcon,
     TrashIcon,
@@ -19,14 +23,11 @@ import {
     UserIcon,
     FilterIcon,
     DownloadIcon,
-    CheckIcon,
+    Paperclip,
+    BriefcaseBusiness,
+    MapPinHouse,
     AlertCircleIcon,
-    CalendarIcon,
-    ClockIcon,
     BellIcon,
-    UserPlusIcon,
-    UserMinusIcon,
-    BadgeCheckIcon
 } from 'lucide-vue-next'
 import type { BreadcrumbItem } from "@/types";
 
@@ -263,13 +264,13 @@ const formData = reactive<Employee>({
 // Dados de referência
 const tabs = [
     {id: 'personal', name: 'Dados Pessoais', icon: UserIcon},
-    {id: 'documents', name: 'Documentos Trabalhistas', icon: FileTextIcon},
-    {id: 'contact', name: 'Endereço e Contato', icon: FileIcon},
-    {id: 'bank', name: 'Dados Bancários', icon: FileIcon},
-    {id: 'contract', name: 'Informações Contratuais', icon: FileIcon},
-    {id: 'health', name: 'Saúde e Segurança', icon: FileIcon},
-    {id: 'dependents', name: 'Dependentes', icon: FileIcon},
-    {id: 'attachments', name: 'Anexos', icon: FileIcon},
+    {id: 'documents', name: 'Documentos Trabalhistas', icon: BriefcaseBusiness},
+    {id: 'contact', name: 'Endereço e Contato', icon: MapPinHouse},
+    {id: 'bank', name: 'Dados Bancários', icon: Banknote},
+    {id: 'contract', name: 'Informações Contratuais', icon: FilePenLine},
+    {id: 'health', name: 'Saúde e Segurança', icon: Cross},
+    {id: 'dependents', name: 'Dependentes', icon: Users},
+    {id: 'attachments', name: 'Anexos', icon: Paperclip},
 ]
 
 const estados = [
@@ -1861,84 +1862,6 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                         <p class="text-xs text-gray-500">Ex: CREA, CRM, OAB, etc.</p>
                                     </div>
                                 </div>
-
-                                <!-- Documentos anexados -->
-                                <div class="mt-8">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h3 class="text-lg font-medium">Documentos</h3>
-                                        <button
-                                            @click="addDocumento"
-                                            type="button"
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                                        >
-                                            <PlusIcon class="h-4 w-4 mr-1"/>
-                                            Adicionar Documento
-                                        </button>
-                                    </div>
-
-                                    <div v-if="formData.documentos.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                        Nenhum documento cadastrado
-                                    </div>
-
-                                    <div v-else class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Documento
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Tipo
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Data de Emissão
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Validade
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Status
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Ações
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-200">
-                                            <tr v-for="doc in formData.documentos" :key="doc.id" class="hover:bg-gray-50">
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="flex items-center">
-                                                        <FileTextIcon class="h-5 w-5 text-gray-400 mr-2" />
-                                                        <span class="text-sm font-medium text-gray-900">{{ doc.nome }}</span>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ doc.tipo }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ formatDate(doc.dataEmissao) }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ doc.dataValidade ? formatDate(doc.dataValidade) : 'Não expira' }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getDocumentStatusColor(doc.status)">
-                                                            {{ getDocumentStatusText(doc.status) }}
-                                                        </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button @click="editDocumento(doc)" class="text-emerald-600 hover:text-emerald-900 mr-3">
-                                                        <EditIcon class="w-5 h-5" />
-                                                    </button>
-                                                    <button @click="removeDocumento(doc.id)" class="text-red-600 hover:text-red-900">
-                                                        <TrashIcon class="w-5 h-5" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
                             </div>
 
                             <!-- 3. Endereço e Contato -->
@@ -2534,17 +2457,6 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div v-if="activeTab === 'attachments'" class="space-y-6">
                                 <div class="flex justify-between items-center mb-4">
                                     <h3 class="text-lg font-medium">Anexos e Documentos</h3>
-                                    <label
-                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 cursor-pointer"
-                                    >
-                                        <UploadIcon class="h-4 w-4 mr-1" />
-                                        Adicionar Arquivo
-                                        <input
-                                            type="file"
-                                            class="hidden"
-                                            @change="handleFileUpload"
-                                        />
-                                    </label>
                                 </div>
 
                                 <!-- Área de Drag and Drop -->
@@ -2614,22 +2526,24 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                                     <option v-for="cat in categoriasDocumento" :key="cat" :value="cat">{{ cat }}</option>
                                                 </select>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <a
-                                                    :href="anexo.url"
-                                                    target="_blank"
-                                                    class="text-emerald-600 hover:text-emerald-900 mr-3"
-                                                    title="Visualizar"
-                                                >
-                                                    <EyeIcon class="w-5 h-5" />
-                                                </a>
-                                                <button
-                                                    @click="removeAnexo(anexo.id)"
-                                                    class="text-red-600 hover:text-red-900"
-                                                    title="Excluir"
-                                                >
-                                                    <TrashIcon class="w-5 h-5" />
-                                                </button>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
+                                                <div class="flex items-center">
+                                                    <a
+                                                        :href="anexo.url"
+                                                        target="_blank"
+                                                        class="text-gray-900 hover:text-emerald-900 mr-3"
+                                                        title="Visualizar"
+                                                    >
+                                                        <EyeIcon class="w-5 h-5" />
+                                                    </a>
+                                                    <button
+                                                        @click="removeAnexo(anexo.id)"
+                                                        class="text-red-600 hover:text-red-900"
+                                                        title="Excluir"
+                                                    >
+                                                        <TrashIcon class="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                         </tbody>
