@@ -33,11 +33,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $hasAcessAdmin = $this->hasAccessAdmin($request);
-        // Adiciona a variável de sessão hasAcessAdmin  para validação no Middleware
-        $request->session()->put('hasAccessAdmin', $hasAcessAdmin);
+        $permissions = $this->loadEveryPermissions($request);
 
-        if ($hasAcessAdmin) {
+        // Adiciona a variável de sessão hasAcessAdmin  para validação no Middleware
+        $request->session()->put('permissions', $permissions);
+
+        if (isset($permissions['administrator'])) {
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
@@ -57,18 +58,16 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 
-    public function hasAccessAdmin(Request $request): bool
+    public function loadEveryPermissions(Request $request): array
     {
-        $teamAdmin = $request->user()->teams()->whereHas('permissions', function ($query) {
-            $query->where('name', 'administrator');
-        })->exists();
+        $teams = $request->user()->teams()->with('permissions')->get()->pluck('permissions.*.name')->toArray();
 
-        $permissionAdmin = $request->user()->permissions()->where('name', 'administrator')->exists();
+        $permissions = $request->user()->permissions()->get()->pluck('permissions.*.name')->toArray();
 
-        $roleAdmin = $request->user()->roles()->whereHas('permissions', function ($query) {
-            $query->where('name', 'administrator');
-        })->exists();
+        $roles = $request->user()->roles()->with('permissions')->get()->pluck('permissions.*.name')->toArray();
 
-        return $teamAdmin || $permissionAdmin || $roleAdmin;
+        $loadedPermissions = array_merge(...$teams, ...$permissions, ...$roles);
+
+        return array_unique($loadedPermissions);
     }
 }

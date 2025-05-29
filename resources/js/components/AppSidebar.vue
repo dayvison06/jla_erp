@@ -4,11 +4,12 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Users, CircleGauge, HandCoins, HardHat, Construction, CircleDollarSign, FileChartColumn } from 'lucide-vue-next';
+import { LayoutDashboard, CircleGauge, Cog, HardHat, Construction, CircleDollarSign, FileChartColumn } from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import { usePage } from '@inertiajs/vue3'
 
 const page = usePage();
+const permissions = page.props.session.permissions;
 const userTeam = page.props.auth.user.teams;
 const mainNavItems: NavItem[] = [
     {
@@ -22,12 +23,41 @@ const mainNavItems: NavItem[] = [
         icon: HardHat,
     },
 ];
+
+const adminNavItem: NavItem[] = [
+    {
+    title: 'Administração',
+    icon: Cog,
+    subItems: [
+        {
+            title: 'Painel Admin',
+            href: '/admin',
+            icon: LayoutDashboard,
+        },
+        {
+            title: 'Relatórios',
+            href: '/admin/relatorios',
+            icon: FileChartColumn,
+        },
+        {
+            title: 'Configurações',
+            href: '/admin/configuracoes',
+            icon: Construction,
+        },
+    ],
+}
+];
+
+// Adiciona o menu de administração
+mainNavItems.push(...(permissions.includes('administrator') ? adminNavItem : []));
+
 const teams = userTeam.map((team) => ({
     name: team.name,
 }));
 const footerNavItems: NavItem[] = [
 
 ];
+
 </script>
 
 <template>
