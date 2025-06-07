@@ -2,7 +2,7 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { ref } from 'vue';
 
-export const appName = ref('Liber Helper');
+const appName = ref('Liber Helper');
 </script>
 
 <template>

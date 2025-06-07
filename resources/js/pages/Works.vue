@@ -5,14 +5,12 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import {
     PlusIcon,
     SearchIcon,
-    FilterIcon,
     DownloadIcon,
     EditIcon,
     TrashIcon,
     XIcon,
     ChevronUpIcon,
     ChevronDownIcon,
-    HardHatIcon,
     PlusCircleIcon
 } from 'lucide-vue-next'
 

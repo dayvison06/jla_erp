@@ -4,8 +4,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -15,8 +13,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { ChevronsUpDown, Plus } from 'lucide-vue-next'
-import { type Component, ref } from 'vue'
+import { ChevronsUpDown } from 'lucide-vue-next'
+import { ref } from 'vue'
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { appName } from '@/composables/useAppName.ts';
 

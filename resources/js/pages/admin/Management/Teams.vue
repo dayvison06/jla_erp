@@ -571,7 +571,7 @@ onMounted(() => {
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex -space-x-2 overflow-hidden">
                                         <div
-                                            v-for="(member, index) in getTeamMembers(team.id).slice(0, 3)"
+                                            v-for="(member) in getTeamMembers(team.id).slice(0, 3)"
                                             :key="member.id"
                                             class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
                                             :title="member.name"

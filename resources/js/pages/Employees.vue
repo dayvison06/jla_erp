@@ -541,20 +541,6 @@ const removeDependente = (index: number) => {
     formData.dependentes.splice(index, 1);
 }
 
-const addDocumento = () => {
-    showDocumentModal.value = true;
-    currentDocument.value = {
-        id: Date.now(),
-        nome: '',
-        tipo: '',
-        dataEmissao: '',
-        dataValidade: null,
-        arquivo: null,
-        url: '',
-        status: 'pendente'
-    };
-}
-
 const saveDocumento = () => {
     if (!currentDocument.value) return;
 
@@ -585,15 +571,6 @@ const saveDocumento = () => {
 
     showDocumentModal.value = false;
     currentDocument.value = null;
-}
-
-const editDocumento = (documento: Documento) => {
-    currentDocument.value = { ...documento };
-    showDocumentModal.value = true;
-}
-
-const removeDocumento = (id: number) => {
-    formData.documentos = formData.documentos.filter(doc => doc.id !== id);
 }
 
 const handleDocumentUpload = (event: Event) => {
@@ -848,25 +825,6 @@ const getFileIcon = (tipo: string) => {
     return FileIcon;
 }
 
-const handleProfilePhotoUpload = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-        const file = input.files[0];
-
-        // Verificar se é uma imagem
-        if (!file.type.startsWith('image/')) {
-            alert('Por favor, selecione apenas arquivos de imagem.');
-            return;
-        }
-
-        profilePhotoPreview.value = URL.createObjectURL(file);
-        showProfilePhotoModal.value = true;
-
-        // Reset input
-        input.value = '';
-    }
-}
-
 const saveProfilePhoto = () => {
     formData.foto = profilePhotoPreview.value;
     showProfilePhotoModal.value = false;
@@ -909,32 +867,6 @@ const getStatusText = (status: string) => {
             return 'Afastado';
         case 'desligado':
             return 'Desligado';
-        default:
-            return 'Desconhecido';
-    }
-}
-
-const getDocumentStatusColor = (status: string) => {
-    switch (status) {
-        case 'valido':
-            return 'bg-green-100 text-green-800';
-        case 'pendente':
-            return 'bg-yellow-100 text-yellow-800';
-        case 'vencido':
-            return 'bg-red-100 text-red-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
-    }
-}
-
-const getDocumentStatusText = (status: string) => {
-    switch (status) {
-        case 'valido':
-            return 'Válido';
-        case 'pendente':
-            return 'Pendente';
-        case 'vencido':
-            return 'Vencido';
         default:
             return 'Desconhecido';
     }
