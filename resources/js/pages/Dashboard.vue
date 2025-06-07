@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type SharedData, type User } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
+import { type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import {
     BarChart2,
@@ -15,8 +15,6 @@ import {
     Calendar,
     UserCheck,
 } from 'lucide-vue-next';
-
-const page = usePage<SharedData>();
 
 const stats = ref([
     {

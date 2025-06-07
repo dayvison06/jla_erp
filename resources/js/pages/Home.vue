@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { ref, computed } from 'vue';
-import { BellIcon, UserIcon, File, ClockIcon, ChartBarIcon, CogIcon, UsersIcon, FolderIcon, PlusIcon, CheckIcon } from 'lucide-vue-next';
+import { ref } from 'vue';
+import { File, ChartBarIcon, CogIcon, PlusIcon } from 'lucide-vue-next';
 import { BreadcrumbItem } from '@/types';
 
 // Tipos
@@ -14,31 +14,11 @@ interface User {
     lastLogin: Date;
 }
 
-interface Stat {
-    name: string;
-    value: string | number;
-    icon: any;
-}
-
 interface QuickAction {
     title: string;
     description: string;
     icon: any;
     link: string;
-}
-
-interface Activity {
-    title: string;
-    description: string;
-    time: string;
-    icon: any;
-}
-
-interface Announcement {
-    title: string;
-    content: string;
-    date: string;
-    isNew: boolean;
 }
 
 // Dados do usuário (normalmente viriam de uma API)
@@ -48,14 +28,6 @@ const user = ref<User>({
     role: 'Administrador',
     lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000) // ontem
 });
-
-// Estatísticas
-const stats = ref<Stat[]>([
-    { name: 'Projetos Ativos', value: 12, icon: FolderIcon },
-    { name: 'Tarefas Pendentes', value: 8, icon: ClockIcon },
-    { name: 'Relatórios', value: 5, icon: ChartBarIcon },
-    { name: 'Membros da Equipe', value: 24, icon: UsersIcon }
-]);
 
 // Ações rápidas
 const quickActions = ref<QuickAction[]>([
@@ -85,59 +57,12 @@ const quickActions = ref<QuickAction[]>([
     }
 ]);
 
-// Atividades recentes
-const recentActivities = ref<Activity[]>([
-    {
-        title: 'Projeto atualizado',
-        description: 'Você atualizou o projeto "Redesign do Site"',
-        time: '2h atrás',
-        icon: CheckIcon
-    },
-    {
-        title: 'Novo documento',
-        description: 'Você adicionou "Relatório Q2" aos documentos',
-        time: '5h atrás',
-        icon: File
-    },
-    {
-        title: 'Reunião agendada',
-        description: 'Reunião de equipe agendada para amanhã às 10h',
-        time: '1d atrás',
-        icon: ClockIcon
-    }
-]);
-
-// Anúncios
-const announcements = ref<Announcement[]>([
-    {
-        title: 'Atualização do Sistema',
-        content: 'Uma nova versão do sistema será lançada na próxima semana com melhorias de desempenho.',
-        date: '22/05/2025',
-        isNew: true
-    },
-    {
-        title: 'Manutenção Programada',
-        content: 'O sistema estará indisponível para manutenção no domingo, das 2h às 4h.',
-        date: '18/05/2025',
-        isNew: false
-    }
-]);
-
 // Métodos
 const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Bom dia!';
     if (hour < 18) return 'Boa tarde!';
     return 'Boa noite!';
-};
-
-const getInitials = (name: string) => {
-    return name
-        .split(' ')
-        .map(part => part[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
 };
 
 const breadcrumbs: BreadcrumbItem = [

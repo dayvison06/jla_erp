@@ -421,7 +421,7 @@ onMounted(() => {
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex -space-x-2 overflow-hidden">
                                         <div
-                                            v-for="(user, index) in getRoleUsers(role.id).slice(0, 3)"
+                                            v-for="(user) in getRoleUsers(role.id).slice(0, 3)"
                                             :key="user.id"
                                             class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
                                             :title="user.name"
@@ -443,7 +443,7 @@ onMounted(() => {
                                 <td class="px-6 py-4">
                                     <div class="flex flex-wrap gap-1">
                     <span
-                        v-for="(permission, index) in role.permissions.slice(0, 2)"
+                        v-for="(permission) in role.permissions.slice(0, 2)"
                         :key="permission"
                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                     >

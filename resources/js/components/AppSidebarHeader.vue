@@ -2,7 +2,6 @@
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItemType } from '@/types';
-import Theme from '@/components/ui/navbar/Theme.vue';
 import Notification from '@/components/ui/navbar/Notification.vue';
 import { useNotification } from '@/composables/useNotification';
 const { notifications } = useNotification()

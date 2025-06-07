@@ -3,10 +3,6 @@ import { Head } from '@inertiajs/vue3'
 import AppAdminLayout from '@/layouts/AppAdminLayout.vue';
 import { ref, computed } from 'vue';
 import {
-    MenuIcon,
-    XIcon,
-    UserCircleIcon,
-    ChevronDownIcon,
     UserIcon,
     UsersIcon,
     ShieldCheckIcon,

@@ -101,14 +101,6 @@ const tabs = [
     { id: 'teams', name: 'Times' }
 ]
 
-// Table headers
-const userTableHeaders = [
-    { key: 'name', label: 'Nome', class: 'w-1/4' },
-    { key: 'status', label: 'Status', class: 'w-1/6' },
-    { key: 'role', label: 'Cargo', class: 'w-1/6' },
-    { key: 'team', label: 'Time', class: 'w-1/6' }
-]
-
 // Permission groups
 const permissionGroups = ref<Record<string, PermissionGroup>>({
     users: {
@@ -173,12 +165,6 @@ const filteredUsers = computed(() => {
     }
 
     return result
-})
-
-const paginatedUsers = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value
-    const end = start + itemsPerPage.value
-    return filteredUsers.value.slice(start, end)
 })
 
 const totalPages = computed(() => {
