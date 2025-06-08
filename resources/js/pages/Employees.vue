@@ -64,7 +64,6 @@ interface Anexo {
     dataUpload: string;
     arquivo: File | null;
     url: string;
-    categoria: string;
 }
 
 interface HistoricoCargo {
@@ -312,15 +311,6 @@ const categoriasCnh = [
 
 const tiposSanguineos = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
-]
-
-const categoriasDocumento = [
-    'Identificação',
-    'Trabalhista',
-    'Acadêmico',
-    'Saúde',
-    'Financeiro',
-    'Outros'
 ]
 
 // Computed properties
@@ -755,23 +745,23 @@ const resetForm = () => {
 const handleFileUpload = (event: Event) => {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-        const file = input.files[0];
-        const fileSize = file.size / 1024 < 1024
-            ? `${(file.size / 1024).toFixed(2)} KB`
-            : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+        Array.from(input.files).forEach((file) => {
+            const fileSize = file.size / 1024 < 1024
+                ? `${(file.size / 1024).toFixed(2)} KB`
+                : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
 
-        const newAttachment = {
-            id: Date.now(),
-            nome: file.name,
-            tipo: file.type,
-            tamanho: fileSize,
-            dataUpload: new Date().toISOString().split('T')[0],
-            arquivo: file,
-            url: URL.createObjectURL(file),
-            categoria: 'Outros'
-        };
+            const newAttachment = {
+                id: Date.now(),
+                nome: file.name,
+                tipo: file.type,
+                tamanho: fileSize,
+                dataUpload: new Date().toISOString().split('T')[0],
+                arquivo: file,
+                url: URL.createObjectURL(file),
+            };
 
-        formData.anexos.push(newAttachment);
+            formData.anexos.push(newAttachment);
+        });
 
         // Reset input
         input.value = '';
@@ -798,7 +788,6 @@ const handleFileDrop = (event: DragEvent) => {
             dataUpload: new Date().toISOString().split('T')[0],
             arquivo: file,
             url: URL.createObjectURL(file),
-            categoria: 'Outros'
         };
 
         formData.anexos.push(newAttachment);
@@ -1286,1505 +1275,1364 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
 <template>
     <Head title='Funcionários'/>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 bg-background text-foreground">
-            <div class="flex flex-1 flex-col overflow-hidden">
-                <main class="flex-1 overflow-auto p-4 md:p-6">
-                    <!-- Cabeçalho do módulo -->
-                    <header v-if="!showEmployeeForm" class="text-black mb-6">
-                        <div class="mx-auto flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <h1 class="text-2xl font-bold">Funcionários</h1>
+        <main class="container mx-auto px-4 py-8">
+            <!-- Cabeçalho do módulo -->
+            <header v-if="!showEmployeeForm" class="text-black mb-6">
+                <div class="mx-auto flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-2xl font-bold">Funcionários</h1>
+                    </div>
+                    <button
+                        @click="showEmployeeForm = true; currentEmployee = null"
+                        class="bg-gray-600 cursor-pointer hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center"
+                    >
+                        <PlusIcon class="w-5 h-5 mr-2"/>
+                        Novo Funcionário
+                    </button>
+                </div>
+            </header>
+
+            <!-- Alertas e notificações -->
+            <div v-if="!showEmployeeForm && (documentosVencidos > 0 || proximosExames.length > 0)" class="mb-6">
+                <div v-if="documentosVencidos > 0" class="bg-red-50 border-l-4 border-red-500 p-4 mb-3">
+                    <div class="flex items-center">
+                        <AlertCircleIcon class="h-5 w-5 text-red-500 mr-2" />
+                        <p class="text-sm text-red-700">
+                            <span class="font-bold">Atenção:</span> Existem {{ documentosVencidos }} documentos vencidos que precisam de atenção.
+                        </p>
+                    </div>
+                </div>
+
+                <div v-if="proximosExames.length > 0" class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                    <div class="flex items-center">
+                        <BellIcon class="h-5 w-5 text-yellow-500 mr-2" />
+                        <p class="text-sm text-yellow-700">
+                            <span class="font-bold">Lembrete:</span> {{ proximosExames.length }} funcionários têm exames médicos agendados nos próximos 30 dias.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo de listagem -->
+            <div v-if="!showEmployeeForm">
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center mb-4 gap-4">
+                        <div class="flex-grow">
+                            <div class="relative">
+                                <input
+                                    v-model="searchQuery"
+                                    type="text"
+                                    placeholder="Buscar funcionário por nome, CPF, cargo..."
+                                    class="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                                <SearchIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
                             </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row gap-2">
+                            <div class="relative">
+                                <select
+                                    v-model="statusFilter"
+                                    class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"
+                                >
+                                    <option value="todos">Todos os status</option>
+                                    <option value="ativo">Ativos</option>
+                                    <option value="inativo">Inativos</option>
+                                    <option value="ferias">Em férias</option>
+                                    <option value="afastado">Afastados</option>
+                                    <option value="desligado">Desligados</option>
+                                </select>
+                                <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
+                            </div>
+
+                            <div class="relative">
+                                <select
+                                    v-model="departmentFilter"
+                                    class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"
+                                >
+                                    <option value="todos">Todos os departamentos</option>
+                                    <option v-for="dept in uniqueDepartments" :key="dept" :value="dept">{{ dept }}</option>
+                                </select>
+                                <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
+                            </div>
+
                             <button
-                                @click="showEmployeeForm = true; currentEmployee = null"
-                                class="bg-emerald-600 cursor-pointer hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center"
+                                @click="exportarDados"
+                                class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
                             >
-                                <PlusIcon class="w-5 h-5 mr-2"/>
-                                Novo Funcionário
+                                <DownloadIcon class="w-5 h-5 mr-2" />
+                                Exportar
                             </button>
                         </div>
-                    </header>
+                    </div>
+                </div>
 
-                    <!-- Alertas e notificações -->
-                    <div v-if="!showEmployeeForm && (documentosVencidos > 0 || proximosExames.length > 0)" class="mb-6">
-                        <div v-if="documentosVencidos > 0" class="bg-red-50 border-l-4 border-red-500 p-4 mb-3">
-                            <div class="flex items-center">
-                                <AlertCircleIcon class="h-5 w-5 text-red-500 mr-2" />
-                                <p class="text-sm text-red-700">
-                                    <span class="font-bold">Atenção:</span> Existem {{ documentosVencidos }} documentos vencidos que precisam de atenção.
-                                </p>
+                <!-- Tabela de funcionários -->
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Departamento
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data
+                                de Admissão
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ações
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="employee in filteredEmployees" :key="employee.id" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div v-if="!employee.foto"
+                                             class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">
+                                            {{ getInitials(employee.nome) }}
+                                        </div>
+                                        <img v-else :src="employee.foto" alt="" class="h-10 w-10 rounded-full object-cover">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ employee.nome }}</div>
+                                        <div class="text-sm text-gray-500">{{ employee.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.cargo }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.departamento }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ formatDate(employee.dataAdmissao) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
+                                            {{ getStatusText(employee.status) }}
+                                        </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button @click="editEmployee(employee)"
+                                        class="text-gray-600 hover:text-gray-900 mr-3">
+                                    <EditIcon class="w-5 h-5"/>
+                                </button>
+                                <button @click="confirmDelete(employee)" class="text-red-600 hover:text-red-900">
+                                    <TrashIcon class="w-5 h-5"/>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-if="filteredEmployees.length === 0">
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                Nenhum funcionário encontrado
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-700">
+                        Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{
+                            filteredEmployees.length
+                        }}</span> de <span class="font-medium">{{ employees.length }}</span> resultados
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Anterior</button>
+                        <button class="px-3 py-1 border rounded-md bg-gray-50 text-gray-600 font-medium">1</button>
+                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Próxima</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de funcionário -->
+            <div v-else>
+                <div class="flex justify-between items-center mb-5">
+                    <h2 class="text-xl font-semibold">{{ currentEmployee ? `Alterando dados de ${ currentEmployee.nome }` : 'Novo Funcionário' }}</h2>
+                    <button @click="showEmployeeForm = false" class="text-gray-500 hover:text-gray-700">
+                        <XIcon class="w-6 h-6"/>
+                    </button>
+                </div>
+
+                <!-- Abas -->
+                <div>
+                    <div class="flex overflow-x-auto mb-6">
+                        <button
+                            v-for="tab in tabs"
+                            :key="tab.id"
+                            @click="activeTab = tab.id"
+                            :class="[
+                                        'px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center',
+                                        activeTab === tab.id
+                                            ? 'border-b-2 border-gray-600 bg-gray-50 rounded-t text-gray-700'
+                                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    ]"
+                        >
+                            <component :is="tab.icon" class="w-4 h-4 mr-2" />
+                            {{ tab.name }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conteúdo das abas -->
+                <div class="p-4 bg-white">
+                    <!-- 1. Dados Pessoais -->
+                    <div v-if="activeTab === 'personal'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
+                                <input
+                                    v-model="formData.nome"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
                             </div>
-                        </div>
 
-                        <div v-if="proximosExames.length > 0" class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
-                            <div class="flex items-center">
-                                <BellIcon class="h-5 w-5 text-yellow-500 mr-2" />
-                                <p class="text-sm text-yellow-700">
-                                    <span class="font-bold">Lembrete:</span> {{ proximosExames.length }} funcionários têm exames médicos agendados nos próximos 30 dias.
-                                </p>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                <input
+                                    v-model="formData.dataNascimento"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
+                                <select
+                                    v-model="formData.sexo"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Feminino</option>
+                                    <option value="O">Outro</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
+                                <select
+                                    v-model="formData.estadoCivil"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="solteiro">Solteiro(a)</option>
+                                    <option value="casado">Casado(a)</option>
+                                    <option value="divorciado">Divorciado(a)</option>
+                                    <option value="viuvo">Viúvo(a)</option>
+                                    <option value="uniao">União Estável</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
+                                <input
+                                    v-model="formData.nacionalidade"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
+                                <input
+                                    v-model="formData.naturalidade"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                <input
+                                    v-model="formData.cpf"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                    @input="formatCPF"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">RG *</label>
+                                <input
+                                    v-model="formData.rg"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
+                                <input
+                                    v-model="formData.orgaoEmissor"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
+                                <input
+                                    v-model="formData.dataEmissao"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
+                                <input
+                                    v-model="formData.tituloEleitor"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
+                                <input
+                                    v-model="formData.reservista"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                                <p class="text-xs text-gray-500">Opcional para homens</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
+                                <input
+                                    v-model="formData.nomeMae"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
+                                <input
+                                    v-model="formData.nomePai"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Status *</label>
+                                <select
+                                    v-model="formData.status"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="ativo">Ativo</option>
+                                    <option value="inativo">Inativo</option>
+                                    <option value="ferias">Em Férias</option>
+                                    <option value="afastado">Afastado</option>
+                                    <option value="desligado">Desligado</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
+                                <select
+                                    v-model="formData.escolaridade"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="fundamental">Ensino Fundamental</option>
+                                    <option value="medio">Ensino Médio</option>
+                                    <option value="tecnico">Ensino Técnico</option>
+                                    <option value="superior">Ensino Superior</option>
+                                    <option value="posGraduacao">Pós-graduação</option>
+                                    <option value="mestrado">Mestrado</option>
+                                    <option value="doutorado">Doutorado</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
+                                <select
+                                    v-model="formData.tipoSanguineo"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                >
+                                    <option value="">Selecione</option>
+                                    <option v-for="tipo in tiposSanguineos" :key="tipo" :value="tipo">{{ tipo }}</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Modo de listagem -->
-                    <div v-if="!showEmployeeForm">
-                        <div class="mb-6">
-                            <div class="flex flex-col md:flex-row md:items-center mb-4 gap-4">
-                                <div class="flex-grow">
-                                    <div class="relative">
+                    <!-- 2. Documentos Trabalhistas -->
+                    <div v-if="activeTab === 'documents'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho
+                                    *</label>
+                                <input
+                                    v-model="formData.numeroCtps"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
+                                <input
+                                    v-model="formData.serieCtps"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">UF CTPS *</label>
+                                <select
+                                    v-model="formData.ufCtps"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option v-for="uf in estados" :key="uf" :value="uf">{{ uf }}</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
+                                <input
+                                    v-model="formData.pisPasep"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Número do NIT</label>
+                                <input
+                                    v-model="formData.nit"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                                <p class="text-xs text-gray-500">Para autônomos ou contribuintes individuais</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">CNH</label>
+                                <input
+                                    v-model="formData.cnh"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Categoria CNH</label>
+                                <select
+                                    v-model="formData.categoriaCnh"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                >
+                                    <option value="">Selecione</option>
+                                    <option v-for="cat in categoriasCnh" :key="cat" :value="cat">{{ cat }}</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
+                                <input
+                                    v-model="formData.validadeCnh"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
+                                <input
+                                    v-model="formData.registroProfissional"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                                <p class="text-xs text-gray-500">Ex: CREA, CRM, OAB, etc.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Endereço e Contato -->
+                    <div v-if="activeTab === 'contact'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">CEP *</label>
+                                <input
+                                    v-model="formData.cep"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                    @input="formatCEP"
+                                    @blur="buscarCep"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
+                                <input
+                                    v-model="formData.logradouro"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Número *</label>
+                                <input
+                                    v-model="formData.numero"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Complemento</label>
+                                <input
+                                    v-model="formData.complemento"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Bairro *</label>
+                                <input
+                                    v-model="formData.bairro"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Cidade *</label>
+                                <input
+                                    v-model="formData.cidade"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Estado *</label>
+                                <select
+                                    v-model="formData.estado"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option v-for="uf in estados" :key="uf" :value="uf">{{ uf }}</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Telefone *</label>
+                                <input
+                                    v-model="formData.telefone"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                    @input="formatTelefone"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Celular</label>
+                                <input
+                                    v-model="formData.celular"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    @input="formatCelular"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">E-mail *</label>
+                                <input
+                                    v-model="formData.email"
+                                    type="email"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
+                                <input
+                                    v-model="formData.contatoEmergencia"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
+                                <input
+                                    v-model="formData.telefoneEmergencia"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    @input="formatTelefoneEmergencia"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Dados Bancários -->
+                    <div v-if="activeTab === 'bank'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Banco *</label>
+                                <select
+                                    v-model="formData.banco"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option v-for="banco in bancos" :key="banco.codigo" :value="banco.codigo">
+                                        {{ banco.codigo }} - {{ banco.nome }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Agência *</label>
+                                <input
+                                    v-model="formData.agencia"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Conta *</label>
+                                <input
+                                    v-model="formData.conta"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Tipo de conta *</label>
+                                <select
+                                    v-model="formData.tipoConta"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="corrente">Conta Corrente</option>
+                                    <option value="poupanca">Conta Poupança</option>
+                                    <option value="salario">Conta Salário</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
+                                <input
+                                    v-model="formData.chavePix"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                                <p class="text-xs text-gray-500">CPF, e-mail, telefone ou chave aleatória</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Informações Contratuais -->
+                    <div v-if="activeTab === 'contract'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
+                                <input
+                                    v-model="formData.cargo"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Setor/departamento *</label>
+                                <select
+                                    v-model="formData.departamento"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option v-for="dept in departamentos" :key="dept" :value="dept">{{ dept }}</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Tipo de vínculo *</label>
+                                <select
+                                    v-model="formData.tipoVinculo"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="clt">CLT</option>
+                                    <option value="estagio">Estágio</option>
+                                    <option value="pj">PJ</option>
+                                    <option value="autonomo">Autônomo</option>
+                                    <option value="temporario">Temporário</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
+                                <input
+                                    v-model="formData.dataAdmissao"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
+                                <input
+                                    v-model="formData.dataDesligamento"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    :disabled="formData.status !== 'desligado'"
+                                />
+                                <p class="text-xs text-gray-500">Aplicável apenas para funcionários desligados</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Salário *</label>
+                                <input
+                                    v-model="formData.salario"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                    @input="formatSalario"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
+                                <input
+                                    v-model="formData.jornadaTrabalho"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                    placeholder="Ex: 44 horas semanais"
+                                />
+                            </div>
+
+                            <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Benefícios</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="flex items-center">
                                         <input
-                                            v-model="searchQuery"
-                                            type="text"
-                                            placeholder="Buscar funcionário por nome, CPF, cargo..."
-                                            class="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                            v-model="formData.beneficios"
+                                            type="checkbox"
+                                            value="valeTransporte"
+                                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
-                                        <SearchIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
+                                        <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
                                     </div>
-                                </div>
-
-                                <div class="flex flex-col md:flex-row gap-2">
-                                    <div class="relative">
-                                        <select
-                                            v-model="statusFilter"
-                                            class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
-                                        >
-                                            <option value="todos">Todos os status</option>
-                                            <option value="ativo">Ativos</option>
-                                            <option value="inativo">Inativos</option>
-                                            <option value="ferias">Em férias</option>
-                                            <option value="afastado">Afastados</option>
-                                            <option value="desligado">Desligados</option>
-                                        </select>
-                                        <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="formData.beneficios"
+                                            type="checkbox"
+                                            value="valeRefeicao"
+                                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        />
+                                        <label class="ml-2 text-sm text-gray-700">Vale Refeição</label>
                                     </div>
-
-                                    <div class="relative">
-                                        <select
-                                            v-model="departmentFilter"
-                                            class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
-                                        >
-                                            <option value="todos">Todos os departamentos</option>
-                                            <option v-for="dept in uniqueDepartments" :key="dept" :value="dept">{{ dept }}</option>
-                                        </select>
-                                        <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="formData.beneficios"
+                                            type="checkbox"
+                                            value="planoSaude"
+                                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        />
+                                        <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
                                     </div>
-
-                                    <button
-                                        @click="exportarDados"
-                                        class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                                    >
-                                        <DownloadIcon class="w-5 h-5 mr-2" />
-                                        Exportar
-                                    </button>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="formData.beneficios"
+                                            type="checkbox"
+                                            value="planoOdontologico"
+                                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        />
+                                        <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="formData.beneficios"
+                                            type="checkbox"
+                                            value="seguroVida"
+                                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        />
+                                        <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="formData.beneficios"
+                                            type="checkbox"
+                                            value="previdenciaPrivada"
+                                            class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        />
+                                        <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tabela de funcionários -->
-                        <div class="overflow-x-auto bg-white rounded-lg shadow">
+                        <!-- Histórico de cargos -->
+                        <div class="mt-8">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-medium">Histórico de Cargos</h3>
+                            </div>
+
+                            <div v-if="formData.historicosCargo.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                                Nenhum histórico de cargo cadastrado
+                            </div>
+
+                            <div v-else class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Cargo
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Departamento
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Data Início
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Data Fim
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Salário
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Motivo
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Ações
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="hist in formData.historicosCargo" :key="hist.id" class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ hist.cargo }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ hist.departamento }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ formatDate(hist.dataInicio) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ hist.dataFim ? formatDate(hist.dataFim) : 'Atual' }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ hist.salario }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ hist.motivo }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button @click="removeHistoricoCargo(hist.id)" class="text-red-600 hover:text-red-900">
+                                                <TrashIcon class="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Saúde e Segurança do Trabalho -->
+                    <div v-if="activeTab === 'health'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Data do último exame
+                                    admissional/periódico *</label>
+                                <input
+                                    v-model="formData.dataUltimoExame"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
+                                <input
+                                    v-model="formData.dataProximoExame"
+                                    type="date"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Resultado do ASO *</label>
+                                <select
+                                    v-model="formData.resultadoAso"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="apto">Apto</option>
+                                    <option value="aptoRestricoes">Apto com restrições</option>
+                                    <option value="inapto">Inapto</option>
+                                </select>
+                            </div>
+
+                            <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Alergias ou restrições
+                                    médicas</label>
+                                <textarea
+                                    v-model="formData.alergias"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 min-h-[100px]"
+                                    placeholder="Descreva alergias ou restrições médicas, se houver"
+                                ></textarea>
+                            </div>
+
+                            <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Histórico de acidentes ou doenças
+                                    ocupacionais</label>
+                                <textarea
+                                    v-model="formData.historicoAcidentes"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 min-h-[100px]"
+                                    placeholder="Descreva o histórico, se houver"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7. Dependentes -->
+                    <div v-if="activeTab === 'dependents'" class="space-y-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium">Dependentes</h3>
+                            <button
+                                @click="addDependente"
+                                type="button"
+                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                            >
+                                <PlusIcon class="h-4 w-4 mr-1"/>
+                                Adicionar
+                            </button>
+                        </div>
+
+                        <div v-if="formData.dependentes.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                            Nenhum dependente cadastrado
+                        </div>
+
+                        <div v-for="(dependente, index) in formData.dependentes" :key="dependente.id"
+                             class="border p-4 rounded-md mb-4 bg-white shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-medium">Dependente #{{ index + 1 }}</h4>
+                                <button
+                                    @click="removeDependente(index)"
+                                    type="button"
+                                    class="text-red-600 hover:text-red-800"
+                                >
+                                    <TrashIcon class="h-5 w-5"/>
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
+                                    <input
+                                        v-model="dependente.nome"
+                                        type="text"
+                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        required
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                    <input
+                                        v-model="dependente.dataNascimento"
+                                        type="date"
+                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        required
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                    <input
+                                        v-model="dependente.cpf"
+                                        type="text"
+                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        required
+                                        @input="(e) => formatDependenteCPF(e, index)"
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Grau de parentesco *</label>
+                                    <select
+                                        v-model="dependente.parentesco"
+                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        required
+                                    >
+                                        <option value="">Selecione</option>
+                                        <option value="filho">Filho(a)</option>
+                                        <option value="conjuge">Cônjuge</option>
+                                        <option value="pais">Pais</option>
+                                        <option value="irmao">Irmão/Irmã</option>
+                                        <option value="outro">Outro</option>
+                                    </select>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Finalidade *</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <input
+                                                v-model="dependente.finalidades"
+                                                type="checkbox"
+                                                value="ir"
+                                                class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                            />
+                                            <label class="ml-2 text-sm text-gray-700">Imposto de Renda</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input
+                                                v-model="dependente.finalidades"
+                                                type="checkbox"
+                                                value="planoSaude"
+                                                class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                            />
+                                            <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input
+                                                v-model="dependente.finalidades"
+                                                type="checkbox"
+                                                value="planoOdontologico"
+                                                class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                            />
+                                            <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8. Anexos -->
+                    <div v-if="activeTab === 'attachments'" class="space-y-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium">Anexos e Documentos</h3>
+                        </div>
+
+                        <!-- Área de Drag and Drop -->
+                        <div
+                            class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200"
+                            :class="isDragging ? 'border-gray-500 bg-gray-50' : 'border-gray-300 hover:border-gray-400'"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave.prevent="isDragging = false"
+                            @drop.prevent="handleFileDrop"
+                        >
+                            <div class="flex flex-col items-center justify-center">
+                                <UploadCloudIcon class="h-12 w-12 text-gray-400 mb-3" :class="{ 'text-gray-500': isDragging }" />
+                                <p class="text-lg font-medium" :class="{ 'text-gray-600': isDragging }">
+                                    Arraste e solte arquivos aqui
+                                </p>
+                                <p class="text-sm text-gray-500 mt-1">ou</p>
+                                <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer">
+                                    <UploadIcon class="h-4 w-4 mr-1" />
+                                    Selecionar arquivos
+                                    <input type="file" class="hidden" @change="handleFileUpload" multiple />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div v-if="formData.anexos.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                            Nenhum anexo cadastrado
+                        </div>
+
+                        <div v-else class="border rounded-md overflow-hidden">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Departamento
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data
-                                        de Admissão
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ações
-                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamanho</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                                 </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="employee in filteredEmployees" :key="employee.id" class="hover:bg-gray-50">
+                                <tr v-for="anexo in formData.anexos" :key="anexo.id" class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <div v-if="!employee.foto"
-                                                     class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 font-semibold">
-                                                    {{ getInitials(employee.nome) }}
-                                                </div>
-                                                <img v-else :src="employee.foto" alt="" class="h-10 w-10 rounded-full object-cover">
+                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
+                                                <component :is="getFileIcon(anexo.tipo)" class="h-6 w-6 text-gray-500" />
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ employee.nome }}</div>
-                                                <div class="text-sm text-gray-500">{{ employee.email }}</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ anexo.nome }}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.cargo }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.departamento }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ formatDate(employee.dataAdmissao) }}
+                                        {{ anexo.tipo }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
-                                            {{ getStatusText(employee.status) }}
-                                        </span>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ anexo.tamanho }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button @click="editEmployee(employee)"
-                                                class="text-emerald-600 hover:text-emerald-900 mr-3">
-                                            <EditIcon class="w-5 h-5"/>
-                                        </button>
-                                        <button @click="confirmDelete(employee)" class="text-red-600 hover:text-red-900">
-                                            <TrashIcon class="w-5 h-5"/>
-                                        </button>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ formatDate(anexo.dataUpload) }}
                                     </td>
-                                </tr>
-                                <tr v-if="filteredEmployees.length === 0">
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                        Nenhum funcionário encontrado
+                                    <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
+                                        <div class="flex items-center">
+                                            <a
+                                                :href="anexo.url"
+                                                target="_blank"
+                                                class="text-gray-900 hover:text-gray-900 mr-3"
+                                                title="Visualizar"
+                                            >
+                                                <EyeIcon class="w-5 h-5" />
+                                            </a>
+                                            <button
+                                                @click="removeAnexo(anexo.id)"
+                                                class="text-red-600 hover:text-red-900"
+                                                title="Excluir"
+                                            >
+                                                <TrashIcon class="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Paginação -->
-                        <div class="flex items-center justify-between mt-4">
-                            <div class="text-sm text-gray-700">
-                                Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{
-                                    filteredEmployees.length
-                                }}</span> de <span class="font-medium">{{ employees.length }}</span> resultados
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Anterior</button>
-                                <button class="px-3 py-1 border rounded-md bg-emerald-50 text-emerald-600 font-medium">1</button>
-                                <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Próxima</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Formulário de funcionário -->
-                    <div v-else>
-                        <div class="flex justify-between items-center mb-5">
-                            <h2 class="text-xl font-semibold">{{ currentEmployee ? `Alterando dados de ${ currentEmployee.nome }` : 'Novo Funcionário' }}</h2>
-                            <button @click="showEmployeeForm = false" class="text-gray-500 hover:text-gray-700">
-                                <XIcon class="w-6 h-6"/>
-                            </button>
-                        </div>
-
-                        <!-- Abas -->
-                        <div class="border-b">
-                            <div class="flex overflow-x-auto">
-                                <button
-                                    v-for="tab in tabs"
-                                    :key="tab.id"
-                                    @click="activeTab = tab.id"
-                                    :class="[
-                                        'px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center',
-                                        activeTab === tab.id
-                                            ? 'border-b-2 border-emerald-600 bg-emerald-50 rounded-t text-emerald-700'
-                                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    ]"
-                                >
-                                    <component :is="tab.icon" class="w-4 h-4 mr-2" />
-                                    {{ tab.name }}
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Conteúdo das abas -->
-                        <div class="p-6 bg-white rounded-b-lg shadow">
-                            <!-- 1. Dados Pessoais -->
-                            <div v-if="activeTab === 'personal'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
-                                        <input
-                                            v-model="formData.nome"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
-                                        <input
-                                            v-model="formData.dataNascimento"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
-                                        <select
-                                            v-model="formData.sexo"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option value="M">Masculino</option>
-                                            <option value="F">Feminino</option>
-                                            <option value="O">Outro</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
-                                        <select
-                                            v-model="formData.estadoCivil"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option value="solteiro">Solteiro(a)</option>
-                                            <option value="casado">Casado(a)</option>
-                                            <option value="divorciado">Divorciado(a)</option>
-                                            <option value="viuvo">Viúvo(a)</option>
-                                            <option value="uniao">União Estável</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
-                                        <input
-                                            v-model="formData.nacionalidade"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
-                                        <input
-                                            v-model="formData.naturalidade"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">CPF *</label>
-                                        <input
-                                            v-model="formData.cpf"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                            @input="formatCPF"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">RG *</label>
-                                        <input
-                                            v-model="formData.rg"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
-                                        <input
-                                            v-model="formData.orgaoEmissor"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
-                                        <input
-                                            v-model="formData.dataEmissao"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
-                                        <input
-                                            v-model="formData.tituloEleitor"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
-                                        <input
-                                            v-model="formData.reservista"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                        <p class="text-xs text-gray-500">Opcional para homens</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
-                                        <input
-                                            v-model="formData.nomeMae"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
-                                        <input
-                                            v-model="formData.nomePai"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Status *</label>
-                                        <select
-                                            v-model="formData.status"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="ativo">Ativo</option>
-                                            <option value="inativo">Inativo</option>
-                                            <option value="ferias">Em Férias</option>
-                                            <option value="afastado">Afastado</option>
-                                            <option value="desligado">Desligado</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
-                                        <select
-                                            v-model="formData.escolaridade"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option value="fundamental">Ensino Fundamental</option>
-                                            <option value="medio">Ensino Médio</option>
-                                            <option value="tecnico">Ensino Técnico</option>
-                                            <option value="superior">Ensino Superior</option>
-                                            <option value="posGraduacao">Pós-graduação</option>
-                                            <option value="mestrado">Mestrado</option>
-                                            <option value="doutorado">Doutorado</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
-                                        <select
-                                            v-model="formData.tipoSanguineo"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option v-for="tipo in tiposSanguineos" :key="tipo" :value="tipo">{{ tipo }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 2. Documentos Trabalhistas -->
-                            <div v-if="activeTab === 'documents'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho
-                                            *</label>
-                                        <input
-                                            v-model="formData.numeroCtps"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
-                                        <input
-                                            v-model="formData.serieCtps"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">UF CTPS *</label>
-                                        <select
-                                            v-model="formData.ufCtps"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option v-for="uf in estados" :key="uf" :value="uf">{{ uf }}</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
-                                        <input
-                                            v-model="formData.pisPasep"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Número do NIT</label>
-                                        <input
-                                            v-model="formData.nit"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                        <p class="text-xs text-gray-500">Para autônomos ou contribuintes individuais</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">CNH</label>
-                                        <input
-                                            v-model="formData.cnh"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Categoria CNH</label>
-                                        <select
-                                            v-model="formData.categoriaCnh"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option v-for="cat in categoriasCnh" :key="cat" :value="cat">{{ cat }}</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
-                                        <input
-                                            v-model="formData.validadeCnh"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
-                                        <input
-                                            v-model="formData.registroProfissional"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                        <p class="text-xs text-gray-500">Ex: CREA, CRM, OAB, etc.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 3. Endereço e Contato -->
-                            <div v-if="activeTab === 'contact'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">CEP *</label>
-                                        <input
-                                            v-model="formData.cep"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                            @input="formatCEP"
-                                            @blur="buscarCep"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
-                                        <input
-                                            v-model="formData.logradouro"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Número *</label>
-                                        <input
-                                            v-model="formData.numero"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Complemento</label>
-                                        <input
-                                            v-model="formData.complemento"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Bairro *</label>
-                                        <input
-                                            v-model="formData.bairro"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Cidade *</label>
-                                        <input
-                                            v-model="formData.cidade"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Estado *</label>
-                                        <select
-                                            v-model="formData.estado"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option v-for="uf in estados" :key="uf" :value="uf">{{ uf }}</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Telefone *</label>
-                                        <input
-                                            v-model="formData.telefone"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                            @input="formatTelefone"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Celular</label>
-                                        <input
-                                            v-model="formData.celular"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            @input="formatCelular"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">E-mail *</label>
-                                        <input
-                                            v-model="formData.email"
-                                            type="email"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
-                                        <input
-                                            v-model="formData.contatoEmergencia"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
-                                        <input
-                                            v-model="formData.telefoneEmergencia"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            @input="formatTelefoneEmergencia"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 4. Dados Bancários -->
-                            <div v-if="activeTab === 'bank'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Banco *</label>
-                                        <select
-                                            v-model="formData.banco"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option v-for="banco in bancos" :key="banco.codigo" :value="banco.codigo">
-                                                {{ banco.codigo }} - {{ banco.nome }}
-                                            </option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Agência *</label>
-                                        <input
-                                            v-model="formData.agencia"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Conta *</label>
-                                        <input
-                                            v-model="formData.conta"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Tipo de conta *</label>
-                                        <select
-                                            v-model="formData.tipoConta"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option value="corrente">Conta Corrente</option>
-                                            <option value="poupanca">Conta Poupança</option>
-                                            <option value="salario">Conta Salário</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
-                                        <input
-                                            v-model="formData.chavePix"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                        <p class="text-xs text-gray-500">CPF, e-mail, telefone ou chave aleatória</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 5. Informações Contratuais -->
-                            <div v-if="activeTab === 'contract'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
-                                        <input
-                                            v-model="formData.cargo"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Setor/departamento *</label>
-                                        <select
-                                            v-model="formData.departamento"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option v-for="dept in departamentos" :key="dept" :value="dept">{{ dept }}</option>
-                                            <option value="outro">Outro</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Tipo de vínculo *</label>
-                                        <select
-                                            v-model="formData.tipoVinculo"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option value="clt">CLT</option>
-                                            <option value="estagio">Estágio</option>
-                                            <option value="pj">PJ</option>
-                                            <option value="autonomo">Autônomo</option>
-                                            <option value="temporario">Temporário</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
-                                        <input
-                                            v-model="formData.dataAdmissao"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
-                                        <input
-                                            v-model="formData.dataDesligamento"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            :disabled="formData.status !== 'desligado'"
-                                        />
-                                        <p class="text-xs text-gray-500">Aplicável apenas para funcionários desligados</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Salário *</label>
-                                        <input
-                                            v-model="formData.salario"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                            @input="formatSalario"
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
-                                        <input
-                                            v-model="formData.jornadaTrabalho"
-                                            type="text"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                            placeholder="Ex: 44 horas semanais"
-                                        />
-                                    </div>
-
-                                    <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Benefícios</label>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            <div class="flex items-center">
-                                                <input
-                                                    v-model="formData.beneficios"
-                                                    type="checkbox"
-                                                    value="valeTransporte"
-                                                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                />
-                                                <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input
-                                                    v-model="formData.beneficios"
-                                                    type="checkbox"
-                                                    value="valeRefeicao"
-                                                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                />
-                                                <label class="ml-2 text-sm text-gray-700">Vale Refeição</label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input
-                                                    v-model="formData.beneficios"
-                                                    type="checkbox"
-                                                    value="planoSaude"
-                                                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                />
-                                                <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input
-                                                    v-model="formData.beneficios"
-                                                    type="checkbox"
-                                                    value="planoOdontologico"
-                                                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                />
-                                                <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input
-                                                    v-model="formData.beneficios"
-                                                    type="checkbox"
-                                                    value="seguroVida"
-                                                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                />
-                                                <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input
-                                                    v-model="formData.beneficios"
-                                                    type="checkbox"
-                                                    value="previdenciaPrivada"
-                                                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                />
-                                                <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Histórico de cargos -->
-                                <div class="mt-8">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h3 class="text-lg font-medium">Histórico de Cargos</h3>
-                                        <button
-                                            @click="addHistoricoCargo"
-                                            type="button"
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                                        >
-                                            <PlusIcon class="h-4 w-4 mr-1"/>
-                                            Adicionar Histórico
-                                        </button>
-                                    </div>
-
-                                    <div v-if="formData.historicosCargo.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                        Nenhum histórico de cargo cadastrado
-                                    </div>
-
-                                    <div v-else class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Cargo
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Departamento
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Data Início
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Data Fim
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Salário
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Motivo
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Ações
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-200">
-                                            <tr v-for="hist in formData.historicosCargo" :key="hist.id" class="hover:bg-gray-50">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    {{ hist.cargo }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ hist.departamento }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ formatDate(hist.dataInicio) }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ hist.dataFim ? formatDate(hist.dataFim) : 'Atual' }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ hist.salario }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ hist.motivo }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button @click="removeHistoricoCargo(hist.id)" class="text-red-600 hover:text-red-900">
-                                                        <TrashIcon class="w-5 h-5" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 6. Saúde e Segurança do Trabalho -->
-                            <div v-if="activeTab === 'health'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Data do último exame
-                                            admissional/periódico *</label>
-                                        <input
-                                            v-model="formData.dataUltimoExame"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
-                                        <input
-                                            v-model="formData.dataProximoExame"
-                                            type="date"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Resultado do ASO *</label>
-                                        <select
-                                            v-model="formData.resultadoAso"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            required
-                                        >
-                                            <option value="">Selecione</option>
-                                            <option value="apto">Apto</option>
-                                            <option value="aptoRestricoes">Apto com restrições</option>
-                                            <option value="inapto">Inapto</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Alergias ou restrições
-                                            médicas</label>
-                                        <textarea
-                                            v-model="formData.alergias"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-h-[100px]"
-                                            placeholder="Descreva alergias ou restrições médicas, se houver"
-                                        ></textarea>
-                                    </div>
-
-                                    <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">Histórico de acidentes ou doenças
-                                            ocupacionais</label>
-                                        <textarea
-                                            v-model="formData.historicoAcidentes"
-                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-h-[100px]"
-                                            placeholder="Descreva o histórico, se houver"
-                                        ></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 7. Dependentes -->
-                            <div v-if="activeTab === 'dependents'" class="space-y-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-medium">Dependentes</h3>
-                                    <button
-                                        @click="addDependente"
-                                        type="button"
-                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                                    >
-                                        <PlusIcon class="h-4 w-4 mr-1"/>
-                                        Adicionar
-                                    </button>
-                                </div>
-
-                                <div v-if="formData.dependentes.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                    Nenhum dependente cadastrado
-                                </div>
-
-                                <div v-for="(dependente, index) in formData.dependentes" :key="dependente.id"
-                                     class="border p-4 rounded-md mb-4 bg-white shadow-sm">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h4 class="font-medium">Dependente #{{ index + 1 }}</h4>
-                                        <button
-                                            @click="removeDependente(index)"
-                                            type="button"
-                                            class="text-red-600 hover:text-red-800"
-                                        >
-                                            <TrashIcon class="h-5 w-5"/>
-                                        </button>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
-                                            <input
-                                                v-model="dependente.nome"
-                                                type="text"
-                                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
-                                            <input
-                                                v-model="dependente.dataNascimento"
-                                                type="date"
-                                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-700">CPF *</label>
-                                            <input
-                                                v-model="dependente.cpf"
-                                                type="text"
-                                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                required
-                                                @input="(e) => formatDependenteCPF(e, index)"
-                                            />
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-700">Grau de parentesco *</label>
-                                            <select
-                                                v-model="dependente.parentesco"
-                                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                required
-                                            >
-                                                <option value="">Selecione</option>
-                                                <option value="filho">Filho(a)</option>
-                                                <option value="conjuge">Cônjuge</option>
-                                                <option value="pais">Pais</option>
-                                                <option value="irmao">Irmão/Irmã</option>
-                                                <option value="outro">Outro</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-700">Finalidade *</label>
-                                            <div class="space-y-2">
-                                                <div class="flex items-center">
-                                                    <input
-                                                        v-model="dependente.finalidades"
-                                                        type="checkbox"
-                                                        value="ir"
-                                                        class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                    />
-                                                    <label class="ml-2 text-sm text-gray-700">Imposto de Renda</label>
-                                                </div>
-                                                <div class="flex items-center">
-                                                    <input
-                                                        v-model="dependente.finalidades"
-                                                        type="checkbox"
-                                                        value="planoSaude"
-                                                        class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                    />
-                                                    <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
-                                                </div>
-                                                <div class="flex items-center">
-                                                    <input
-                                                        v-model="dependente.finalidades"
-                                                        type="checkbox"
-                                                        value="planoOdontologico"
-                                                        class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                                                    />
-                                                    <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 8. Anexos -->
-                            <div v-if="activeTab === 'attachments'" class="space-y-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-medium">Anexos e Documentos</h3>
-                                </div>
-
-                                <!-- Área de Drag and Drop -->
+                        <!-- Prévia de imagens -->
+                        <div v-if="formData.anexos.some(a => a.tipo.includes('image'))" class="mt-6">
+                            <h4 class="text-md font-medium mb-3">Prévia de Imagens</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 <div
-                                    class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200"
-                                    :class="isDragging ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300 hover:border-gray-400'"
-                                    @dragover.prevent="isDragging = true"
-                                    @dragleave.prevent="isDragging = false"
-                                    @drop.prevent="handleFileDrop"
+                                    v-for="anexo in formData.anexos.filter(a => a.tipo.includes('image'))"
+                                    :key="`preview-${anexo.id}`"
+                                    class="relative group"
                                 >
-                                    <div class="flex flex-col items-center justify-center">
-                                        <UploadCloudIcon class="h-12 w-12 text-gray-400 mb-3" :class="{ 'text-emerald-500': isDragging }" />
-                                        <p class="text-lg font-medium" :class="{ 'text-emerald-600': isDragging }">
-                                            Arraste e solte arquivos aqui
-                                        </p>
-                                        <p class="text-sm text-gray-500 mt-1">ou</p>
-                                        <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 cursor-pointer">
-                                            <UploadIcon class="h-4 w-4 mr-1" />
-                                            Selecionar arquivos
-                                            <input type="file" class="hidden" @change="handleFileUpload" multiple />
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div v-if="formData.anexos.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                    Nenhum anexo cadastrado
-                                </div>
-
-                                <div v-else class="border rounded-md overflow-hidden">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamanho</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                        <tr v-for="anexo in formData.anexos" :key="anexo.id" class="hover:bg-gray-50">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
-                                                        <component :is="getFileIcon(anexo.tipo)" class="h-6 w-6 text-gray-500" />
-                                                    </div>
-                                                    <div class="ml-4">
-                                                        <div class="text-sm font-medium text-gray-900">{{ anexo.nome }}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ anexo.tipo }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ anexo.tamanho }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ formatDate(anexo.dataUpload) }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <select
-                                                    v-model="anexo.categoria"
-                                                    class="p-1 text-sm border rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
-                                                >
-                                                    <option v-for="cat in categoriasDocumento" :key="cat" :value="cat">{{ cat }}</option>
-                                                </select>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
-                                                <div class="flex items-center">
-                                                    <a
-                                                        :href="anexo.url"
-                                                        target="_blank"
-                                                        class="text-gray-900 hover:text-emerald-900 mr-3"
-                                                        title="Visualizar"
-                                                    >
-                                                        <EyeIcon class="w-5 h-5" />
-                                                    </a>
-                                                    <button
-                                                        @click="removeAnexo(anexo.id)"
-                                                        class="text-red-600 hover:text-red-900"
-                                                        title="Excluir"
-                                                    >
-                                                        <TrashIcon class="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- Prévia de imagens -->
-                                <div v-if="formData.anexos.some(a => a.tipo.includes('image'))" class="mt-6">
-                                    <h4 class="text-md font-medium mb-3">Prévia de Imagens</h4>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        <div
-                                            v-for="anexo in formData.anexos.filter(a => a.tipo.includes('image'))"
-                                            :key="`preview-${anexo.id}`"
-                                            class="relative group"
+                                    <img
+                                        :src="anexo.url"
+                                        :alt="anexo.nome"
+                                        class="h-40 w-full object-cover rounded-md border"
+                                    />
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                        <a
+                                            :href="anexo.url"
+                                            target="_blank"
+                                            class="p-2 bg-white rounded-full mx-1"
+                                            title="Visualizar"
                                         >
-                                            <img
-                                                :src="anexo.url"
-                                                :alt="anexo.nome"
-                                                class="h-40 w-full object-cover rounded-md border"
-                                            />
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                <a
-                                                    :href="anexo.url"
-                                                    target="_blank"
-                                                    class="p-2 bg-white rounded-full mx-1"
-                                                    title="Visualizar"
-                                                >
-                                                    <EyeIcon class="w-5 h-5 text-gray-700" />
-                                                </a>
-                                                <button
-                                                    @click="removeAnexo(anexo.id)"
-                                                    class="p-2 bg-white rounded-full mx-1"
-                                                    title="Excluir"
-                                                >
-                                                    <TrashIcon class="w-5 h-5 text-red-600" />
-                                                </button>
-                                            </div>
-                                            <div class="mt-1 text-sm truncate">{{ anexo.nome }}</div>
-                                        </div>
+                                            <EyeIcon class="w-5 h-5 text-gray-700" />
+                                        </a>
+                                        <button
+                                            @click="removeAnexo(anexo.id)"
+                                            class="p-2 bg-white rounded-full mx-1"
+                                            title="Excluir"
+                                        >
+                                            <TrashIcon class="w-5 h-5 text-red-600" />
+                                        </button>
                                     </div>
+                                    <div class="mt-1 text-sm truncate">{{ anexo.nome }}</div>
                                 </div>
-                            </div>
-
-                            <!-- Botões de ação -->
-                            <div class="flex justify-end space-x-4 mt-8 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    @click="showEmployeeForm = false"
-                                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="saveEmployee"
-                                    class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                                >
-                                    Salvar
-                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Modal de confirmação de exclusão -->
-                    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg p-6 max-w-md w-full">
-                            <h3 class="text-lg font-medium mb-4">Confirmar exclusão</h3>
-                            <p class="mb-6">Tem certeza que deseja excluir o funcionário <span
-                                class="font-semibold">{{ employeeToDelete?.nome }}</span>? Esta ação não pode ser desfeita.</p>
-                            <div class="flex justify-end space-x-4">
-                                <button
-                                    @click="showDeleteModal = false"
-                                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    @click="deleteEmployee"
-                                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                                >
-                                    Excluir
-                                </button>
-                            </div>
-                        </div>
+                    <!-- Botões de ação -->
+                    <div class="flex justify-end space-x-4 mt-8 pt-4">
+                        <button
+                            type="button"
+                            @click="showEmployeeForm = false"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveEmployee"
+                            class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
+                        >
+                            Salvar
+                        </button>
                     </div>
-
-                    <!-- Modal de documento -->
-                    <div v-if="showDocumentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg p-6 max-w-lg w-full">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-medium">{{ currentDocument?.id ? 'Editar Documento' : 'Novo Documento' }}</h3>
-                                <button @click="showDocumentModal = false" class="text-gray-500 hover:text-gray-700">
-                                    <XIcon class="w-6 h-6"/>
-                                </button>
-                            </div>
-
-                            <div class="space-y-4">
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nome do documento *</label>
-                                    <input
-                                        v-model="currentDocument.nome"
-                                        type="text"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Tipo de documento *</label>
-                                    <select
-                                        v-model="currentDocument.tipo"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    >
-                                        <option value="">Selecione</option>
-                                        <option v-for="cat in categoriasDocumento" :key="cat" :value="cat">{{ cat }}</option>
-                                    </select>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
-                                    <input
-                                        v-model="currentDocument.dataEmissao"
-                                        type="date"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de validade</label>
-                                    <input
-                                        v-model="currentDocument.dataValidade"
-                                        type="date"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    />
-                                    <p class="text-xs text-gray-500">Deixe em branco se o documento não tiver data de validade</p>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Arquivo</label>
-                                    <div class="flex items-center">
-                                        <label class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
-                                            <UploadIcon class="h-4 w-4 mr-1" />
-                                            Selecionar arquivo
-                                            <input type="file" class="hidden" @change="handleDocumentUpload" />
-                                        </label>
-                                        <span v-if="currentDocument.nome" class="ml-2 text-sm text-gray-500">
-                                            {{ currentDocument.nome }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-end space-x-4 mt-6 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    @click="showDocumentModal = false"
-                                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="saveDocumento"
-                                    class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                                >
-                                    Salvar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Modal de foto de perfil -->
-                    <div v-if="showProfilePhotoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg p-6 max-w-md w-full">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-medium">Foto de Perfil</h3>
-                                <button @click="cancelProfilePhoto" class="text-gray-500 hover:text-gray-700">
-                                    <XIcon class="w-6 h-6"/>
-                                </button>
-                            </div>
-
-                            <div class="flex justify-center mb-6">
-                                <img v-if="profilePhotoPreview" :src="profilePhotoPreview" alt="Prévia da foto" class="h-48 w-48 rounded-full object-cover" />
-                            </div>
-
-                            <div class="flex justify-end space-x-4 mt-6 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    @click="cancelProfilePhoto"
-                                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="saveProfilePhoto"
-                                    class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                                >
-                                    Salvar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Modal de histórico de cargo -->
-                    <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg p-6 max-w-lg w-full">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-medium">Adicionar Histórico de Cargo</h3>
-                                <button @click="showHistoryModal = false" class="text-gray-500 hover:text-gray-700">
-                                    <XIcon class="w-6 h-6"/>
-                                </button>
-                            </div>
-
-                            <div class="space-y-4">
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Cargo *</label>
-                                    <input
-                                        v-model="newCargoHistory.cargo"
-                                        type="text"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Departamento *</label>
-                                    <select
-                                        v-model="newCargoHistory.departamento"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    >
-                                        <option value="">Selecione</option>
-                                        <option v-for="dept in departamentos" :key="dept" :value="dept">{{ dept }}</option>
-                                        <option value="outro">Outro</option>
-                                    </select>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de início *</label>
-                                    <input
-                                        v-model="newCargoHistory.dataInicio"
-                                        type="date"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de término</label>
-                                    <input
-                                        v-model="newCargoHistory.dataFim"
-                                        type="date"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    />
-                                    <p class="text-xs text-gray-500">Deixe em branco se for o cargo atual</p>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Salário *</label>
-                                    <input
-                                        v-model="newCargoHistory.salario"
-                                        type="text"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                        @input="formatSalarioHistorico"
-                                    />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Motivo da alteração *</label>
-                                    <select
-                                        v-model="newCargoHistory.motivo"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    >
-                                        <option value="">Selecione</option>
-                                        <option value="Contratação">Contratação</option>
-                                        <option value="Promoção">Promoção</option>
-                                        <option value="Transferência">Transferência</option>
-                                        <option value="Reajuste">Reajuste Salarial</option>
-                                        <option value="Desligamento">Desligamento</option>
-                                        <option value="Outro">Outro</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-end space-x-4 mt-6 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    @click="showHistoryModal = false"
-                                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="saveHistoricoCargo"
-                                    class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                                >
-                                    Salvar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </main>
+                </div>
             </div>
-        </div>
+
+            <!-- Modal de confirmação de exclusão -->
+            <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 class="text-lg font-medium mb-4">Confirmar exclusão</h3>
+                    <p class="mb-6">Tem certeza que deseja excluir o funcionário <span
+                        class="font-semibold">{{ employeeToDelete?.nome }}</span>? Esta ação não pode ser desfeita.</p>
+                    <div class="flex justify-end space-x-4">
+                        <button
+                            @click="showDeleteModal = false"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            @click="deleteEmployee"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        >
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de histórico de cargo -->
+            <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 max-w-lg w-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium">Adicionar Histórico de Cargo</h3>
+                        <button @click="showHistoryModal = false" class="text-gray-500 hover:text-gray-700">
+                            <XIcon class="w-6 h-6"/>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Cargo *</label>
+                            <input
+                                v-model="newCargoHistory.cargo"
+                                type="text"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Departamento *</label>
+                            <select
+                                v-model="newCargoHistory.departamento"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                required
+                            >
+                                <option value="">Selecione</option>
+                                <option v-for="dept in departamentos" :key="dept" :value="dept">{{ dept }}</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Data de início *</label>
+                            <input
+                                v-model="newCargoHistory.dataInicio"
+                                type="date"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Data de término</label>
+                            <input
+                                v-model="newCargoHistory.dataFim"
+                                type="date"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                            />
+                            <p class="text-xs text-gray-500">Deixe em branco se for o cargo atual</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Salário *</label>
+                            <input
+                                v-model="newCargoHistory.salario"
+                                type="text"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                required
+                                @input="formatSalarioHistorico"
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Motivo da alteração *</label>
+                            <select
+                                v-model="newCargoHistory.motivo"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                required
+                            >
+                                <option value="">Selecione</option>
+                                <option value="Contratação">Contratação</option>
+                                <option value="Promoção">Promoção</option>
+                                <option value="Transferência">Transferência</option>
+                                <option value="Reajuste">Reajuste Salarial</option>
+                                <option value="Desligamento">Desligamento</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-4 mt-6 pt-4 border-t">
+                        <button
+                            type="button"
+                            @click="showHistoryModal = false"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveHistoricoCargo"
+                            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                        >
+                            Salvar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
     </AppLayout>
 </template>

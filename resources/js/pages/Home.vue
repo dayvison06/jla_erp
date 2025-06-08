@@ -60,9 +60,9 @@ const quickActions = ref<QuickAction[]>([
 // Métodos
 const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia!';
-    if (hour < 18) return 'Boa tarde!';
-    return 'Boa noite!';
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
 };
 
 const breadcrumbs: BreadcrumbItem = [
@@ -73,36 +73,31 @@ const breadcrumbs: BreadcrumbItem = [
 <template>
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-6">
-            <div class="container mx-auto px-4 py-8">
-                <!-- Header com saudação personalizada -->
-                <header class="mb-8">
-                    <div class="flex items-center">
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-                                Bem-vindo, {{ user.name }}!
-                            </h1>
-                            <p class="mt-2 text-gray-600 dark:text-gray-300">
-                                {{ getGreeting() }} É ótimo ver você novamente.
-                            </p>
-                        </div>
+        <main class="container mx-auto px-4 py-8">
+            <!-- Header com saudação personalizada -->
+            <header class="mb-8">
+                <div class="flex items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+                            {{ getGreeting() }}, <small class=" font-normal text-3xl">{{ user.name }}</small>
+                        </h1>
                     </div>
-                </header>
-                <!-- Ações rápidas -->
-                <section class="mb-10">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white mb-6">Ações Rápidas</h2>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div v-for="(action, index) in quickActions" :key="index"
-                             class="group flex cursor-pointer flex-col items-center rounded-xl bg-white p-6 text-center shadow-lg transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-750">
-                            <div class="mb-4 rounded-full bg-blue-100 p-4 transition-all group-hover:bg-blue-200 dark:bg-blue-900 dark:group-hover:bg-blue-800">
-                                <component :is="action.icon" class="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <h3 class="mb-2 font-medium text-gray-800 dark:text-white">{{ action.title }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ action.description }}</p>
+                </div>
+            </header>
+            <!-- Ações rápidas -->
+            <section class="mb-10">
+                <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white mb-6">Ações Rápidas</h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div v-for="(action, index) in quickActions" :key="index"
+                         class="group flex cursor-pointer flex-col items-center rounded-xl bg-white p-6 text-center shadow-lg transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-750">
+                        <div class="mb-4 rounded-full bg-gray-100 p-4 transition-all group-hover:bg-gray-200 dark:bg-gray-900 dark:group-hover:bg-gray-800">
+                            <component :is="action.icon" class="h-6 w-6 text-gray-600 dark:text-gray-400" />
                         </div>
+                        <h3 class="mb-2 font-medium text-gray-800 dark:text-white">{{ action.title }}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ action.description }}</p>
                     </div>
-                </section>
-            </div>
-        </div>
+                </div>
+            </section>
+        </main>
     </AppLayout>
 </template>
