@@ -3,6 +3,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import { Head } from '@inertiajs/vue3';
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
+    FileUp,
     PlusIcon,
     Cross,
     Banknote,
@@ -26,8 +27,6 @@ import {
     Paperclip,
     BriefcaseBusiness,
     MapPinHouse,
-    AlertCircleIcon,
-    BellIcon,
 } from 'lucide-vue-next'
 import type { BreadcrumbItem } from "@/types";
 
@@ -169,10 +168,6 @@ const currentEmployee = ref<Employee | null>(null)
 const showDeleteModal = ref(false)
 const employeeToDelete = ref<Employee | null>(null)
 const isDragging = ref(false)
-const showDocumentModal = ref(false)
-const currentDocument = ref<Documento | null>(null)
-const showProfilePhotoModal = ref(false)
-const profilePhotoPreview = ref<string | null>(null)
 const showHistoryModal = ref(false)
 const newCargoHistory = reactive<HistoricoCargo>({
     id: 0,
@@ -186,7 +181,6 @@ const newCargoHistory = reactive<HistoricoCargo>({
 
 // Dados de formulário
 const formData = reactive<Employee>({
-    id: 0,
     nome: '',
     dataNascimento: '',
     sexo: '',
@@ -350,14 +344,6 @@ const uniqueDepartments = computed(() => {
         }
     });
     return Array.from(departments).sort();
-})
-
-const documentosVencidos = computed(() => {
-    let count = 0;
-    employees.value.forEach(emp => {
-        count += emp.documentos.filter(doc => doc.status === 'vencido').length;
-    });
-    return count;
 })
 
 const proximosExames = computed(() => {
@@ -531,64 +517,6 @@ const removeDependente = (index: number) => {
     formData.dependentes.splice(index, 1);
 }
 
-const saveDocumento = () => {
-    if (!currentDocument.value) return;
-
-    // Verificar status do documento baseado na data de validade
-    if (currentDocument.value.dataValidade) {
-        const hoje = new Date();
-        const validade = new Date(currentDocument.value.dataValidade);
-
-        if (validade < hoje) {
-            currentDocument.value.status = 'vencido';
-        } else {
-            currentDocument.value.status = 'valido';
-        }
-    } else {
-        currentDocument.value.status = 'valido';
-    }
-
-    // Se for um novo documento, adiciona à lista
-    if (!formData.documentos.some(doc => doc.id === currentDocument.value?.id)) {
-        formData.documentos.push(currentDocument.value);
-    } else {
-        // Se for edição, atualiza o documento existente
-        const index = formData.documentos.findIndex(doc => doc.id === currentDocument.value?.id);
-        if (index !== -1) {
-            formData.documentos[index] = currentDocument.value;
-        }
-    }
-
-    showDocumentModal.value = false;
-    currentDocument.value = null;
-}
-
-const handleDocumentUpload = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || !input.files.length || !currentDocument.value) return;
-
-    const file = input.files[0];
-    currentDocument.value.arquivo = file;
-    currentDocument.value.nome = file.name;
-    currentDocument.value.url = URL.createObjectURL(file);
-
-    // Reset input
-    input.value = '';
-}
-
-const addHistoricoCargo = () => {
-    showHistoryModal.value = true;
-    Object.assign(newCargoHistory, {
-        id: Date.now(),
-        cargo: formData.cargo,
-        departamento: formData.departamento,
-        dataInicio: new Date().toISOString().split('T')[0],
-        dataFim: null,
-        salario: formData.salario,
-        motivo: 'Promoção'
-    });
-}
-
 const saveHistoricoCargo = () => {
     formData.historicosCargo.push({...newCargoHistory});
     showHistoryModal.value = false;
@@ -637,8 +565,8 @@ const deleteEmployee = () => {
 }
 
 const saveEmployee = () => {
-    // Validação básica
-    if (!formData.nome || !formData.cpf || !formData.dataNascimento) {
+    // Validação de campos
+    if (!formData.nome || !formData.cpf || !formData.dataNascimento || !formData.cargo || !formData.departamento) {
         alert('Por favor, preencha todos os campos obrigatórios.');
         return;
     }
@@ -812,19 +740,6 @@ const getFileIcon = (tipo: string) => {
     if (tipo.includes('excel') || tipo.includes('sheet')) return FileSpreadsheetIcon;
     if (tipo.includes('presentation') || tipo.includes('powerpoint')) return File;
     return FileIcon;
-}
-
-const saveProfilePhoto = () => {
-    formData.foto = profilePhotoPreview.value;
-    showProfilePhotoModal.value = false;
-}
-
-const cancelProfilePhoto = () => {
-    if (profilePhotoPreview.value) {
-        URL.revokeObjectURL(profilePhotoPreview.value);
-    }
-    profilePhotoPreview.value = null;
-    showProfilePhotoModal.value = false;
 }
 
 const getStatusColor = (status: string) => {
@@ -1282,36 +1197,24 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                     <div class="flex items-center gap-2">
                         <h1 class="text-2xl font-bold">Funcionários</h1>
                     </div>
-                    <button
-                        @click="showEmployeeForm = true; currentEmployee = null"
-                        class="bg-gray-600 cursor-pointer hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center"
-                    >
-                        <PlusIcon class="w-5 h-5 mr-2"/>
-                        Novo Funcionário
-                    </button>
+                    <div class="flex gap-2">
+                        <button
+                            @click="showEmployeeForm = true; currentEmployee = null"
+                            class="bg-gray-800 cursor-pointer hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center"
+                        >
+                            <PlusIcon class="w-5 h-5 mr-2"/>
+                            Novo Funcionário
+                        </button>
+                        <button
+                            @click=""
+                            class="border border-gray-800 cursor-pointer hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md flex items-center"
+                        >
+                            <FileUp class="w-5 h-5 mr-2"/>
+                            Importar funcionários
+                        </button>
+                    </div>
                 </div>
             </header>
-
-            <!-- Alertas e notificações -->
-            <div v-if="!showEmployeeForm && (documentosVencidos > 0 || proximosExames.length > 0)" class="mb-6">
-                <div v-if="documentosVencidos > 0" class="bg-red-50 border-l-4 border-red-500 p-4 mb-3">
-                    <div class="flex items-center">
-                        <AlertCircleIcon class="h-5 w-5 text-red-500 mr-2" />
-                        <p class="text-sm text-red-700">
-                            <span class="font-bold">Atenção:</span> Existem {{ documentosVencidos }} documentos vencidos que precisam de atenção.
-                        </p>
-                    </div>
-                </div>
-
-                <div v-if="proximosExames.length > 0" class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
-                    <div class="flex items-center">
-                        <BellIcon class="h-5 w-5 text-yellow-500 mr-2" />
-                        <p class="text-sm text-yellow-700">
-                            <span class="font-bold">Lembrete:</span> {{ proximosExames.length }} funcionários têm exames médicos agendados nos próximos 30 dias.
-                        </p>
-                    </div>
-                </div>
-            </div>
 
             <!-- Modo de listagem -->
             <div v-if="!showEmployeeForm">
@@ -2433,7 +2336,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                             <a
                                                 :href="anexo.url"
                                                 target="_blank"
-                                                class="text-gray-900 hover:text-gray-900 mr-3"
+                               p                 class="text-gray-900 hover:text-gray-900 mr-3"
                                                 title="Visualizar"
                                             >
                                                 <EyeIcon class="w-5 h-5" />
