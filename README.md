@@ -1,4 +1,13 @@
-# JLA ERP
+<div style="align: center;">  
+    <img src="https://github.com/user-attachments/assets/974734dc-6be9-4e2a-9da6-e1919213d15e" alt="Imagem centralizada">
+</div>
+
+# ESTÁGIO SUPERVISIONADO: ATIVIDADE PRÁTICA PROFISSIONAL
+**Aluno:** Dayvison Rocha Pereira
+
+### JLA ERP
+
+
 
 ### 📋 Sumário
 
