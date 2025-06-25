@@ -20,7 +20,7 @@ defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Configurações de perfil',
         href: '/settings/profile',
     },
 ];
@@ -102,7 +102,7 @@ const submit = () => {
                 </form>
             </div>
 
-            <DeleteUser />
+<!--            <DeleteUser />-->
         </SettingsLayout>
     </AppLayout>
 </template>

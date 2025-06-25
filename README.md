@@ -122,7 +122,7 @@ DB_PASSWORD=root
 
 **9**. Execute o vite:
 ```bash
-    sail npm run dev
+  ./vendor/bin/sail npm run dev
 ```
 
 ### 🗄️ Modelo de Banco Inicial
