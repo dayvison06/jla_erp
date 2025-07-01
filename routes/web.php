@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,9 +13,11 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/funcionarios', function () {
-    return Inertia::render('Employees');
-})->middleware(['auth', 'verified'])->name('employees');
+Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees')->group(function () {
+    Route::get('/', [EmployeeController::class, 'index']);
+    Route::post('/', [EmployeeController::class, 'store']);
+
+});
 
 Route::get('/obras', function () {
     return Inertia::render('Works');
