@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
     FileUp,
@@ -344,6 +344,11 @@ const proximosExames = computed(() => {
     });
 })
 
+function prepararEnvioEmployee() {
+    // Remove pontos e traço do CPF
+    formData.cpf = formData.cpf.replace(/[^\d]/g, '');
+    saveEmployee()
+}
 // Métodos
 const getInitials = (name: string) => {
     if (!name) return '';
@@ -552,7 +557,7 @@ const deleteEmployee = () => {
 
 const saveEmployee = () => {
     // Validação de campos
-    if (!formData.nome || !formData.cpf || !formData.dataNascimento || !formData.cargo || !formData.departamento) {
+    if (!formData.name || !formData.cpf) {
         alert('Por favor, preencha todos os campos obrigatórios.');
         return;
     }
@@ -564,12 +569,9 @@ const saveEmployee = () => {
             employees.value[index] = {...formData};
         }
     } else {
-        // Novo funcionário
-        const newEmployee = {
-            ...formData,
-            id: Date.now() // Gera um ID único baseado no timestamp
-        };
-        employees.value.push(newEmployee);
+        router.post('funcionarios', {
+            employee: formData
+        })
     }
 
     showEmployeeForm.value = false;
@@ -2399,7 +2401,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                         </button>
                         <button
                             type="button"
-                            @click="saveEmployee"
+                            @click="prepararEnvioEmployee"
                             class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
                         >
                             Salvar
