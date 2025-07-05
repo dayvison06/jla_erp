@@ -60,13 +60,13 @@ class AuthenticatedSessionController extends Controller
 
     public function loadEveryPermissions(Request $request): array
     {
-        $teams = $request->user()->teams()->with('permissions')->get()->pluck('permissions.*.name')->toArray();
+        $teams = $request->user()->teams()->with('permissions')->get()->pluck('permissions.*.name')->toArray() ?? [];
 
-        $permissions = $request->user()->permissions()->get()->pluck('permissions.*.name')->toArray();
+        $permissions = $request->user()->permissions()->get()->pluck('name')->toArray() ?? [];
 
-        $roles = $request->user()->roles()->with('permissions')->get()->pluck('permissions.*.name')->toArray();
+        $roles = $request->user()->roles()->with('permissions')->get()->pluck('permissions.*.name')->toArray() ?? [];
 
-        $loadedPermissions = array_merge(...$teams, ...$permissions, ...$roles);
+        $loadedPermissions = array_merge($permissions, ...$teams, ...$roles);
 
         return array_unique($loadedPermissions);
     }

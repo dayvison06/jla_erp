@@ -21,7 +21,11 @@ class AdminMiddleware
 
         // Verifica se o usuário é admin
         if (!$hasAccessAdmin) {
-            return redirect()->route('dashboard')->with('unauthorized', 'Você não tem permissão para acessar esta página.');
+            return redirect()->route('dashboard')->with('notify',[
+                'type' => 'error',
+                'title' => 'Acesso Negado',
+                'message' => 'Você não tem permissão para acessar esta área.',
+            ]);
         }
 
         return $next($request);

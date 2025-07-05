@@ -19,10 +19,12 @@ return new class extends Migration
             $table->string('civil_state', 20)->nullable();
             $table->string('nationality', 50)->nullable();
             $table->string('birthplace', 50)->nullable();
-            $table->string('cpf', 14)->unique();
+            $table->string('cpf', 11)->unique();
             $table->string('rg', 20)->nullable();
+            $table->string('cnpj', 14)->nullable();
             $table->string('issuing_agency', 20)->nullable();
             $table->date('issue_date')->nullable();
+            $table->enum('escolarity', ['Ensino Fundamental', 'Ensino Médio', 'Ensino Superior Incompleto', 'Ensino Superior Completo', 'Pós-Graduação (Especialização/MBA)', 'Mestrado', 'Doutorado'])->nullable();
             $table->string('voter_registration', 20)->nullable();
             $table->string('military_certificate', 20)->nullable();
             $table->string('mother_name', 100)->nullable();
@@ -42,7 +44,7 @@ return new class extends Migration
             $table->string('professional_registration')->nullable();
 
             // Endereço e Contato
-            $table->string('zip_code', 10)->nullable();
+            $table->string('postal_code', 10)->nullable();
             $table->string('street', 100)->nullable();
             $table->string('number', 10)->nullable();
             $table->string('complement', 50)->nullable();
@@ -79,11 +81,6 @@ return new class extends Migration
             $table->string('blood_type', 5)->nullable();
             $table->text('accident_history')->nullable();
 
-            // Education and Experience
-            $table->string('education_level')->nullable();
-            $table->text('courses')->nullable();
-            $table->text('certifications')->nullable();
-            $table->text('experience')->nullable();
             $table->timestamps();
         });
 
@@ -101,16 +98,6 @@ return new class extends Migration
             $table->string('relationship');
             $table->date('birth_date');
             $table->string('cpf', 14)->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('employee_documents', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->string('type');
-            $table->string('number');
-            $table->date('valid_until')->nullable();
-            $table->string('issuer')->nullable();
             $table->timestamps();
         });
 

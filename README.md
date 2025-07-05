@@ -1,4 +1,13 @@
-# JLA ERP
+<div style="align: center;">  
+    <img src="https://github.com/user-attachments/assets/974734dc-6be9-4e2a-9da6-e1919213d15e" alt="Imagem centralizada">
+</div>
+
+# ESTÁGIO SUPERVISIONADO: ATIVIDADE PRÁTICA PROFISSIONAL
+**Aluno:** Dayvison Rocha Pereira
+
+### JLA ERP
+
+
 
 ### 📋 Sumário
 
@@ -24,6 +33,10 @@
 - [Shadcn UI](https://shadcn-vue.com/) - Componentes UI
 
 ### 💿 Instalação Local
+
+**Requisitos:**
+- NodeJS v.22
+- PHP ^8.2
 
 **1**. Clone o repositório:
 ```bash
@@ -117,7 +130,7 @@ DB_PASSWORD=root
 
 **8**. Gere a chave da aplicação
 ```bash
-  ./vendor/bin/sail artisan key:generate
+    ./vendor/bin/sail artisan key:generate
 ```
 
 **9**. Execute o vite:
@@ -231,10 +244,23 @@ O módulo de funcionários para seu sistema ERP está completo! Ele inclui todas
 
 ## Como Usar
 
+1º - Login na Aplicação:
+Com as seeds foi adicionado a contas:
+
+> O acesso administrador permite acessar a rota `/admin`, visualizando uma seção do sistema que ainda esta em construção, onde é possivel cadastrar usuários, cargos, times, permissões e integrações.
+
+**Administrador**
+- Login: `admin@admin.com`
+- Senha: `admin123`
+
+> O acesso usuário é o acesso padrão, onde iniciará na tela `Início`, podendo navegar para o menu de `Funcionários`.
+
+**Usuário** 
+- Login: `user@user.com`
+- Senha: `user123`
+
 1. A tela inicial mostra a lista de funcionários cadastrados
 2. Clique em "Novo Funcionário" para adicionar um novo registro
 3. Use a barra de busca para encontrar funcionários específicos
 4. Clique nos ícones de edição ou exclusão para gerenciar registros existentes
-5. No formulário, navegue entre as abas para preencher todas as informações
-
-Este módulo está pronto para ser integrado ao seu sistema ERP existente. Como está desenvolvido em Vue 3 com TypeScript e Tailwind CSS, ele se integrará perfeitamente à sua estrutura atual.
+5. No formulário, navegue entre as abas para preencher todas as informações e salvar os funcionários no banco de dados.

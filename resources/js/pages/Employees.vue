@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
     FileUp,
@@ -76,85 +76,74 @@ interface HistoricoCargo {
 }
 
 interface Employee {
-    id: number;
-    nome: string;
-    dataNascimento: string;
-    sexo: string;
-    estadoCivil: string;
-    nacionalidade: string;
-    naturalidade: string;
+    name: string;
+    birth_date: string;
+    gender: string;
+    civil_state: string;
+    nationality: string;
+    birthplace: string;
+    cnpj: string;
     cpf: string;
     rg: string;
-    orgaoEmissor: string;
-    dataEmissao: string;
-    tituloEleitor: string;
-    reservista: string;
-    nomeMae: string;
-    nomePai: string;
-    foto: string | null;
-    status: 'ativo' | 'inativo' | 'ferias' | 'afastado' | 'desligado';
+    issuing_agency: string;
+    issue_date: string;
+    escolarity: 'Ensino Fundamental' | 'Ensino Médio' | 'Ensino Superior Incompleto' | 'Ensino Superior Completo' | 'Pós-Graduação (Especialização/MBA)' | 'Mestrado' | 'Doutorado';
+    voter_registration: string;
+    military_certificate: string;
+    mother_name: string;
+    father_name: string;
+    photo: string | null;
+    status: 'active' | 'inactive' | 'vacation' | 'leave' | 'terminated';
 
-    // Documentos Trabalhistas
-    numeroCtps: string;
-    serieCtps: string;
-    ufCtps: string;
-    pisPasep: string;
+    ctps_number: string;
+    ctps_series: string;
+    ctps_state: string;
+    pis_pasep: string;
     nit: string;
     cnh: string;
-    categoriaCnh: string;
-    validadeCnh: string;
-    registroProfissional: string;
+    cnh_category: string;
+    cnh_expiry: string;
+    professional_registration: string;
 
-    // Endereço e Contato
-    cep: string;
-    logradouro: string;
-    numero: string;
-    complemento: string;
-    bairro: string;
-    cidade: string;
-    estado: string;
-    telefone: string;
-    celular: string;
+    postal_code: string;
+    street: string;
+    number: string;
+    complement: string;
+    district: string;
+    city: string;
+    state: string;
+    phone: string;
+    mobile: string;
     email: string;
-    contatoEmergencia: string;
-    telefoneEmergencia: string;
+    emergency_contact: string;
+    emergency_phone: string;
 
-    // Dados Bancários
-    banco: string;
-    agencia: string;
-    conta: string;
-    tipoConta: string;
-    chavePix: string;
+    bank: string;
+    agency: string;
+    account: string;
+    account_type: string;
+    pix_key: string;
 
-    // Informações Contratuais
-    cargo: string;
-    departamento: string;
-    tipoVinculo: string;
-    dataAdmissao: string;
-    dataDesligamento: string | null;
-    salario: string;
-    jornadaTrabalho: string;
-    beneficios: string[];
-    historicosCargo: HistoricoCargo[];
+    role: string;
+    department: string;
+    contract_type: string;
+    admission_date: string;
+    termination_date: string | null;
+    salary: string;
+    work_schedule: string;
+    benefits: string[];
+    role_history: HistoricoCargo[];
 
-    // Saúde e Segurança do Trabalho
-    dataUltimoExame: string;
-    dataProximoExame: string;
-    resultadoAso: string;
-    alergias: string;
-    tipoSanguineo: string;
-    historicoAcidentes: string;
+    last_exam_date: string;
+    next_exam_date: string;
+    aso_result: string;
+    allergies: string;
+    blood_type: string;
+    accident_history: string;
 
-    // Educação e Experiência
-    escolaridade: string;
-    cursos: string;
-    certificacoes: string;
-    experiencia: string;
-
-    // Dependentes e Anexos
-    dependentes: Dependente[];
-    documentos: Documento[];
-    anexos: Anexo[];
+    dependents: Dependente[];
+    documents: Documento[];
+    attachments: Anexo[];
 }
 
 // Estado
@@ -181,77 +170,74 @@ const newCargoHistory = reactive<HistoricoCargo>({
 
 // Dados de formulário
 const formData = reactive<Employee>({
-    nome: '',
-    dataNascimento: '',
-    sexo: '',
-    estadoCivil: '',
-    nacionalidade: '',
-    naturalidade: '',
+    name: '',
+    birth_date: '',
+    gender: '',
+    civil_state: '',
+    nationality: '',
+    birthplace: '',
+    cnpj: '',
     cpf: '',
     rg: '',
-    orgaoEmissor: '',
-    dataEmissao: '',
-    tituloEleitor: '',
-    reservista: '',
-    nomeMae: '',
-    nomePai: '',
-    foto: null,
-    status: 'ativo',
+    issuing_agency: '',
+    issue_date: '',
+    escolarity: '',
+    voter_registration: '',
+    military_certificate: '',
+    mother_name: '',
+    father_name: '',
+    photo: null,
+    status: 'active',
 
-    numeroCtps: '',
-    serieCtps: '',
-    ufCtps: '',
-    pisPasep: '',
+    ctps_number: '',
+    ctps_series: '',
+    ctps_state: '',
+    pis_pasep: '',
     nit: '',
     cnh: '',
-    categoriaCnh: '',
-    validadeCnh: '',
-    registroProfissional: '',
+    cnh_category: '',
+    cnh_expiry: '',
+    professional_registration: '',
 
-    cep: '',
-    logradouro: '',
-    numero: '',
-    complemento: '',
-    bairro: '',
-    cidade: '',
-    estado: '',
-    telefone: '',
-    celular: '',
+    postal_code: '',
+    street: '',
+    number: '',
+    complement: '',
+    district: '',
+    city: '',
+    state: '',
+    phone: '',
+    mobile: '',
     email: '',
-    contatoEmergencia: '',
-    telefoneEmergencia: '',
+    emergency_contact: '',
+    emergency_phone: '',
 
-    banco: '',
-    agencia: '',
-    conta: '',
-    tipoConta: '',
-    chavePix: '',
+    bank: '',
+    agency: '',
+    account: '',
+    account_type: '',
+    pix_key: '',
 
-    cargo: '',
-    departamento: '',
-    tipoVinculo: '',
-    dataAdmissao: '',
-    dataDesligamento: null,
-    salario: '',
-    jornadaTrabalho: '',
-    beneficios: [],
-    historicosCargo: [],
+    role: '',
+    department: '',
+    contract_type: '',
+    admission_date: '',
+    termination_date: null,
+    salary: '',
+    work_schedule: '',
+    benefits: [],
+    role_history: [],
 
-    dataUltimoExame: '',
-    dataProximoExame: '',
-    resultadoAso: '',
-    alergias: '',
-    tipoSanguineo: '',
-    historicoAcidentes: '',
+    last_exam_date: '',
+    next_exam_date: '',
+    aso_result: '',
+    allergies: '',
+    blood_type: '',
+    accident_history: '',
 
-    escolaridade: '',
-    cursos: '',
-    certificacoes: '',
-    experiencia: '',
-
-    dependentes: [],
-    documentos: [],
-    anexos: []
+    dependents: [],
+    documents: [],
+    attachments: []
 })
 
 // Dados de referência
@@ -358,6 +344,11 @@ const proximosExames = computed(() => {
     });
 })
 
+function prepararEnvioEmployee() {
+    // Remove pontos e traço do CPF
+    formData.cpf = formData.cpf.replace(/[^\d]/g, '');
+    saveEmployee()
+}
 // Métodos
 const getInitials = (name: string) => {
     if (!name) return '';
@@ -566,7 +557,7 @@ const deleteEmployee = () => {
 
 const saveEmployee = () => {
     // Validação de campos
-    if (!formData.nome || !formData.cpf || !formData.dataNascimento || !formData.cargo || !formData.departamento) {
+    if (!formData.name || !formData.cpf) {
         alert('Por favor, preencha todos os campos obrigatórios.');
         return;
     }
@@ -578,12 +569,9 @@ const saveEmployee = () => {
             employees.value[index] = {...formData};
         }
     } else {
-        // Novo funcionário
-        const newEmployee = {
-            ...formData,
-            id: Date.now() // Gera um ID único baseado no timestamp
-        };
-        employees.value.push(newEmployee);
+        router.post('funcionarios', {
+            employee: formData
+        })
     }
 
     showEmployeeForm.value = false;
@@ -1397,7 +1385,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
                                 <input
-                                    v-model="formData.nome"
+                                    v-model="formData.name"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1407,7 +1395,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
                                 <input
-                                    v-model="formData.dataNascimento"
+                                    v-model="formData.birth_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1417,7 +1405,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
                                 <select
-                                    v-model="formData.sexo"
+                                    v-model="formData.gender"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1431,7 +1419,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
                                 <select
-                                    v-model="formData.estadoCivil"
+                                    v-model="formData.civil_state"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1447,7 +1435,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
                                 <input
-                                    v-model="formData.nacionalidade"
+                                    v-model="formData.nationality"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1457,7 +1445,17 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
                                 <input
-                                    v-model="formData.naturalidade"
+                                    v-model="formData.birthplace"
+                                    type="text"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">CNPJ</label>
+                                <input
+                                    v-model="formData.cnpj"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1488,7 +1486,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
                                 <input
-                                    v-model="formData.orgaoEmissor"
+                                    v-model="formData.issuing_agency"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1498,7 +1496,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
                                 <input
-                                    v-model="formData.dataEmissao"
+                                    v-model="formData.issue_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1508,7 +1506,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
                                 <input
-                                    v-model="formData.tituloEleitor"
+                                    v-model="formData.voter_registration"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1518,7 +1516,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
                                 <input
-                                    v-model="formData.reservista"
+                                    v-model="formData.military_certificate"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1528,7 +1526,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
                                 <input
-                                    v-model="formData.nomeMae"
+                                    v-model="formData.mother_name"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1537,7 +1535,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
                                 <input
-                                    v-model="formData.nomePai"
+                                    v-model="formData.father_name"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1561,7 +1559,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
                                 <select
-                                    v-model="formData.escolaridade"
+                                    v-model="formData.escolarity"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1579,7 +1577,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
                                 <select
-                                    v-model="formData.tipoSanguineo"
+                                    v-model="formData.blood_type"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 >
                                     <option value="">Selecione</option>
@@ -1596,7 +1594,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho
                                     *</label>
                                 <input
-                                    v-model="formData.numeroCtps"
+                                    v-model="formData.ctps_number"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1606,7 +1604,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
                                 <input
-                                    v-model="formData.serieCtps"
+                                    v-model="formData.ctps_series"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1616,7 +1614,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">UF CTPS *</label>
                                 <select
-                                    v-model="formData.ufCtps"
+                                    v-model="formData.ctps_state"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1628,7 +1626,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
                                 <input
-                                    v-model="formData.pisPasep"
+                                    v-model="formData.pis_pasep"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1657,7 +1655,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Categoria CNH</label>
                                 <select
-                                    v-model="formData.categoriaCnh"
+                                    v-model="formData.cnh_category"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 >
                                     <option value="">Selecione</option>
@@ -1668,7 +1666,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
                                 <input
-                                    v-model="formData.validadeCnh"
+                                    v-model="formData.cnh_expiry"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1677,7 +1675,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
                                 <input
-                                    v-model="formData.registroProfissional"
+                                    v-model="formData.professional_registration"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1692,7 +1690,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">CEP *</label>
                                 <input
-                                    v-model="formData.cep"
+                                    v-model="formData.postal_code"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1704,7 +1702,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
                                 <input
-                                    v-model="formData.logradouro"
+                                    v-model="formData.street"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1714,7 +1712,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Número *</label>
                                 <input
-                                    v-model="formData.numero"
+                                    v-model="formData.number"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1724,7 +1722,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Complemento</label>
                                 <input
-                                    v-model="formData.complemento"
+                                    v-model="formData.complement"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1733,7 +1731,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Bairro *</label>
                                 <input
-                                    v-model="formData.bairro"
+                                    v-model="formData.district"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1743,7 +1741,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Cidade *</label>
                                 <input
-                                    v-model="formData.cidade"
+                                    v-model="formData.city"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1753,7 +1751,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Estado *</label>
                                 <select
-                                    v-model="formData.estado"
+                                    v-model="formData.state"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1765,7 +1763,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Telefone *</label>
                                 <input
-                                    v-model="formData.telefone"
+                                    v-model="formData.phone"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1776,7 +1774,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Celular</label>
                                 <input
-                                    v-model="formData.celular"
+                                    v-model="formData.mobile"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     @input="formatCelular"
@@ -1796,7 +1794,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
                                 <input
-                                    v-model="formData.contatoEmergencia"
+                                    v-model="formData.emergency_contact"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1805,7 +1803,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
                                 <input
-                                    v-model="formData.telefoneEmergencia"
+                                    v-model="formData.emergency_phone"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     @input="formatTelefoneEmergencia"
@@ -1820,7 +1818,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Banco *</label>
                                 <select
-                                    v-model="formData.banco"
+                                    v-model="formData.bank"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1834,7 +1832,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Agência *</label>
                                 <input
-                                    v-model="formData.agencia"
+                                    v-model="formData.agency"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1844,7 +1842,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Conta *</label>
                                 <input
-                                    v-model="formData.conta"
+                                    v-model="formData.account"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1854,7 +1852,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Tipo de conta *</label>
                                 <select
-                                    v-model="formData.tipoConta"
+                                    v-model="formData.account_type"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1868,7 +1866,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
                                 <input
-                                    v-model="formData.chavePix"
+                                    v-model="formData.pix_key"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 />
@@ -1883,7 +1881,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
                                 <input
-                                    v-model="formData.cargo"
+                                    v-model="formData.role"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1893,7 +1891,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Setor/departamento *</label>
                                 <select
-                                    v-model="formData.departamento"
+                                    v-model="formData.department"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1906,7 +1904,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Tipo de vínculo *</label>
                                 <select
-                                    v-model="formData.tipoVinculo"
+                                    v-model="formData.contract_type"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -1922,7 +1920,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
                                 <input
-                                    v-model="formData.dataAdmissao"
+                                    v-model="formData.admission_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1932,7 +1930,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
                                 <input
-                                    v-model="formData.dataDesligamento"
+                                    v-model="formData.termination_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     :disabled="formData.status !== 'desligado'"
@@ -1943,7 +1941,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Salário *</label>
                                 <input
-                                    v-model="formData.salario"
+                                    v-model="formData.salary"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1954,7 +1952,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
                                 <input
-                                    v-model="formData.jornadaTrabalho"
+                                    v-model="formData.work_schedule"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -1967,7 +1965,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div class="flex items-center">
                                         <input
-                                            v-model="formData.beneficios"
+                                            v-model="formData.benefits"
                                             type="checkbox"
                                             value="valeTransporte"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -1976,7 +1974,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                     </div>
                                     <div class="flex items-center">
                                         <input
-                                            v-model="formData.beneficios"
+                                            v-model="formData.benefits"
                                             type="checkbox"
                                             value="valeRefeicao"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -1985,7 +1983,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                     </div>
                                     <div class="flex items-center">
                                         <input
-                                            v-model="formData.beneficios"
+                                            v-model="formData.benefits"
                                             type="checkbox"
                                             value="planoSaude"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -1994,7 +1992,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                     </div>
                                     <div class="flex items-center">
                                         <input
-                                            v-model="formData.beneficios"
+                                            v-model="formData.benefits"
                                             type="checkbox"
                                             value="planoOdontologico"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -2003,7 +2001,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                     </div>
                                     <div class="flex items-center">
                                         <input
-                                            v-model="formData.beneficios"
+                                            v-model="formData.benefits"
                                             type="checkbox"
                                             value="seguroVida"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -2012,7 +2010,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                     </div>
                                     <div class="flex items-center">
                                         <input
-                                            v-model="formData.beneficios"
+                                            v-model="formData.benefits"
                                             type="checkbox"
                                             value="previdenciaPrivada"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -2029,7 +2027,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <h3 class="text-lg font-medium">Histórico de Cargos</h3>
                             </div>
 
-                            <div v-if="formData.historicosCargo.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                            <div v-if="formData.role_history.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                                 Nenhum histórico de cargo cadastrado
                             </div>
 
@@ -2061,7 +2059,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                     </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="hist in formData.historicosCargo" :key="hist.id" class="hover:bg-gray-50">
+                                    <tr v-for="hist in formData.role_history" :key="hist.id" class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {{ hist.cargo }}
                                         </td>
@@ -2099,7 +2097,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <label class="block text-sm font-medium text-gray-700">Data do último exame
                                     admissional/periódico *</label>
                                 <input
-                                    v-model="formData.dataUltimoExame"
+                                    v-model="formData.last_exam_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -2109,7 +2107,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
                                 <input
-                                    v-model="formData.dataProximoExame"
+                                    v-model="formData.next_exam_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
@@ -2119,7 +2117,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Resultado do ASO *</label>
                                 <select
-                                    v-model="formData.resultadoAso"
+                                    v-model="formData.aso_result"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                 >
@@ -2134,7 +2132,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <label class="block text-sm font-medium text-gray-700">Alergias ou restrições
                                     médicas</label>
                                 <textarea
-                                    v-model="formData.alergias"
+                                    v-model="formData.allergies"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 min-h-[100px]"
                                     placeholder="Descreva alergias ou restrições médicas, se houver"
                                 ></textarea>
@@ -2144,7 +2142,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <label class="block text-sm font-medium text-gray-700">Histórico de acidentes ou doenças
                                     ocupacionais</label>
                                 <textarea
-                                    v-model="formData.historicoAcidentes"
+                                    v-model="formData.accident_history"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 min-h-[100px]"
                                     placeholder="Descreva o histórico, se houver"
                                 ></textarea>
@@ -2166,11 +2164,11 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             </button>
                         </div>
 
-                        <div v-if="formData.dependentes.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                        <div v-if="formData.dependents.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                             Nenhum dependente cadastrado
                         </div>
 
-                        <div v-for="(dependente, index) in formData.dependentes" :key="dependente.id"
+                        <div v-for="(dependente, index) in formData.dependents" :key="dependente.id"
                              class="border p-4 rounded-md mb-4 bg-white shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h4 class="font-medium">Dependente #{{ index + 1 }}</h4>
@@ -2295,7 +2293,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                             </div>
                         </div>
 
-                        <div v-if="formData.anexos.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                        <div v-if="formData.attachments.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                             Nenhum anexo cadastrado
                         </div>
 
@@ -2311,7 +2309,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="anexo in formData.anexos" :key="anexo.id" class="hover:bg-gray-50">
+                                <tr v-for="anexo in formData.attachments" :key="anexo.id" class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
@@ -2356,11 +2354,11 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                         </div>
 
                         <!-- Prévia de imagens -->
-                        <div v-if="formData.anexos.some(a => a.tipo.includes('image'))" class="mt-6">
+                        <div v-if="formData.attachments.some(a => a.tipo.includes('image'))" class="mt-6">
                             <h4 class="text-md font-medium mb-3">Prévia de Imagens</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 <div
-                                    v-for="anexo in formData.anexos.filter(a => a.tipo.includes('image'))"
+                                    v-for="anexo in formData.attachments.filter(a => a.tipo.includes('image'))"
                                     :key="`preview-${anexo.id}`"
                                     class="relative group"
                                 >
@@ -2403,7 +2401,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                         </button>
                         <button
                             type="button"
-                            @click="saveEmployee"
+                            @click="prepararEnvioEmployee"
                             class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
                         >
                             Salvar
