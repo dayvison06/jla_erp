@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
     FileUp,
@@ -29,6 +29,8 @@ import {
     MapPinHouse,
 } from 'lucide-vue-next'
 import type { BreadcrumbItem } from "@/types";
+const page = usePage()
+const employees: Employee[] = page.props.employees || []
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Funcionários', href: '/funcionarios' },
@@ -152,7 +154,6 @@ const activeTab = ref('personal')
 const searchQuery = ref('')
 const statusFilter = ref('todos')
 const departmentFilter = ref('todos')
-const employees = ref<Employee[]>([])
 const currentEmployee = ref<Employee | null>(null)
 const showDeleteModal = ref(false)
 const employeeToDelete = ref<Employee | null>(null)
@@ -292,45 +293,6 @@ const categoriasCnh = [
 const tiposSanguineos = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
 ]
-
-// Computed properties
-const filteredEmployees = computed(() => {
-    let result = employees.value;
-
-    // Aplicar filtro de pesquisa
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(employee =>
-            employee.nome.toLowerCase().includes(query) ||
-            employee.cpf.includes(query) ||
-            employee.cargo.toLowerCase().includes(query) ||
-            employee.departamento.toLowerCase().includes(query) ||
-            employee.email.toLowerCase().includes(query)
-        );
-    }
-
-    // Aplicar filtro de status
-    if (statusFilter.value !== 'todos') {
-        result = result.filter(employee => employee.status === statusFilter.value);
-    }
-
-    // Aplicar filtro de departamento
-    if (departmentFilter.value !== 'todos') {
-        result = result.filter(employee => employee.departamento === departmentFilter.value);
-    }
-
-    return result;
-})
-
-const uniqueDepartments = computed(() => {
-    const departments = new Set<string>();
-    employees.value.forEach(emp => {
-        if (emp.departamento) {
-            departments.add(emp.departamento);
-        }
-    });
-    return Array.from(departments).sort();
-})
 
 const proximosExames = computed(() => {
     const hoje = new Date();
@@ -535,11 +497,30 @@ const removeHistoricoCargo = (id: number) => {
     formData.historicosCargo = formData.historicosCargo.filter(hist => hist.id !== id);
 }
 
-const editEmployee = (employee: Employee) => {
-    currentEmployee.value = {...employee};
-    Object.assign(formData, JSON.parse(JSON.stringify(employee)));
-    showEmployeeForm.value = true;
-    activeTab.value = 'personal';
+async function showEmployeeByCPF(cpf: string) {
+    // Limpa o formulário
+    resetForm();
+
+    router.get(`funcionarios/${cpf}`, {
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: (page) => {
+            // Verifica se encontrou o funcionário
+            if (page.props.employee) {
+                currentEmployee.value = page.props.employee;
+                Object.assign(formData, currentEmployee.value);
+                showEmployeeForm.value = true;
+            } else {
+                alert('Funcionário não encontrado.');
+            }
+        },
+        onError: (error) => {
+            console.error('Erro ao buscar funcionário:', error);
+            alert('Erro ao buscar funcionário. Verifique o CPF e tente novamente.');
+        }
+    });
+
 }
 
 const confirmDelete = (employee: Employee) => {
@@ -581,78 +562,74 @@ const saveEmployee = () => {
 const resetForm = () => {
     // Reseta o formulário para valores padrão
     Object.assign(formData, {
-        id: 0,
-        nome: '',
-        dataNascimento: '',
-        sexo: '',
-        estadoCivil: '',
-        nacionalidade: '',
-        naturalidade: '',
+       name: '',
+        birth_date: '',
+        gender: '',
+        civil_state: '',
+        nationality: '',
+        birthplace: '',
+        cnpj: '',
         cpf: '',
         rg: '',
-        orgaoEmissor: '',
-        dataEmissao: '',
-        tituloEleitor: '',
-        reservista: '',
-        nomeMae: '',
-        nomePai: '',
-        foto: null,
-        status: 'ativo',
+        issuing_agency: '',
+        issue_date: '',
+        escolarity: '',
+        voter_registration: '',
+        military_certificate: '',
+        mother_name: '',
+        father_name: '',
+        photo: null,
+        status: 'active',
 
-        numeroCtps: '',
-        serieCtps: '',
-        ufCtps: '',
-        pisPasep: '',
+        ctps_number: '',
+        ctps_series: '',
+        ctps_state: '',
+        pis_pasep: '',
         nit: '',
         cnh: '',
-        categoriaCnh: '',
-        validadeCnh: '',
-        registroProfissional: '',
+        cnh_category: '',
+        cnh_expiry: '',
+        professional_registration: '',
 
-        cep: '',
-        logradouro: '',
-        numero: '',
-        complemento: '',
-        bairro: '',
-        cidade: '',
-        estado: '',
-        telefone: '',
-        celular: '',
+        postal_code: '',
+        street: '',
+        number: '',
+        complement: '',
+        district: '',
+        city: '',
+        state: '',
+        phone: '',
+        mobile: '',
         email: '',
-        contatoEmergencia: '',
-        telefoneEmergencia: '',
+        emergency_contact: '',
+        emergency_phone: '',
 
-        banco: '',
-        agencia: '',
-        conta: '',
-        tipoConta: '',
-        chavePix: '',
+        bank: '',
+        agency: '',
+        account: '',
+        account_type: '',
+        pix_key: '',
 
-        cargo: '',
-        departamento: '',
-        tipoVinculo: '',
-        dataAdmissao: '',
-        dataDesligamento: null,
-        salario: '',
-        jornadaTrabalho: '',
-        beneficios: [],
-        historicosCargo: [],
+        role: '',
+        department: '',
+        contract_type: '',
+        admission_date: '',
+        termination_date: null,
+        salary: '',
+        work_schedule: '',
+        benefits: [],
+        role_history: [],
 
-        dataUltimoExame: '',
-        dataProximoExame: '',
-        resultadoAso: '',
-        alergias: '',
-        tipoSanguineo: '',
-        historicoAcidentes: '',
+        last_exam_date: '',
+        next_exam_date: '',
+        aso_result: '',
+        allergies: '',
+        blood_type: '',
+        accident_history: '',
 
-        escolaridade: '',
-        cursos: '',
-        certificacoes: '',
-        experiencia: '',
-
-        dependentes: [],
-        documentos: [],
-        anexos: []
+        dependents: [],
+        documents: [],
+        attachments: []
     });
 
     currentEmployee.value = null;
@@ -732,15 +709,15 @@ const getFileIcon = (tipo: string) => {
 
 const getStatusColor = (status: string) => {
     switch (status) {
-        case 'ativo':
+        case 'active':
             return 'bg-green-100 text-green-800';
-        case 'inativo':
+        case 'inactive':
             return 'bg-gray-100 text-gray-800';
-        case 'ferias':
+        case 'vacation':
             return 'bg-blue-100 text-blue-800';
-        case 'afastado':
+        case 'leave':
             return 'bg-yellow-100 text-yellow-800';
-        case 'desligado':
+        case 'terminated':
             return 'bg-red-100 text-red-800';
         default:
             return 'bg-gray-100 text-gray-800';
@@ -749,15 +726,15 @@ const getStatusColor = (status: string) => {
 
 const getStatusText = (status: string) => {
     switch (status) {
-        case 'ativo':
+        case 'active':
             return 'Ativo';
-        case 'inativo':
+        case 'inactive':
             return 'Inativo';
-        case 'ferias':
+        case 'vacation':
             return 'Em Férias';
-        case 'afastado':
+        case 'leave':
             return 'Afastado';
-        case 'desligado':
+        case 'terminated':
             return 'Desligado';
         default:
             return 'Desconhecido';
@@ -766,11 +743,6 @@ const getStatusText = (status: string) => {
 
 const exportarDados = () => {
     // Implementação básica de exportação para CSV
-    let csv = 'Nome,CPF,Cargo,Departamento,Data de Admissão,Status\n';
-
-    filteredEmployees.value.forEach(emp => {
-        csv += `"${emp.nome}","${emp.cpf}","${emp.cargo}","${emp.departamento}","${formatDate(emp.dataAdmissao)}","${getStatusText(emp.status)}"\n`;
-    });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -1288,26 +1260,26 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="employee in filteredEmployees" :key="employee.id" class="hover:bg-gray-50">
+                        <tr v-for="employee in employees" :key="employee.cpf" class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
                                         <div v-if="!employee.foto"
                                              class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">
-                                            {{ getInitials(employee.nome) }}
+                                            {{ getInitials(employee.name) }}
                                         </div>
                                         <img v-else :src="employee.foto" alt="" class="h-10 w-10 rounded-full object-cover">
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ employee.nome }}</div>
+                                        <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
                                         <div class="text-sm text-gray-500">{{ employee.email }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.cargo }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.departamento }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.role }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.department }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ formatDate(employee.dataAdmissao) }}
+                                {{ formatDate(employee.admission_date) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
@@ -1315,7 +1287,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                         </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button @click="editEmployee(employee)"
+                                <button @click="showEmployeeByCPF(employee.cpf)"
                                         class="text-gray-600 hover:text-gray-900 mr-3">
                                     <EditIcon class="w-5 h-5"/>
                                 </button>
@@ -1324,7 +1296,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 </button>
                             </td>
                         </tr>
-                        <tr v-if="filteredEmployees.length === 0">
+                        <tr v-if="employees.length === 0">
                             <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                                 Nenhum funcionário encontrado
                             </td>
@@ -1337,7 +1309,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                 <div class="flex items-center justify-between mt-4">
                     <div class="text-sm text-gray-700">
                         Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{
-                            filteredEmployees.length
+                            employees.length
                         }}</span> de <span class="font-medium">{{ employees.length }}</span> resultados
                     </div>
                     <div class="flex space-x-2">
@@ -1351,8 +1323,8 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
             <!-- Formulário de funcionário -->
             <div v-else>
                 <div class="flex justify-between items-center mb-5">
-                    <h2 class="text-xl font-semibold">{{ currentEmployee ? `Alterando dados de ${ currentEmployee.nome }` : 'Novo Funcionário' }}</h2>
-                    <button @click="showEmployeeForm = false" class="text-gray-500 hover:text-gray-700">
+                    <h2 class="text-xl font-semibold">{{ employee ? `Alterando dados de ${ currentEmployee.nome }` : 'Novo Funcionário' }}</h2>
+                    <button @click="showEmployeeForm = false, router.get('/funcionarios')" class="text-gray-500 hover:text-gray-700">
                         <XIcon class="w-6 h-6"/>
                     </button>
                 </div>
@@ -2394,7 +2366,7 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                     <div class="flex justify-end space-x-4 mt-8 pt-4">
                         <button
                             type="button"
-                            @click="showEmployeeForm = false"
+                            @click="showEmployeeForm = false, router.get('/funcionarios')"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                         >
                             Cancelar
