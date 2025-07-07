@@ -16,6 +16,7 @@ Route::get('dashboard', function () {
 Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees')->group(function () {
     Route::get('/', [EmployeeController::class, 'index']);
     Route::post('/', [EmployeeController::class, 'store']);
+    Route::get('/{cpf}', [EmployeeController::class, 'show']);
 
 });
 
