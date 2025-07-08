@@ -153,7 +153,6 @@ const showEmployeeForm = ref(false)
 const activeTab = ref('personal')
 const searchQuery = ref('')
 const statusFilter = ref('todos')
-const currentEmployee = ref<Employee | null>(null)
 const showDeleteModal = ref(false)
 const employeeToDelete = ref<Employee | null>(null)
 const isDragging = ref(false)
@@ -293,7 +292,7 @@ const tiposSanguineos = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
 ]
 
-function prepararEnvioEmployee() {
+function prepararEnvioEmployee(employee: Employee) {
     // Remove pontos e traço do CPF
     formData.cpf = formData.cpf.replace(/[^\d]/g, '');
     saveEmployee()
@@ -462,9 +461,6 @@ const removeHistoricoCargo = (id: number) => {
 }
 
 async function showEmployeeByCPF(cpf: string) {
-    // Limpa o formulário
-    resetForm();
-
     router.get(`funcionarios/${cpf}`, {
     }, {
         preserveState: true,
@@ -472,8 +468,7 @@ async function showEmployeeByCPF(cpf: string) {
         onSuccess: (page) => {
             // Verifica se encontrou o funcionário
             if (page.props.employee) {
-                currentEmployee.value = page.props.employee;
-                Object.assign(formData, currentEmployee.value);
+                Object.assign(formData, page.props.employee);
                 showEmployeeForm.value = true;
             } else {
                 alert('Funcionário não encontrado.');
@@ -492,25 +487,38 @@ const confirmDelete = (employee: Employee) => {
     showDeleteModal.value = true;
 }
 const saveEmployee = () => {
-    // Validação de campos
-    if (!formData.name || !formData.cpf) {
-        alert('Por favor, preencha todos os campos obrigatórios.');
-        return;
-    }
+    validateFields()
 
-    if (currentEmployee.value) {
+    if (formData) {
         // Edição de funcionário existente
-        const index = employees.value.findIndex(emp => emp.id === currentEmployee.value?.id);
+        const index = employees.findIndex(emp => emp.cpf === formData.cpf);
+        console.log('Index do funcionário:', index);
+        console.log('Dados do funcionário atual:', formData);
         if (index !== -1) {
-            employees.value[index] = {...formData};
+           router.put(`/funcionarios`, {
+               employee: formData
+           })
         }
-    } else {
-        router.post('funcionarios', {
-            employee: formData
-        })
     }
 
     showEmployeeForm.value = false;
+}
+
+function validateFields() {
+    // Validação básica dos campos obrigatórios
+    if (!formData.name || !formData.cpf || !formData.birth_date) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return false;
+    }
+}
+
+const createEmployee = () => {
+    validateFields()
+
+    router.post('funcionarios', {
+        employee: formData
+    })
+
     resetForm();
 }
 
@@ -586,8 +594,6 @@ const resetForm = () => {
         documents: [],
         attachments: []
     });
-
-    currentEmployee.value = null;
 }
 
 const handleFileUpload = (event: Event) => {
@@ -728,7 +734,7 @@ watch([searchQuery, statusFilter], () => {
                     </div>
                     <div class="flex gap-2">
                         <button
-                            @click="showEmployeeForm = true; currentEmployee = null"
+                            @click="showEmployeeForm = true;"
                             class="bg-gray-800 cursor-pointer hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center"
                         >
                             <PlusIcon class="w-5 h-5 mr-2"/>
@@ -877,7 +883,7 @@ watch([searchQuery, statusFilter], () => {
             <!-- Formulário de funcionário -->
             <div v-else>
                 <div class="flex justify-between items-center mb-5">
-                    <h2 class="text-xl font-semibold">{{ employee ? `Alterando dados de ${ currentEmployee.nome }` : 'Novo Funcionário' }}</h2>
+                    <h2 class="text-xl font-semibold">{{ formData ? `Alterando dados de ${ formData.name }` : 'Novo Funcionário' }}</h2>
                     <button @click="showEmployeeForm = false, router.get('/funcionarios')" class="text-gray-500 hover:text-gray-700">
                         <XIcon class="w-6 h-6"/>
                     </button>
@@ -936,9 +942,9 @@ watch([searchQuery, statusFilter], () => {
                                     required
                                 >
                                     <option value="">Selecione</option>
-                                    <option value="M">Masculino</option>
-                                    <option value="F">Feminino</option>
-                                    <option value="O">Outro</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Feminino">Feminino</option>
+                                    <option value="Outro">Outro</option>
                                 </select>
                             </div>
 
@@ -1926,11 +1932,20 @@ watch([searchQuery, statusFilter], () => {
                             Cancelar
                         </button>
                         <button
+                            v-if="formData"
                             type="button"
-                            @click="prepararEnvioEmployee"
+                            @click="saveEmployee"
                             class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
                         >
                             Salvar
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            @click="createEmployee"
+                            class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
+                        >
+                            Criar
                         </button>
                     </div>
                 </div>
