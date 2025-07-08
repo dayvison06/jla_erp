@@ -153,7 +153,6 @@ const showEmployeeForm = ref(false)
 const activeTab = ref('personal')
 const searchQuery = ref('')
 const statusFilter = ref('todos')
-const departmentFilter = ref('todos')
 const currentEmployee = ref<Employee | null>(null)
 const showDeleteModal = ref(false)
 const employeeToDelete = ref<Employee | null>(null)
@@ -293,18 +292,6 @@ const categoriasCnh = [
 const tiposSanguineos = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
 ]
-
-const proximosExames = computed(() => {
-    const hoje = new Date();
-    const trintaDias = new Date();
-    trintaDias.setDate(hoje.getDate() + 30);
-
-    return employees.value.filter(emp => {
-        if (!emp.dataProximoExame) return false;
-        const dataExame = new Date(emp.dataProximoExame);
-        return dataExame >= hoje && dataExame <= trintaDias;
-    });
-})
 
 function prepararEnvioEmployee() {
     // Remove pontos e traço do CPF
@@ -470,29 +457,6 @@ const removeDependente = (index: number) => {
     formData.dependentes.splice(index, 1);
 }
 
-const saveHistoricoCargo = () => {
-    formData.historicosCargo.push({...newCargoHistory});
-    showHistoryModal.value = false;
-
-    // Atualizar cargo atual se for uma promoção/alteração
-    if (!newCargoHistory.dataFim) {
-        formData.cargo = newCargoHistory.cargo;
-        formData.departamento = newCargoHistory.departamento;
-        formData.salario = newCargoHistory.salario;
-    }
-
-    // Resetar formulário
-    Object.assign(newCargoHistory, {
-        id: 0,
-        cargo: '',
-        departamento: '',
-        dataInicio: '',
-        dataFim: null,
-        salario: '',
-        motivo: ''
-    });
-}
-
 const removeHistoricoCargo = (id: number) => {
     formData.historicosCargo = formData.historicosCargo.filter(hist => hist.id !== id);
 }
@@ -527,15 +491,6 @@ const confirmDelete = (employee: Employee) => {
     employeeToDelete.value = employee;
     showDeleteModal.value = true;
 }
-
-const deleteEmployee = () => {
-    if (employeeToDelete.value) {
-        employees.value = employees.value.filter(emp => emp.id !== employeeToDelete.value?.id);
-        showDeleteModal.value = false;
-        employeeToDelete.value = null;
-    }
-}
-
 const saveEmployee = () => {
     // Validação de campos
     if (!formData.name || !formData.cpf) {
@@ -755,394 +710,8 @@ const exportarDados = () => {
     document.body.removeChild(link);
 }
 
-// Verificar documentos vencidos e próximos a vencer
-const verificarDocumentos = () => {
-    const hoje = new Date();
-
-    employees.value.forEach(emp => {
-        emp.documentos.forEach(doc => {
-            if (doc.dataValidade) {
-                const dataValidade = new Date(doc.dataValidade);
-
-                if (dataValidade < hoje) {
-                    doc.status = 'vencido';
-                } else {
-                    // Verificar se está próximo de vencer (30 dias)
-                    const trintaDias = new Date();
-                    trintaDias.setDate(hoje.getDate() + 30);
-
-                    if (dataValidade <= trintaDias) {
-                        // Aqui poderia implementar notificações
-                        console.log(`Documento ${doc.nome} do funcionário ${emp.nome} vencerá em ${formatDate(doc.dataValidade)}`);
-                    }
-                }
-            }
-        });
-    });
-}
-
-// Carrega dados de exemplo
-onMounted(() => {
-    // Simulando dados de exemplo
-    employees.value = [
-        {
-            id: 1,
-            nome: 'João Silva',
-            dataNascimento: '1985-05-15',
-            sexo: 'M',
-            estadoCivil: 'casado',
-            nacionalidade: 'Brasileira',
-            naturalidade: 'São Paulo',
-            cpf: '123.456.789-00',
-            rg: '12.345.678-9',
-            orgaoEmissor: 'SSP',
-            dataEmissao: '2010-01-10',
-            tituloEleitor: '123456789012',
-            reservista: '12345678',
-            nomeMae: 'Maria Silva',
-            nomePai: 'José Silva',
-            foto: null,
-            status: 'ativo',
-
-            numeroCtps: '12345',
-            serieCtps: '123',
-            ufCtps: 'SP',
-            pisPasep: '12345678901',
-            nit: '',
-            cnh: '12345678901',
-            categoriaCnh: 'B',
-            validadeCnh: '2025-01-10',
-            registroProfissional: '',
-
-            cep: '01234-567',
-            logradouro: 'Rua das Flores',
-            numero: '123',
-            complemento: 'Apto 45',
-            bairro: 'Centro',
-            cidade: 'São Paulo',
-            estado: 'SP',
-            telefone: '(11) 3456-7890',
-            celular: '(11) 98765-4321',
-            email: 'joao.silva@email.com',
-            contatoEmergencia: 'Maria Silva',
-            telefoneEmergencia: '(11) 99876-5432',
-
-            banco: '001',
-            agencia: '1234',
-            conta: '12345-6',
-            tipoConta: 'corrente',
-            chavePix: 'joao.silva@email.com',
-
-            cargo: 'Analista de Sistemas',
-            departamento: 'TI',
-            tipoVinculo: 'clt',
-            dataAdmissao: '2020-01-15',
-            dataDesligamento: null,
-            salario: 'R$ 5.000,00',
-            jornadaTrabalho: '44 horas semanais',
-            beneficios: ['valeTransporte', 'valeRefeicao', 'planoSaude'],
-            historicosCargo: [
-                {
-                    id: 101,
-                    cargo: 'Desenvolvedor',
-                    departamento: 'TI',
-                    dataInicio: '2020-01-15',
-                    dataFim: '2021-06-30',
-                    salario: 'R$ 4.000,00',
-                    motivo: 'Contratação'
-                },
-                {
-                    id: 102,
-                    cargo: 'Analista de Sistemas',
-                    departamento: 'TI',
-                    dataInicio: '2021-07-01',
-                    dataFim: null,
-                    salario: 'R$ 5.000,00',
-                    motivo: 'Promoção'
-                }
-            ],
-
-            dataUltimoExame: '2023-01-10',
-            dataProximoExame: '2024-01-10',
-            resultadoAso: 'apto',
-            alergias: 'Nenhuma',
-            tipoSanguineo: 'O+',
-            historicoAcidentes: '',
-
-            escolaridade: 'superior',
-            cursos: 'Análise e Desenvolvimento de Sistemas',
-            certificacoes: 'AWS Certified Developer',
-            experiencia: 'Desenvolvedor Full Stack na Empresa XYZ (2015-2020)',
-
-            dependentes: [
-                {
-                    id: 201,
-                    nome: 'Maria Silva',
-                    dataNascimento: '2015-03-20',
-                    cpf: '987.654.321-00',
-                    parentesco: 'filho',
-                    finalidades: ['ir', 'planoSaude']
-                }
-            ],
-            documentos: [
-                {
-                    id: 301,
-                    nome: 'Carteira de Trabalho',
-                    tipo: 'Trabalhista',
-                    dataEmissao: '2010-01-10',
-                    dataValidade: null,
-                    arquivo: null,
-                    url: '',
-                    status: 'valido'
-                },
-                {
-                    id: 302,
-                    nome: 'CNH',
-                    tipo: 'Identificação',
-                    dataEmissao: '2020-01-10',
-                    dataValidade: '2025-01-10',
-                    arquivo: null,
-                    url: '',
-                    status: 'valido'
-                }
-            ],
-            anexos: []
-        },
-        {
-            id: 2,
-            nome: 'Ana Oliveira',
-            dataNascimento: '1990-08-22',
-            sexo: 'F',
-            estadoCivil: 'solteiro',
-            nacionalidade: 'Brasileira',
-            naturalidade: 'Rio de Janeiro',
-            cpf: '987.654.321-00',
-            rg: '98.765.432-1',
-            orgaoEmissor: 'SSP',
-            dataEmissao: '2012-05-20',
-            tituloEleitor: '987654321098',
-            reservista: '',
-            nomeMae: 'Carla Oliveira',
-            nomePai: 'Roberto Oliveira',
-            foto: null,
-            status: 'ativo',
-
-            numeroCtps: '54321',
-            serieCtps: '321',
-            ufCtps: 'RJ',
-            pisPasep: '98765432109',
-            nit: '',
-            cnh: '98765432109',
-            categoriaCnh: 'B',
-            validadeCnh: '2023-05-20',
-            registroProfissional: '',
-
-            cep: '98765-432',
-            logradouro: 'Avenida Brasil',
-            numero: '456',
-            complemento: 'Bloco B',
-            bairro: 'Copacabana',
-            cidade: 'Rio de Janeiro',
-            estado: 'RJ',
-            telefone: '(21) 2345-6789',
-            celular: '(21) 98765-4321',
-            email: 'ana.oliveira@email.com',
-            contatoEmergencia: 'Roberto Oliveira',
-            telefoneEmergencia: '(21) 99876-5432',
-
-            banco: '341',
-            agencia: '4321',
-            conta: '54321-0',
-            tipoConta: 'corrente',
-            chavePix: '987.654.321-00',
-
-            cargo: 'Designer UX/UI',
-            departamento: 'Design',
-            tipoVinculo: 'clt',
-            dataAdmissao: '2021-03-10',
-            dataDesligamento: null,
-            salario: 'R$ 4.500,00',
-            jornadaTrabalho: '40 horas semanais',
-            beneficios: ['valeTransporte', 'valeRefeicao', 'planoSaude', 'planoOdontologico'],
-            historicosCargo: [
-                {
-                    id: 103,
-                    cargo: 'Designer UX/UI',
-                    departamento: 'Design',
-                    dataInicio: '2021-03-10',
-                    dataFim: null,
-                    salario: 'R$ 4.500,00',
-                    motivo: 'Contratação'
-                }
-            ],
-
-            dataUltimoExame: '2023-02-15',
-            dataProximoExame: '2024-02-15',
-            resultadoAso: 'apto',
-            alergias: 'Poeira',
-            tipoSanguineo: 'A+',
-            historicoAcidentes: '',
-
-            escolaridade: 'superior',
-            cursos: 'Design Gráfico',
-            certificacoes: 'Adobe Certified Expert',
-            experiencia: 'Designer na Agência ABC (2018-2021)',
-
-            dependentes: [],
-            documentos: [
-                {
-                    id: 303,
-                    nome: 'Carteira de Trabalho',
-                    tipo: 'Trabalhista',
-                    dataEmissao: '2012-05-20',
-                    dataValidade: null,
-                    arquivo: null,
-                    url: '',
-                    status: 'valido'
-                },
-                {
-                    id: 304,
-                    nome: 'CNH',
-                    tipo: 'Identificação',
-                    dataEmissao: '2018-05-20',
-                    dataValidade: '2023-05-20',
-                    arquivo: null,
-                    url: '',
-                    status: 'vencido'
-                }
-            ],
-            anexos: []
-        },
-        {
-            id: 3,
-            nome: 'Carlos Mendes',
-            dataNascimento: '1988-11-10',
-            sexo: 'M',
-            estadoCivil: 'casado',
-            nacionalidade: 'Brasileira',
-            naturalidade: 'Belo Horizonte',
-            cpf: '456.789.123-00',
-            rg: '45.678.912-3',
-            orgaoEmissor: 'SSP',
-            dataEmissao: '2008-07-15',
-            tituloEleitor: '456789123456',
-            reservista: '87654321',
-            nomeMae: 'Lucia Mendes',
-            nomePai: 'Antonio Mendes',
-            foto: null,
-            status: 'ferias',
-
-            numeroCtps: '67890',
-            serieCtps: '456',
-            ufCtps: 'MG',
-            pisPasep: '45678912345',
-            nit: '',
-            cnh: '45678912345',
-            categoriaCnh: 'AB',
-            validadeCnh: '2026-07-15',
-            registroProfissional: 'CRM 12345',
-
-            cep: '30123-456',
-            logradouro: 'Rua dos Médicos',
-            numero: '789',
-            complemento: 'Sala 101',
-            bairro: 'Savassi',
-            cidade: 'Belo Horizonte',
-            estado: 'MG',
-            telefone: '(31) 3456-7890',
-            celular: '(31) 98765-4321',
-            email: 'carlos.mendes@email.com',
-            contatoEmergencia: 'Lucia Mendes',
-            telefoneEmergencia: '(31) 99876-5432',
-
-            banco: '001',
-            agencia: '5678',
-            conta: '98765-4',
-            tipoConta: 'corrente',
-            chavePix: 'carlos.mendes@email.com',
-
-            cargo: 'Médico',
-            departamento: 'Saúde',
-            tipoVinculo: 'clt',
-            dataAdmissao: '2019-05-20',
-            dataDesligamento: null,
-            salario: 'R$ 12.000,00',
-            jornadaTrabalho: '30 horas semanais',
-            beneficios: ['valeTransporte', 'valeRefeicao', 'planoSaude', 'planoOdontologico', 'seguroVida'],
-            historicosCargo: [
-                {
-                    id: 104,
-                    cargo: 'Médico',
-                    departamento: 'Saúde',
-                    dataInicio: '2019-05-20',
-                    dataFim: null,
-                    salario: 'R$ 12.000,00',
-                    motivo: 'Contratação'
-                }
-            ],
-
-            dataUltimoExame: '2023-03-20',
-            dataProximoExame: '2024-03-20',
-            resultadoAso: 'apto',
-            alergias: 'Nenhuma',
-            tipoSanguineo: 'B+',
-            historicoAcidentes: '',
-
-            escolaridade: 'superior',
-            cursos: 'Medicina',
-            certificacoes: 'Especialização em Clínica Médica',
-            experiencia: 'Médico no Hospital XYZ (2015-2019)',
-
-            dependentes: [
-                {
-                    id: 202,
-                    nome: 'Pedro Mendes',
-                    dataNascimento: '2018-04-12',
-                    cpf: '123.456.789-01',
-                    parentesco: 'filho',
-                    finalidades: ['ir', 'planoSaude']
-                },
-                {
-                    id: 203,
-                    nome: 'Julia Mendes',
-                    dataNascimento: '1990-06-25',
-                    cpf: '234.567.890-12',
-                    parentesco: 'conjuge',
-                    finalidades: ['ir', 'planoSaude']
-                }
-            ],
-            documentos: [
-                {
-                    id: 305,
-                    nome: 'Carteira de Trabalho',
-                    tipo: 'Trabalhista',
-                    dataEmissao: '2008-07-15',
-                    dataValidade: null,
-                    arquivo: null,
-                    url: '',
-                    status: 'valido'
-                },
-                {
-                    id: 306,
-                    nome: 'CRM',
-                    tipo: 'Profissional',
-                    dataEmissao: '2015-01-10',
-                    dataValidade: '2025-01-10',
-                    arquivo: null,
-                    url: '',
-                    status: 'valido'
-                }
-            ],
-            anexos: []
-        }
-    ];
-
-    // Verificar documentos vencidos
-    verificarDocumentos();
-});
-
 // Observar mudanças nos filtros para atualizar a lista
-watch([searchQuery, statusFilter, departmentFilter], () => {
+watch([searchQuery, statusFilter], () => {
     // Aqui poderia implementar lógica adicional se necessário
 });
 </script>
@@ -1207,18 +776,6 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 </select>
                                 <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
                             </div>
-
-                            <div class="relative">
-                                <select
-                                    v-model="departmentFilter"
-                                    class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"
-                                >
-                                    <option value="todos">Todos os departamentos</option>
-                                    <option v-for="dept in uniqueDepartments" :key="dept" :value="dept">{{ dept }}</option>
-                                </select>
-                                <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
-                            </div>
-
                             <button
                                 @click="exportarDados"
                                 class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
@@ -1290,9 +847,6 @@ watch([searchQuery, statusFilter, departmentFilter], () => {
                                 <button @click="showEmployeeByCPF(employee.cpf)"
                                         class="text-gray-600 hover:text-gray-900 mr-3">
                                     <EditIcon class="w-5 h-5"/>
-                                </button>
-                                <button @click="confirmDelete(employee)" class="text-red-600 hover:text-red-900">
-                                    <TrashIcon class="w-5 h-5"/>
                                 </button>
                             </td>
                         </tr>
