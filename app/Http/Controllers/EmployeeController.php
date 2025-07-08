@@ -37,20 +37,27 @@ class EmployeeController extends Controller
         return Inertia::render('Employees', ['employee' => $findEmployee]);
     }
 
-    public function update (EmployeeRequest $request, Employee $employee) : RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
         $data = $request->all();
-
         try {
-            $employee->update($data);
+            $employee = Employee::where('cpf', $data['employee']['cpf'])->firstOrFail();
+            $employee->update($data['employee']);
+            Log::info('Funcionário atualizado com sucesso: ' . $employee->id);
+
+            return redirect()->route('employees.index')->with('notify', [
+                'type' => 'success',
+                'title' => 'Funcionário Atualizado',
+                'message' => 'O funcionário foi atualizado com sucesso.',
+            ]);
+
         } catch (\Throwable $e) {
             Log::error('Erro ao atualizar funcionário: ' . $e->getMessage());
+            return redirect()->back()->with('notify', [
+                'type' => 'error',
+                'title' => 'Erro',
+                'message' => 'Não foi possível atualizar o funcionário.',
+            ]);
         }
-
-        return redirect()->route('employees')->with('notify', [
-            'type' => 'success',
-            'title' => 'Funcionário Atualizado',
-            'message' => 'Dados atualizado com sucesso.',
-        ]);
     }
 }

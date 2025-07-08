@@ -24,7 +24,7 @@ class EmployeeRequest extends FormRequest
         return [
             'employee.name' => 'required|string|max:255',
             'employee.email' => 'required|email|max:255',
-            'employee.cpf' => 'required|string|size:11|unique:employees,cpf',
+            'employee.cpf' => 'required|size:11|unique:employees,cpf',
             'employee.rg' => 'required|string|max:20',
         ];
     }
