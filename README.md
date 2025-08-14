@@ -5,7 +5,25 @@
 # ESTÁGIO SUPERVISIONADO: ATIVIDADE PRÁTICA PROFISSIONAL
 **Aluno:** Dayvison Rocha Pereira
 
-### JLA ERP
+
+# Arquiteturas Comparativo
+```mermaid
+flowchart TB
+subgraph A[Modelo 1: Única VPS]
+A1[Servidor Único<br/>Web + Banco + Cache]
+end
+
+subgraph B[Modelo 2: Múltiplas VPS]
+W2[Web/API]
+DB2[Banco de Dados]
+C2[Cache/Fila]
+W2 --> DB2
+W2 --> C2
+end
+
+A -->|"Prós: mais barato, simples<br/>Contras: 1 ponto de falha, pouca escalabilidade"| noteA[ ]
+B -->|"Prós: mais confiável, escalável<br/>Contras: mais caro, mais complexo"| noteB[ ]
+```
 
 
 
