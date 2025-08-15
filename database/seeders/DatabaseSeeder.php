@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        $adminTeam = Team::factory()->create([
-            'name' => 'Administradores',
-        ]);
+//        $adminTeam = Team::factory()->create([
+//            'name' => 'Administradores',
+//        ]);
 
 
         $adminUser = User::factory()->create([
@@ -28,28 +28,28 @@ class DatabaseSeeder extends Seeder
            'password' => bcrypt('admin123'),
         ]);
 
-        $normalUser = User::factory()->create([
-            'name' => 'User',
-            'email' => 'user@user.com',
-            'password' => bcrypt('user123'),
-        ]);
+//        $normalUser = User::factory()->create([
+//            'name' => 'User',
+//            'email' => 'user@user.com',
+//            'password' => bcrypt('user123'),
+//        ]);
+//
+//        $adminRole = Role::factory()->create(['name' => 'admin']);
+//        $userRole = Role::factory()->create(['name' => 'user']);
+//
+//        $managerPermission = Permission::factory()->create(['name' => 'administrator']);
+//        $viewPermission = Permission::factory()->create(['name' => 'viewer']);
+//
+//
+//        $adminRole->permissions()->attach($managerPermission->id);
+//        $userRole->permissions()->attach($viewPermission->id);
+//
+//        $normalUser->roles()->attach($userRole);
+//        $adminUser->roles()->attach($adminRole);
+//
+//        $adminUser->teams()->attach($adminTeam);
 
-        $adminRole = Role::factory()->create(['name' => 'admin']);
-        $userRole = Role::factory()->create(['name' => 'user']);
-
-        $managerPermission = Permission::factory()->create(['name' => 'administrator']);
-        $viewPermission = Permission::factory()->create(['name' => 'viewer']);
-
-
-        $adminRole->permissions()->attach($managerPermission->id);
-        $userRole->permissions()->attach($viewPermission->id);
-
-        $normalUser->roles()->attach($userRole);
-        $adminUser->roles()->attach($adminRole);
-
-        $adminUser->teams()->attach($adminTeam);
-
-        $adminTeam->permissions()->attach($managerPermission->id);
+//        $adminTeam->permissions()->attach($managerPermission->id);
 
 //        // Cria 3 times com 3 usuários cada
 //        Team::factory()->count(3)->create()->each(function ($team) {

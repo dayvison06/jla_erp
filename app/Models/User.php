@@ -35,18 +35,6 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function roles() : BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')
-            ->withTimestamps();
-    }
-
-    public function permissions() : BelongsToMany
-    {
-        return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id')
-            ->withTimestamps();
-    }
-
     public function notifications() : HasMany
     {
         return $this->hasMany(Notification::class, 'user_id', 'id');
