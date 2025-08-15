@@ -1,284 +1,277 @@
-<div style="align: center;">  
-    <img src="https://github.com/user-attachments/assets/974734dc-6be9-4e2a-9da6-e1919213d15e" alt="Imagem centralizada">
+<div style="text-align: center;">  
+    <img src="https://github.com/user-attachments/assets/974734dc-6be9-4e2a-9da6-e1919213d15e" alt="JLA ERP Logo">
 </div>
 
-# ESTÁGIO SUPERVISIONADO: ATIVIDADE PRÁTICA PROFISSIONAL
+# JLA ERP - Sistema de Gestão Integrada
 **Aluno:** Dayvison Rocha Pereira
 
+---
 
-# Arquiteturas Comparativo
-```mermaid
-flowchart TB
-subgraph A[Modelo 1: Única VPS]
-A1[Servidor Único<br/>Web + Banco + Cache]
-end
+## 📋 Sumário
 
-subgraph B[Modelo 2: Múltiplas VPS]
-W2[Web/API]
-DB2[Banco de Dados]
-C2[Cache/Fila]
-W2 --> DB2
-W2 --> C2
-end
+- [🚀 Introdução](#-introdução)
+- [✨ Funcionalidades](#-funcionalidades)
+- [🛠️ Ferramentas Utilizadas](#-ferramentas-utilizadas)
+- [💿 Instalação](#-instalação)
+  - [Localmente](#-instalação-local)
+  - [Com Docker](#-instalação-docker)
+- [🗄️ Modelo de Dados](#-modelo-de-dados)
+- [⚙️ Módulos](#️-módulos)
+  - [Controle de Acesso (Backpack)](#-controle-de-acesso-backpack)
+  - [Funcionários](#-funcionários)
+- [👨‍💻 Como Usar](#-como-usar)
+- [📊 Arquiteturas Comparativo](#-arquiteturas-comparativo)
 
-A -->|"Prós: mais barato, simples<br/>Contras: 1 ponto de falha, pouca escalabilidade"| noteA[ ]
-B -->|"Prós: mais confiável, escalável<br/>Contras: mais caro, mais complexo"| noteB[ ]
-```
+---
 
+## 🚀 Introdução
 
+O **JLA ERP** é um projeto de sistema de gestão integrada (ERP) desenvolvido como parte da atividade prática profissional do curso de Análise e Desenvolvimento de Sistemas. O objetivo é criar uma aplicação robusta e escalável para gerenciar diferentes aspectos de uma empresa, começando com o cadastro de funcionários e um sólido sistema de controle de acesso.
 
-### 📋 Sumário
+## ✨ Funcionalidades
 
-  - [🚀 Introdução](#-introdução)
-  - [🛠️ Ferramentas Utilizadas](#-ferramentas-utilizadas)
-  - [ 💿 Instalação Local ](#-instalação-local)
-  - [ 🐋 Instalação Docker ](#-instalação-docker)
-  - [🗄️ Modelo de Banco Inicial](#-modelo-de-banco-inicial)
-  - [⚙️ Módulos](#módulos)
-    - [Funcionários](#funcionários)
-      - [Funcionalidades Implementadas](#funcionalidades-implementadas)
-      - [Como Usar](#como-usar)
+- ✅ Painel administrativo completo para gestão de acesso.
+- ✅ Gerenciamento de Usuários, Cargos e Permissões.
+- ✅ Módulo para Cadastro de Funcionários com múltiplos campos.
+- ✅ Interface responsiva e moderna.
+- ✅ Instalação simplificada com Docker e Laravel Sail.
 
+## 🛠️ Ferramentas Utilizadas
 
-### 🛠️ Ferramentas Utilizadas
+- **[Laravel](https://laravel.com/)**: Framework PHP para o backend.
+- **[Laravel Backpack](https://backpackforlaravel.com/)**: Painel de administração para o Laravel.
+- **[Spatie/laravel-permission](https://spatie.be/docs/laravel-permission/v6/introduction)**: Gerenciamento de cargos e permissões.
+- **[Vue.js](https://vuejs.org/)**: Framework JavaScript para o frontend.
+- **[Inertia.js](https://inertiajs.com/)**: Ponte de comunicação entre Laravel e Vue.
+- **[Tailwind CSS](https://tailwindcss.com/)**: Framework de design CSS.
+- **[PostgreSQL](https://www.postgresql.org/)**: Banco de Dados.
+- **[Docker](https://www.docker.com/)**: Plataforma de contêineres.
 
-- [Laravel](https://laravel.com/) - Framework PHP
-- [Vue.js](https://vuejs.org/) - Framework JavaScript
-- [Inertia.js](https://inertiajs.com/) - Framework ponte de comunicação entre Laravel e Vue
-- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS
-- [PostgreSQL](https://www.postgresql.org/) - Banco de Dados
-- [Lucide Icons](https://lucide.dev/) - Ícones
-- [Shadcn UI](https://shadcn-vue.com/) - Componentes UI
+## 💿 Instalação
+
+Você pode instalar o projeto localmente ou utilizando Docker.
 
 ### 💿 Instalação Local
 
 **Requisitos:**
-- NodeJS v.22
 - PHP ^8.2
+- NodeJS v.22+
+- Composer
 
-**1**. Clone o repositório:
-```bash
-  git clone
-```
+**Passos:**
+1.  Clone o repositório:
+    ```bash
+    git clone https://github.com/seu-usuario/jla_erp.git
+    cd jla_erp
+    ```
 
-**2**. Instale as dependências do Laravel e do Vue:
+2.  Instale as dependências:
+    ```bash
+    composer install && npm install
+    ```
 
-```bash
-  composer install && npm install
-```
+3.  Configure o arquivo de ambiente:
+    ```bash
+    cp .env.example .env
+    ```
+    *   **Atenção:** Configure as variáveis de banco de dados (`DB_*`) no arquivo `.env`.
 
-**3**. Crie um arquivo `.env` a partir do `.env.example` e configure as variáveis de ambiente, especialmente as de banco de dados.
+4.  Gere a chave da aplicação:
+    ```bash
+    php artisan key:generate
+    ```
 
-```bash
-  cp .env.example .env
-```
+5.  Execute as migrações e os seeders:
+    ```bash
+    php artisan migrate --seed
+    ```
 
-**4**. Utilize o banco de dados local (Sqlite) ou da sua escolha:
->**OBS:** Se for `sqlite` basta deixar como o exemplo, se não só alterar
-```dotenv
-DB_CONNECTION=sqlite
-# DB_HOST=pgsql
-# DB_PORT=5432
-# DB_DATABASE=laravel
-# DB_USERNAME=root
-# DB_PASSWORD=root
-```
+6.  Inicie o servidor de desenvolvimento:
+    ```bash
+    npm run dev
+    ```
 
-**5**. Gere a chave de aplicativo do Laravel:
-
-```bash
-  php artisan key:generate
-```
-
-**6**. Execute as migrações para criar as tabelas no banco de dados:
-
-```bash
-  php artisan migrate
-```
-
-**7**. Popule o banco de dados com dados iniciais (opcional):
-
-```bash
-  php artisan db:seed
-```
+7.  Em outro terminal, inicie o servidor do Laravel:
+    ```bash
+    php artisan serve
+    ```
 
 ### 🐋 Instalação Docker
 
-**1**. Clone o repositório:
-```bash
-  git clone
-```
+**Requisitos:**
+- Docker
+- Docker Compose
 
-**2**. Instale as depêndecias:
-```bash
-composer install && npm install
-```
+**Passos:**
+1.  Clone o repositório:
+    ```bash
+    git clone https://github.com/seu-usuario/jla_erp.git
+    cd jla_erp
+    ```
 
-**3**. Navegue até o diretório do projeto:
+2.  Configure o arquivo de ambiente. O Laravel Sail usará este arquivo para configurar os contêineres.
+    ```bash
+    cp .env.example .env
+    ```
+    *   **Atenção:** As variáveis de banco de dados no `.env` já estão pré-configuradas para o ambiente Docker do Sail (`pgsql`, `root`, `root`).
 
-```bash
-  cd nome-do-repositorio
-```
+3.  Inicie os contêineres do Sail em background:
+    ```bash
+    ./vendor/bin/sail up -d
+    ```
 
-**4**. Crie um arquivo `.env` a partir do `.env.example` e configure as variáveis de ambiente, especialmente as de banco de dados.
+4.  Instale as dependências do Composer e NPM dentro do contêiner:
+    ```bash
+    ./vendor/bin/sail composer install
+    ./vendor/bin/sail npm install
+    ```
 
-```bash
-  cp .env.example .env
-```
-
-**5**. Configure o `.env` com as variaveis do banco de dados (PGSQL é o que esta no docker-compose).
-```dotenv
-DB_CONNECTION=pgsql
-DB_HOST=pgsql
-DB_PORT=5432
-DB_DATABASE=laravel
-DB_USERNAME=root
-DB_PASSWORD=root
-```
-
-**6**. O projeto contém o Laravel Sail, próprio para rodar o projeto, execute o comando abaixo, ele é semelhante ao `docker compose up -d`.
-```bash
-  ./vendor/bin/sail up -d 
-```
-
-**7**. Realize as migrations e seed:
-```bash
-  ./vendor/bin/sail artisan migrate --seed
-```
-
-**8**. Gere a chave da aplicação
-```bash
+5.  Gere a chave da aplicação:
+    ```bash
     ./vendor/bin/sail artisan key:generate
-```
+    ```
 
-**9**. Execute o vite:
-```bash
-  ./vendor/bin/sail npm run dev
-```
+6.  Execute as migrações e seeders:
+    ```bash
+    ./vendor/bin/sail artisan migrate --seed
+    ```
 
-### 🗄️ Modelo de Banco Inicial
+7.  Compile os assets do frontend:
+    ```bash
+    ./vendor/bin/sail npm run dev
+    ```
+    A aplicação estará disponível em [http://localhost](http://localhost).
 
-Visando uma estrutura inicial para gerenciamento de Usuários, Times, Cargos e Permissões.
+## 🗄️ Modelo de Dados
 
- > 💡 **Instale a extensão Mermaid para visualizar o diagrama ou veja na web.**
+O diagrama abaixo representa a estrutura do banco de dados, incluindo o controle de acesso do Spatie e os módulos customizados.
 
-``` mermaid
+> 💡 **Dica:** Instale a extensão `marp-team.marp-vscode` no VSCode para visualizar o diagrama corretamente.
+
+```mermaid
 erDiagram
-users ||--o{ user_roles : has
-roles ||--o{ user_roles : assigned_to
-roles ||--o{ role_permissions : has
-permissions ||--o{ role_permissions : assigned_to
-users ||--o{ user_permissions : overrides
-permissions ||--o{ user_permissions : defined_for
-users }o--|| teams : belongs_to
-
     users {
         int id PK
         string name
         string email
-        string password_hash
-        int team_id FK
-        datetime created_at
-        datetime updated_at
+        datetime email_verified_at
+        string password
     }
 
-    teams {
+    employees {
         int id PK
         string name
-        string description
+        string cpf
+        string rg
+        date birth_date
+        string phone
+        string email
+        string address
+        string city
+        string state
+        string zip_code
+        string position
+        decimal salary
+        date hire_date
     }
 
     roles {
         int id PK
         string name
-        string description
+        string guard_name
     }
 
     permissions {
         int id PK
         string name
-        string description
+        string guard_name
     }
 
-    user_roles {
-        int id PK
-        int user_id FK
+    model_has_roles {
         int role_id FK
-        datetime created_at
-        datetime updated_at
+        string model_type
+        int model_id
     }
 
-    role_permissions {
-        int id PK
+    model_has_permissions {
+        int permission_id FK
+        string model_type
+        int model_id
+    }
+
+    role_has_permissions {
+        int permission_id FK
         int role_id FK
-        int permission_id FK
-        datetime created_at
-        datetime updated_at
     }
 
-    user_permissions {
-        int id PK
-        int user_id FK
-        int permission_id FK
-        boolean granted
-        datetime created_at
-        datetime updated_at
-    }
+    users ||--|{ employees : "pode ser"
+    users ||--|{ model_has_roles : "tem"
+    users ||--|{ model_has_permissions : "tem"
+    roles ||--|{ model_has_roles : "é atribuído a"
+    roles ||--|{ role_has_permissions : "tem"
+    permissions ||--|{ model_has_permissions : "é atribuído a"
+    permissions ||--|{ role_has_permissions : "pertence a"
 ```
 
 ## ⚙️ Módulos
 
-### Funcionários
+### 🛂 Controle de Acesso (Backpack)
 
-O módulo de funcionários para seu sistema ERP está completo! Ele inclui todas as funcionalidades solicitadas:
+O gerenciamento de acesso é feito através do painel administrativo do Laravel Backpack, acessível na rota `/admin`. Este painel oferece uma interface completa para gerenciar:
 
-#### Funcionalidades Implementadas
+-   **Usuários:** Criar, editar e remover usuários do sistema.
+-   **Cargos (Roles):** Definir diferentes papéis (ex: Administrador, Editor, Usuário).
+-   **Permissões (Permissions):** Criar permissões granulares para ações específicas no sistema.
 
-1. **Lista de Funcionários**
-    - Visualização em tabela com busca
-    - Ações para editar e excluir funcionários
-    - Paginação para navegar entre resultados
+É possível atribuir cargos e permissões diretamente aos usuários, permitindo um controle de acesso flexível e seguro.
 
-2. **Sistema de Abas**
-    - Navegação intuitiva entre as 8 categorias de informações
-    - Cada aba contém os campos específicos solicitados
+### 🧑‍💼 Funcionários
 
-3. **Formulários Completos**
-    - Todos os campos solicitados foram implementados
-    - Campos obrigatórios e opcionais devidamente identificados
-    - Formatação automática para CPF, CEP, telefone e valores monetários
+O módulo de funcionários permite o cadastro completo de colaboradores da empresa.
 
-4. **Gerenciamento de Dependentes**
-    - Adição e remoção de dependentes
-    - Campos para imposto de renda e plano de saúde
+-   **Listagem e Busca:** Tabela com todos os funcionários, com campo de busca e paginação.
+-   **Formulário Completo:** Um formulário dividido em 8 abas para organizar as informações:
+    -   Dados Pessoais
+    -   Endereço
+    -   Documentos
+    -   Dados Bancários
+    -   Benefícios
+    -   Dependentes
+    -   Informações Adicionais
+    -   Contrato
+-   **Validações e Máscaras:** Campos como CPF, CEP e telefone possuem formatação automática.
 
-5. **Validações e Formatações**
-    - Formatação automática de CPF, telefone, CEP
-    - Busca de endereço por CEP integrada
+## 👨‍💻 Como Usar
 
-6. **Interface Responsiva**
-    - Layout adaptável a diferentes tamanhos de tela
-    - Design moderno com Tailwind CSS
+Após a instalação e execução do projeto, um usuário administrador é criado automaticamente.
 
-## Como Usar
+-   **URL do Admin:** [http://localhost/admin](http://localhost/admin)
+-   **Login:** `admin@admin.com`
+-   **Senha:** `admin123`
 
-1º - Login na Aplicação:
-Com as seeds foi adicionado a contas:
+Com este acesso, você pode navegar pelo painel do Backpack para gerenciar usuários e permissões, e também acessar o módulo de funcionários na área principal da aplicação.
 
-> O acesso administrador permite acessar a rota `/admin`, visualizando uma seção do sistema que ainda esta em construção, onde é possivel cadastrar usuários, cargos, times, permissões e integrações.
+## 📊 Arquiteturas Comparativo
 
-**Administrador**
-- Login: `admin@admin.com`
-- Senha: `admin123`
+Diagrama de arquitetura proposto durante a fase de planejamento do projeto.
 
-> O acesso usuário é o acesso padrão, onde iniciará na tela `Início`, podendo navegar para o menu de `Funcionários`.
+```mermaid
+flowchart TB
+    subgraph A[Modelo 1: Única VPS]
+        A1[Servidor Único<br/>Web + Banco + Cache]
+    end
 
-**Usuário** 
-- Login: `user@user.com`
-- Senha: `user123`
+    subgraph B[Modelo 2: Múltiplas VPS]
+        W2[Web/API]
+        DB2[Banco de Dados]
+        C2[Cache/Fila]
+        W2 --> DB2
+        W2 --> C2
+    end
 
-1. A tela inicial mostra a lista de funcionários cadastrados
-2. Clique em "Novo Funcionário" para adicionar um novo registro
-3. Use a barra de busca para encontrar funcionários específicos
-4. Clique nos ícones de edição ou exclusão para gerenciar registros existentes
-5. No formulário, navegue entre as abas para preencher todas as informações e salvar os funcionários no banco de dados.
+    noteA[Prós: mais barato, simples<br/>Contras: 1 ponto de falha, pouca escalabilidade]
+    noteB[Prós: mais confiável, escalável<br/>Contras: mais caro, mais complexo]
+
+    A -.-> noteA
+    B -.-> noteB
+```
