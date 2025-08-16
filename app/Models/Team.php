@@ -21,10 +21,4 @@ class Team extends Model
             ->withTimestamps();
     }
 
-    public function permissions() : BelongsToMany
-    {
-        return $this->belongsToMany(Permission::class, 'team_permissions', 'team_id', 'permission_id')
-            ->withTimestamps();
-    }
-
 }
