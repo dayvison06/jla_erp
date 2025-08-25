@@ -36,45 +36,45 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Funcionários', href: '/funcionarios' },
 ];
 
-// Tipos
-interface Dependente {
+// Types
+interface Dependent {
     id: number;
-    nome: string;
-    dataNascimento: string;
+    name: string;
+    birth_date: string;
     cpf: string;
-    parentesco: string;
-    finalidades: string[];
+    relationship: string;
+    purposes: string[];
 }
 
-interface Documento {
+interface Document {
     id: number;
-    nome: string;
-    tipo: string;
-    dataEmissao: string;
-    dataValidade: string | null;
-    arquivo: File | null;
+    name: string;
+    type: string;
+    issue_date: string;
+    expiry_date: string | null;
+    file: File | null;
     url: string;
-    status: 'valido' | 'pendente' | 'vencido';
+    status: 'valid' | 'pending' | 'expired';
 }
 
-interface Anexo {
+interface Attachment {
     id: number;
-    nome: string;
-    tipo: string;
-    tamanho: string;
-    dataUpload: string;
-    arquivo: File | null;
+    name: string;
+    type: string;
+    size: string;
+    upload_date: string;
+    file: File | null;
     url: string;
 }
 
-interface HistoricoCargo {
+interface RoleHistory {
     id: number;
-    cargo: string;
-    departamento: string;
-    dataInicio: string;
-    dataFim: string | null;
-    salario: string;
-    motivo: string;
+    role: string;
+    department: string;
+    start_date: string;
+    end_date: string | null;
+    salary: string;
+    reason: string;
 }
 
 interface Employee {
@@ -134,7 +134,7 @@ interface Employee {
     salary: string;
     work_schedule: string;
     benefits: string[];
-    role_history: HistoricoCargo[];
+    role_history: RoleHistory[];
 
     last_exam_date: string;
     next_exam_date: string;
@@ -143,28 +143,29 @@ interface Employee {
     blood_type: string;
     accident_history: string;
 
-    dependents: Dependente[];
-    documents: Documento[];
-    attachments: Anexo[];
+    dependents: Dependent[];
+    documents: Document[];
+    attachments: Attachment[];
 }
 
-// Estado
+// State
+const newEmployee = ref(false)
 const showEmployeeForm = ref(false)
 const activeTab = ref('personal')
 const searchQuery = ref('')
-const statusFilter = ref('todos')
+const statusFilter = ref('all')
 const showDeleteModal = ref(false)
 const employeeToDelete = ref<Employee | null>(null)
 const isDragging = ref(false)
 const showHistoryModal = ref(false)
-const newCargoHistory = reactive<HistoricoCargo>({
+const newRoleHistory = reactive<RoleHistory>({
     id: 0,
-    cargo: '',
-    departamento: '',
-    dataInicio: '',
-    dataFim: null,
-    salario: '',
-    motivo: ''
+    role: '',
+    department: '',
+    start_date: '',
+    end_date: null,
+    salary: '',
+    reason: ''
 })
 
 // Dados de formulário
@@ -251,12 +252,12 @@ const tabs = [
     {id: 'attachments', name: 'Anexos', icon: Paperclip},
 ]
 
-const estados = [
+const states = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
     'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ]
 
-const bancos = [
+const banks = [
     {codigo: '001', nome: 'Banco do Brasil'},
     {codigo: '033', nome: 'Santander'},
     {codigo: '104', nome: 'Caixa Econômica Federal'},
@@ -271,7 +272,7 @@ const bancos = [
     {codigo: '748', nome: 'Sicredi'}
 ]
 
-const departamentos = [
+const departments = [
     'Administrativo',
     'Comercial',
     'Financeiro',
@@ -284,20 +285,20 @@ const departamentos = [
     'Produção'
 ]
 
-const categoriasCnh = [
+const cnhCategories = [
     'A', 'B', 'C', 'D', 'E', 'AB', 'AC', 'AD', 'AE'
 ]
 
-const tiposSanguineos = [
+const bloodTypes = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
 ]
 
-function prepararEnvioEmployee(employee: Employee) {
-    // Remove pontos e traço do CPF
+function prepareEmployeeSubmission(employee: Employee) {
+    // Remove dots and hyphen from CPF
     formData.cpf = formData.cpf.replace(/[^\d]/g, '');
     saveEmployee()
 }
-// Métodos
+// Methods
 const getInitials = (name: string) => {
     if (!name) return '';
     return name
@@ -327,7 +328,7 @@ const formatCPF = (e: Event) => {
     formData.cpf = value;
 }
 
-const formatDependenteCPF = (e: Event, index: number) => {
+const formatDependentCPF = (e: Event, index: number) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
 
@@ -337,7 +338,7 @@ const formatDependenteCPF = (e: Event, index: number) => {
         value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     }
 
-    formData.dependentes[index].cpf = value;
+    formData.dependents[index].cpf = value;
 }
 
 const formatCEP = (e: Event) => {
@@ -348,10 +349,10 @@ const formatCEP = (e: Event) => {
         value = value.replace(/(\d{5})(\d)/, '$1-$2');
     }
 
-    formData.cep = value;
+    formData.postal_code = value;
 }
 
-const formatTelefone = (e: Event) => {
+const formatPhone = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
 
@@ -360,10 +361,10 @@ const formatTelefone = (e: Event) => {
         value = value.replace(/(\d{4})(\d)/, '$1-$2');
     }
 
-    formData.telefone = value;
+    formData.phone = value;
 }
 
-const formatCelular = (e: Event) => {
+const formatMobile = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
 
@@ -372,10 +373,10 @@ const formatCelular = (e: Event) => {
         value = value.replace(/(\d{5})(\d)/, '$1-$2');
     }
 
-    formData.celular = value;
+    formData.mobile = value;
 }
 
-const formatTelefoneEmergencia = (e: Event) => {
+const formatEmergencyPhone = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
 
@@ -384,10 +385,10 @@ const formatTelefoneEmergencia = (e: Event) => {
         value = value.replace(/(\d{5})(\d)/, '$1-$2');
     }
 
-    formData.telefoneEmergencia = value;
+    formData.emergency_phone = value;
 }
 
-const formatSalario = (e: Event) => {
+const formatSalary = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
 
@@ -401,10 +402,10 @@ const formatSalario = (e: Event) => {
         value = '';
     }
 
-    formData.salario = value;
+    formData.salary = value;
 }
 
-const formatSalarioHistorico = (e: Event) => {
+const formatHistorySalary = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
 
@@ -418,11 +419,11 @@ const formatSalarioHistorico = (e: Event) => {
         value = '';
     }
 
-    newCargoHistory.salario = value;
+    newRoleHistory.salary = value;
 }
 
-const buscarCep = async () => {
-    const cep = formData.cep.replace(/\D/g, '');
+const searchZipCode = async () => {
+    const cep = formData.postal_code.replace(/\D/g, '');
 
     if (cep.length !== 8) return;
 
@@ -431,33 +432,33 @@ const buscarCep = async () => {
         const data = await response.json();
 
         if (!data.erro) {
-            formData.logradouro = data.logradouro;
-            formData.bairro = data.bairro;
-            formData.cidade = data.localidade;
-            formData.estado = data.uf;
+            formData.street = data.logradouro;
+            formData.district = data.bairro;
+            formData.city = data.localidade;
+            formData.state = data.uf;
         }
     } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
+        console.error('Error searching for zip code:', error);
     }
 }
 
-const addDependente = () => {
-    formData.dependentes.push({
+const addDependent = () => {
+    formData.dependents.push({
         id: Date.now(),
-        nome: '',
-        dataNascimento: '',
+        name: '',
+        birth_date: '',
         cpf: '',
-        parentesco: '',
-        finalidades: []
+        relationship: '',
+        purposes: []
     });
 }
 
-const removeDependente = (index: number) => {
-    formData.dependentes.splice(index, 1);
+const removeDependent = (index: number) => {
+    formData.dependents.splice(index, 1);
 }
 
-const removeHistoricoCargo = (id: number) => {
-    formData.historicosCargo = formData.historicosCargo.filter(hist => hist.id !== id);
+const removeRoleHistory = (id: number) => {
+    formData.role_history = formData.role_history.filter(hist => hist.id !== id);
 }
 
 async function showEmployeeByCPF(cpf: string) {
@@ -466,17 +467,17 @@ async function showEmployeeByCPF(cpf: string) {
         preserveState: true,
         preserveScroll: true,
         onSuccess: (page) => {
-            // Verifica se encontrou o funcionário
+            // Check if the employee was found
             if (page.props.employee) {
                 Object.assign(formData, page.props.employee);
                 showEmployeeForm.value = true;
             } else {
-                alert('Funcionário não encontrado.');
+                alert('Employee not found.');
             }
         },
         onError: (error) => {
-            console.error('Erro ao buscar funcionário:', error);
-            alert('Erro ao buscar funcionário. Verifique o CPF e tente novamente.');
+            console.error('Error searching for employee:', error);
+            alert('Error searching for employee. Check the CPF and try again.');
         }
     });
 
@@ -490,14 +491,14 @@ const saveEmployee = () => {
     validateFields()
 
     if (formData) {
-        // Edição de funcionário existente
+        // Edit existing employee
         const index = employees.findIndex(emp => emp.cpf === formData.cpf);
-        console.log('Index do funcionário:', index);
-        console.log('Dados do funcionário atual:', formData);
+        console.log('Employee index:', index);
+        console.log('Current employee data:', formData);
         if (index !== -1) {
-           router.put(`/funcionarios`, {
-               employee: formData
-           })
+            router.put(`/funcionarios`, {
+                employee: formData
+            })
         }
     }
 
@@ -505,9 +506,9 @@ const saveEmployee = () => {
 }
 
 function validateFields() {
-    // Validação básica dos campos obrigatórios
+    // Basic validation of required fields
     if (!formData.name || !formData.cpf || !formData.birth_date) {
-        alert('Por favor, preencha todos os campos obrigatórios.');
+        alert('Please fill in all required fields.');
         return false;
     }
 }
@@ -523,9 +524,9 @@ const createEmployee = () => {
 }
 
 const resetForm = () => {
-    // Reseta o formulário para valores padrão
+    // Reset the form to default values
     Object.assign(formData, {
-       name: '',
+        name: '',
         birth_date: '',
         gender: '',
         civil_state: '',
@@ -604,17 +605,17 @@ const handleFileUpload = (event: Event) => {
                 ? `${(file.size / 1024).toFixed(2)} KB`
                 : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
 
-            const newAttachment = {
+            const newAttachment: Attachment = {
                 id: Date.now(),
-                nome: file.name,
-                tipo: file.type,
-                tamanho: fileSize,
-                dataUpload: new Date().toISOString().split('T')[0],
-                arquivo: file,
+                name: file.name,
+                type: file.type,
+                size: fileSize,
+                upload_date: new Date().toISOString().split('T')[0],
+                file: file,
                 url: URL.createObjectURL(file),
             };
 
-            formData.anexos.push(newAttachment);
+            formData.attachments.push(newAttachment);
         });
 
         // Reset input
@@ -634,37 +635,37 @@ const handleFileDrop = (event: DragEvent) => {
             ? `${(file.size / 1024).toFixed(2)} KB`
             : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
 
-        const newAttachment = {
-            id: Date.now() + Math.floor(Math.random() * 1000), // Garante IDs únicos mesmo com múltiplos arquivos
-            nome: file.name,
-            tipo: file.type || 'application/octet-stream',
-            tamanho: fileSize,
-            dataUpload: new Date().toISOString().split('T')[0],
-            arquivo: file,
+        const newAttachment: Attachment = {
+            id: Date.now() + Math.floor(Math.random() * 1000), // Ensures unique IDs even with multiple files
+            name: file.name,
+            type: file.type || 'application/octet-stream',
+            size: fileSize,
+            upload_date: new Date().toISOString().split('T')[0],
+            file: file,
             url: URL.createObjectURL(file),
         };
 
-        formData.anexos.push(newAttachment);
+        formData.attachments.push(newAttachment);
     });
 }
 
-const removeAnexo = (id: number) => {
-    const index = formData.anexos.findIndex(anexo => anexo.id === id);
+const removeAttachment = (id: number) => {
+    const index = formData.attachments.findIndex(attachment => attachment.id === id);
     if (index !== -1) {
         // Revoke object URL to prevent memory leaks
-        if (formData.anexos[index].url) {
-            URL.revokeObjectURL(formData.anexos[index].url);
+        if (formData.attachments[index].url) {
+            URL.revokeObjectURL(formData.attachments[index].url);
         }
-        formData.anexos.splice(index, 1);
+        formData.attachments.splice(index, 1);
     }
 }
 
-const getFileIcon = (tipo: string) => {
-    if (tipo.includes('pdf')) return FileTextIcon;
-    if (tipo.includes('image')) return ImageIcon;
-    if (tipo.includes('word') || tipo.includes('document')) return FileTextIcon;
-    if (tipo.includes('excel') || tipo.includes('sheet')) return FileSpreadsheetIcon;
-    if (tipo.includes('presentation') || tipo.includes('powerpoint')) return File;
+const getFileIcon = (type: string) => {
+    if (type.includes('pdf')) return FileTextIcon;
+    if (type.includes('image')) return ImageIcon;
+    if (type.includes('word') || type.includes('document')) return FileTextIcon;
+    if (type.includes('excel') || type.includes('sheet')) return FileSpreadsheetIcon;
+    if (type.includes('presentation') || type.includes('powerpoint')) return File;
     return FileIcon;
 }
 
@@ -702,14 +703,14 @@ const getStatusText = (status: string) => {
     }
 }
 
-const exportarDados = () => {
-    // Implementação básica de exportação para CSV
+const exportData = () => {
+    // Basic implementation of CSV export
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'funcionarios.csv');
+    link.setAttribute('download', 'employees.csv');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -720,6 +721,8 @@ const exportarDados = () => {
 watch([searchQuery, statusFilter], () => {
     // Aqui poderia implementar lógica adicional se necessário
 });
+
+console.log(newEmployee.value)
 </script>
 
 <template>
@@ -734,7 +737,7 @@ watch([searchQuery, statusFilter], () => {
                     </div>
                     <div class="flex gap-2">
                         <button
-                            @click="showEmployeeForm = true;"
+                            @click="showEmployeeForm = true; resetForm(); newEmployee = true;"
                             class="bg-gray-800 cursor-pointer hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center"
                         >
                             <PlusIcon class="w-5 h-5 mr-2"/>
@@ -773,17 +776,17 @@ watch([searchQuery, statusFilter], () => {
                                     v-model="statusFilter"
                                     class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"
                                 >
-                                    <option value="todos">Todos os status</option>
-                                    <option value="ativo">Ativos</option>
-                                    <option value="inativo">Inativos</option>
-                                    <option value="ferias">Em férias</option>
-                                    <option value="afastado">Afastados</option>
-                                    <option value="desligado">Desligados</option>
+                                    <option value="all">Todos os status</option>
+                                    <option value="active">Ativos</option>
+                                    <option value="inactive">Inativos</option>
+                                    <option value="vacation">Em férias</option>
+                                    <option value="leave">Afastados</option>
+                                    <option value="terminated">Desligados</option>
                                 </select>
                                 <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
                             </div>
                             <button
-                                @click="exportarDados"
+                                @click="exportData"
                                 class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
                             >
                                 <DownloadIcon class="w-5 h-5 mr-2" />
@@ -827,11 +830,11 @@ watch([searchQuery, statusFilter], () => {
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
-                                        <div v-if="!employee.foto"
+                                        <div v-if="!employee.photo"
                                              class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">
                                             {{ getInitials(employee.name) }}
                                         </div>
-                                        <img v-else :src="employee.foto" alt="" class="h-10 w-10 rounded-full object-cover">
+                                        <img v-else :src="employee.photo" alt="" class="h-10 w-10 rounded-full object-cover">
                                     </div>
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
@@ -883,7 +886,7 @@ watch([searchQuery, statusFilter], () => {
             <!-- Formulário de funcionário -->
             <div v-else>
                 <div class="flex justify-between items-center mb-5">
-                    <h2 class="text-xl font-semibold">{{ formData ? `Alterando dados de ${ formData.name }` : 'Novo Funcionário' }}</h2>
+                    <h2 class="text-xl font-semibold">{{ !newEmployee ? `Alterando dados de ${ formData.name }` : 'Novo Funcionário' }}</h2>
                     <button @click="showEmployeeForm = false, router.get('/funcionarios')" class="text-gray-500 hover:text-gray-700">
                         <XIcon class="w-6 h-6"/>
                     </button>
@@ -1113,7 +1116,7 @@ watch([searchQuery, statusFilter], () => {
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 >
                                     <option value="">Selecione</option>
-                                    <option v-for="tipo in tiposSanguineos" :key="tipo" :value="tipo">{{ tipo }}</option>
+                                    <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
                                 </select>
                             </div>
                         </div>
@@ -1151,7 +1154,7 @@ watch([searchQuery, statusFilter], () => {
                                     required
                                 >
                                     <option value="">Selecione</option>
-                                    <option v-for="uf in estados" :key="uf" :value="uf">{{ uf }}</option>
+                                    <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
                                 </select>
                             </div>
 
@@ -1191,7 +1194,7 @@ watch([searchQuery, statusFilter], () => {
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 >
                                     <option value="">Selecione</option>
-                                    <option v-for="cat in categoriasCnh" :key="cat" :value="cat">{{ cat }}</option>
+                                    <option v-for="cat in cnhCategories" :key="cat" :value="cat">{{ cat }}</option>
                                 </select>
                             </div>
 
@@ -1227,7 +1230,7 @@ watch([searchQuery, statusFilter], () => {
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                     @input="formatCEP"
-                                    @blur="buscarCep"
+                                    @blur="searchZipCode"
                                 />
                             </div>
 
@@ -1288,7 +1291,7 @@ watch([searchQuery, statusFilter], () => {
                                     required
                                 >
                                     <option value="">Selecione</option>
-                                    <option v-for="uf in estados" :key="uf" :value="uf">{{ uf }}</option>
+                                    <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
                                 </select>
                             </div>
 
@@ -1299,7 +1302,7 @@ watch([searchQuery, statusFilter], () => {
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
-                                    @input="formatTelefone"
+                                    @input="formatPhone"
                                 />
                             </div>
 
@@ -1309,7 +1312,7 @@ watch([searchQuery, statusFilter], () => {
                                     v-model="formData.mobile"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    @input="formatCelular"
+                                    @input="formatMobile"
                                 />
                             </div>
 
@@ -1338,7 +1341,7 @@ watch([searchQuery, statusFilter], () => {
                                     v-model="formData.emergency_phone"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    @input="formatTelefoneEmergencia"
+                                    @input="formatEmergencyPhone"
                                 />
                             </div>
                         </div>
@@ -1355,8 +1358,8 @@ watch([searchQuery, statusFilter], () => {
                                     required
                                 >
                                     <option value="">Selecione</option>
-                                    <option v-for="banco in bancos" :key="banco.codigo" :value="banco.codigo">
-                                        {{ banco.codigo }} - {{ banco.nome }}
+                                    <option v-for="bank in banks" :key="bank.codigo" :value="bank.codigo">
+                                        {{ bank.codigo }} - {{ bank.nome }}
                                     </option>
                                 </select>
                             </div>
@@ -1428,7 +1431,7 @@ watch([searchQuery, statusFilter], () => {
                                     required
                                 >
                                     <option value="">Selecione</option>
-                                    <option v-for="dept in departamentos" :key="dept" :value="dept">{{ dept }}</option>
+                                    <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
                                     <option value="outro">Outro</option>
                                 </select>
                             </div>
@@ -1477,7 +1480,7 @@ watch([searchQuery, statusFilter], () => {
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
-                                    @input="formatSalario"
+                                    @input="formatSalary"
                                 />
                             </div>
 
@@ -1593,25 +1596,25 @@ watch([searchQuery, statusFilter], () => {
                                     <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-for="hist in formData.role_history" :key="hist.id" class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ hist.cargo }}
+                                            {{ hist.role }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.departamento }}
+                                            {{ hist.department }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ formatDate(hist.dataInicio) }}
+                                            {{ formatDate(hist.start_date) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.dataFim ? formatDate(hist.dataFim) : 'Atual' }}
+                                            {{ hist.end_date ? formatDate(hist.end_date) : 'Atual' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.salario }}
+                                            {{ hist.salary }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.motivo }}
+                                            {{ hist.reason }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button @click="removeHistoricoCargo(hist.id)" class="text-red-600 hover:text-red-900">
+                                            <button @click="removeRoleHistory(hist.id)" class="text-red-600 hover:text-red-900">
                                                 <TrashIcon class="w-5 h-5" />
                                             </button>
                                         </td>
@@ -1687,7 +1690,7 @@ watch([searchQuery, statusFilter], () => {
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-medium">Dependentes</h3>
                             <button
-                                @click="addDependente"
+                                @click="addDependent"
                                 type="button"
                                 class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                             >
@@ -1700,12 +1703,12 @@ watch([searchQuery, statusFilter], () => {
                             Nenhum dependente cadastrado
                         </div>
 
-                        <div v-for="(dependente, index) in formData.dependents" :key="dependente.id"
+                        <div v-for="(dependent, index) in formData.dependents" :key="dependent.id"
                              class="border p-4 rounded-md mb-4 bg-white shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h4 class="font-medium">Dependente #{{ index + 1 }}</h4>
                                 <button
-                                    @click="removeDependente(index)"
+                                    @click="removeDependent(index)"
                                     type="button"
                                     class="text-red-600 hover:text-red-800"
                                 >
@@ -1717,7 +1720,7 @@ watch([searchQuery, statusFilter], () => {
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
                                     <input
-                                        v-model="dependente.nome"
+                                        v-model="dependent.name"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
@@ -1727,7 +1730,7 @@ watch([searchQuery, statusFilter], () => {
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
                                     <input
-                                        v-model="dependente.dataNascimento"
+                                        v-model="dependent.birth_date"
                                         type="date"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
@@ -1737,18 +1740,18 @@ watch([searchQuery, statusFilter], () => {
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">CPF *</label>
                                     <input
-                                        v-model="dependente.cpf"
+                                        v-model="dependent.cpf"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
-                                        @input="(e) => formatDependenteCPF(e, index)"
+                                        @input="(e) => formatDependentCPF(e, index)"
                                     />
                                 </div>
 
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Grau de parentesco *</label>
                                     <select
-                                        v-model="dependente.parentesco"
+                                        v-model="dependent.relationship"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
                                     >
@@ -1766,7 +1769,7 @@ watch([searchQuery, statusFilter], () => {
                                     <div class="space-y-2">
                                         <div class="flex items-center">
                                             <input
-                                                v-model="dependente.finalidades"
+                                                v-model="dependent.purposes"
                                                 type="checkbox"
                                                 value="ir"
                                                 class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -1775,7 +1778,7 @@ watch([searchQuery, statusFilter], () => {
                                         </div>
                                         <div class="flex items-center">
                                             <input
-                                                v-model="dependente.finalidades"
+                                                v-model="dependent.purposes"
                                                 type="checkbox"
                                                 value="planoSaude"
                                                 class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -1784,7 +1787,7 @@ watch([searchQuery, statusFilter], () => {
                                         </div>
                                         <div class="flex items-center">
                                             <input
-                                                v-model="dependente.finalidades"
+                                                v-model="dependent.purposes"
                                                 type="checkbox"
                                                 value="planoOdontologico"
                                                 class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
@@ -1841,38 +1844,38 @@ watch([searchQuery, statusFilter], () => {
                                 </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="anexo in formData.attachments" :key="anexo.id" class="hover:bg-gray-50">
+                                <tr v-for="attachment in formData.attachments" :key="attachment.id" class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
-                                                <component :is="getFileIcon(anexo.tipo)" class="h-6 w-6 text-gray-500" />
+                                                <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ anexo.nome }}</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ attachment.name }}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ anexo.tipo }}
+                                        {{ attachment.type }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ anexo.tamanho }}
+                                        {{ attachment.size }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ formatDate(anexo.dataUpload) }}
+                                        {{ formatDate(attachment.upload_date) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
                                         <div class="flex items-center">
                                             <a
-                                                :href="anexo.url"
+                                                :href="attachment.url"
                                                 target="_blank"
-                               p                 class="text-gray-900 hover:text-gray-900 mr-3"
+                                                p                 class="text-gray-900 hover:text-gray-900 mr-3"
                                                 title="Visualizar"
                                             >
                                                 <EyeIcon class="w-5 h-5" />
                                             </a>
                                             <button
-                                                @click="removeAnexo(anexo.id)"
+                                                @click="removeAttachment(attachment.id)"
                                                 class="text-red-600 hover:text-red-900"
                                                 title="Excluir"
                                             >
@@ -1886,22 +1889,22 @@ watch([searchQuery, statusFilter], () => {
                         </div>
 
                         <!-- Prévia de imagens -->
-                        <div v-if="formData.attachments.some(a => a.tipo.includes('image'))" class="mt-6">
+                        <div v-if="formData.attachments.some(a => a.type.includes('image'))" class="mt-6">
                             <h4 class="text-md font-medium mb-3">Prévia de Imagens</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 <div
-                                    v-for="anexo in formData.attachments.filter(a => a.tipo.includes('image'))"
-                                    :key="`preview-${anexo.id}`"
+                                    v-for="attachment in formData.attachments.filter(a => a.type.includes('image'))"
+                                    :key="`preview-${attachment.id}`"
                                     class="relative group"
                                 >
                                     <img
-                                        :src="anexo.url"
-                                        :alt="anexo.nome"
+                                        :src="attachment.url"
+                                        :alt="attachment.name"
                                         class="h-40 w-full object-cover rounded-md border"
                                     />
                                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                                         <a
-                                            :href="anexo.url"
+                                            :href="attachment.url"
                                             target="_blank"
                                             class="p-2 bg-white rounded-full mx-1"
                                             title="Visualizar"
@@ -1909,14 +1912,14 @@ watch([searchQuery, statusFilter], () => {
                                             <EyeIcon class="w-5 h-5 text-gray-700" />
                                         </a>
                                         <button
-                                            @click="removeAnexo(anexo.id)"
+                                            @click="removeAttachment(attachment.id)"
                                             class="p-2 bg-white rounded-full mx-1"
                                             title="Excluir"
                                         >
                                             <TrashIcon class="w-5 h-5 text-red-600" />
                                         </button>
                                     </div>
-                                    <div class="mt-1 text-sm truncate">{{ anexo.nome }}</div>
+                                    <div class="mt-1 text-sm truncate">{{ attachment.name }}</div>
                                 </div>
                             </div>
                         </div>
@@ -1926,7 +1929,7 @@ watch([searchQuery, statusFilter], () => {
                     <div class="flex justify-end space-x-4 mt-8 pt-4">
                         <button
                             type="button"
-                            @click="showEmployeeForm = false, router.get('/funcionarios')"
+                            @click="showEmployeeForm = false; router.get('/funcionarios');"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                         >
                             Cancelar
@@ -1956,7 +1959,7 @@ watch([searchQuery, statusFilter], () => {
                 <div class="bg-white rounded-lg p-6 max-w-md w-full">
                     <h3 class="text-lg font-medium mb-4">Confirmar exclusão</h3>
                     <p class="mb-6">Tem certeza que deseja excluir o funcionário <span
-                        class="font-semibold">{{ employeeToDelete?.nome }}</span>? Esta ação não pode ser desfeita.</p>
+                        class="font-semibold">{{ employeeToDelete?.name }}</span>? Esta ação não pode ser desfeita.</p>
                     <div class="flex justify-end space-x-4">
                         <button
                             @click="showDeleteModal = false"
@@ -1988,7 +1991,7 @@ watch([searchQuery, statusFilter], () => {
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Cargo *</label>
                             <input
-                                v-model="newCargoHistory.cargo"
+                                v-model="newRoleHistory.role"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
@@ -1998,7 +2001,7 @@ watch([searchQuery, statusFilter], () => {
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Departamento *</label>
                             <select
-                                v-model="newCargoHistory.departamento"
+                                v-model="newRoleHistory.department"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
                             >
@@ -2031,11 +2034,11 @@ watch([searchQuery, statusFilter], () => {
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Salário *</label>
                             <input
-                                v-model="newCargoHistory.salario"
+                                v-model="newRoleHistory.salary"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
-                                @input="formatSalarioHistorico"
+                                @input="formatHistorySalary"
                             />
                         </div>
 

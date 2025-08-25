@@ -14,18 +14,6 @@ class Permission extends Model
 
     use HasFactory;
 
-    public function roles() : BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'role_permissions', 'permission_id', 'role_id')
-            ->withTimestamps();
-    }
-
-    public function users() : BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'user_permissions', 'permission_id', 'user_id')
-            ->withTimestamps();
-    }
-
     public function teams() : BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_permissions', 'permission_id', 'team_id')

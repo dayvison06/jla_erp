@@ -3,16 +3,19 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+
+    use HasFactory, Notifiable, HasRoles, CrudTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -29,18 +32,6 @@ class User extends Authenticatable
     public function teams() : BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id')
-            ->withTimestamps();
-    }
-
-    public function roles() : BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')
-            ->withTimestamps();
-    }
-
-    public function permissions() : BelongsToMany
-    {
-        return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id')
             ->withTimestamps();
     }
 
