@@ -104,9 +104,11 @@ return new class extends Migration
         Schema::create('employee_attachments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->string('file_name');
+            $table->string('name');
             $table->string('type');
-            $table->text('url');
+            $table->text('path');
+            $table->bigInteger('size');
+            $table->unsignedBigInteger('uploaded_by')->nullable();
             $table->timestamps();
         });
 

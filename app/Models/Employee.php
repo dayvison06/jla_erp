@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
 {
@@ -14,6 +15,7 @@ class Employee extends Model
         'nationality',
         'birthplace',
         'cpf',
+        'cnpj',
         'rg',
         'issuing_agency',
         'issue_date',
@@ -32,7 +34,7 @@ class Employee extends Model
         'cnh_category',
         'cnh_expiry',
         'professional_registration',
-        'zip_code',
+        'postal_code',
         'street',
         'number',
         'complement',
@@ -62,9 +64,32 @@ class Employee extends Model
         'allergies',
         'blood_type',
         'accident_history',
-        'education_level',
+        'escolarity',
         'courses',
         'certifications',
-        'experience'
+        'experience',
+        'benefits',
+        'role_history',
+        'dependents',
+        'attachments',
     ];
+
+    protected $casts = [
+        'cpf' => 'string',
+    ];
+
+    public function getCpfAttribute($value) : string
+    {
+        return preg_replace("/(\d{3})(\d{3})(\d{3})(\d{2})/", "$1.$2.$3-$4", $value);
+    }
+
+    public function dependents()
+    {
+        return $this->hasMany(Dependent::class);
+    }
+
+    public function attachments() : HasMany
+    {
+        return $this->hasMany(Attachment::class);
+    }
 }

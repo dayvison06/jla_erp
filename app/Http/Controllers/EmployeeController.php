@@ -20,10 +20,27 @@ class EmployeeController extends Controller
 
     public function store (EmployeeRequest $request) : RedirectResponse
     {
-        $data = $request->all();
-        Employee::create($data['employee']);
+        dd($request->file('attachments'));
+        $payload = $request->except('attachments');
 
-        return redirect()->route('employees')->with('notify', [
+        $employee = Employee::create($payload);
+        Log::info('Funcionário criado com sucesso: ' . $employee->id);
+        if ($request->attachments) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('employees', 'public');
+
+                $employee->attachments()->create([
+                    'employee_id' => $employee->id,
+                    'name' => $file->getClientOriginalName(),
+                    'type' => $file->getMimeType(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'uploaded_by' => auth()->id(),
+                ]);
+            }
+        }
+
+        return redirect()->route('employees.index')->with('notify', [
             'type' => 'success',
             'title' => 'Funcionário Adicionado',
             'message' => 'O funcionário foi adicionado com sucesso.',
@@ -33,15 +50,16 @@ class EmployeeController extends Controller
     public function show ($cpf, Employee $employee) : Response
     {
         $findEmployee = $employee->where('cpf', $cpf)->first();
-
         return Inertia::render('Employees', ['employee' => $findEmployee]);
     }
 
     public function update(Request $request): RedirectResponse
     {
         $data = $request->all();
+        dd($data);
         try {
             $employee = Employee::where('cpf', $data['employee']['cpf'])->firstOrFail();
+            dd($employee);
             $employee->update($data['employee']);
             Log::info('Funcionário atualizado com sucesso: ' . $employee->id);
 

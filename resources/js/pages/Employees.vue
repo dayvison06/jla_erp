@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import {
     FileUp,
     PlusIcon,
@@ -31,6 +31,15 @@ import {
 import type { BreadcrumbItem } from "@/types";
 const page = usePage()
 const employees: Employee[] = page.props.employees || []
+const employee: Employee | null = page.props.employee || null
+
+onMounted( () => {
+    if (employee) {
+        Object.assign(formData, employee);
+        showEmployeeForm.value = true;
+        newEmployee.value = false;
+    }
+})
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Funcionários', href: '/funcionarios' },
@@ -144,7 +153,6 @@ interface Employee {
     accident_history: string;
 
     dependents: Dependent[];
-    documents: Document[];
     attachments: Attachment[];
 }
 
@@ -237,7 +245,7 @@ const formData = reactive<Employee>({
 
     dependents: [],
     documents: [],
-    attachments: []
+    attachments: [],
 })
 
 // Dados de referência
@@ -292,12 +300,6 @@ const cnhCategories = [
 const bloodTypes = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
 ]
-
-function prepareEmployeeSubmission(employee: Employee) {
-    // Remove dots and hyphen from CPF
-    formData.cpf = formData.cpf.replace(/[^\d]/g, '');
-    saveEmployee()
-}
 // Methods
 const getInitials = (name: string) => {
     if (!name) return '';
@@ -488,37 +490,43 @@ const confirmDelete = (employee: Employee) => {
     showDeleteModal.value = true;
 }
 const saveEmployee = () => {
-    validateFields()
+    validateAndPrepareFields()
 
-    if (formData) {
-        // Edit existing employee
-        const index = employees.findIndex(emp => emp.cpf === formData.cpf);
-        console.log('Employee index:', index);
-        console.log('Current employee data:', formData);
-        if (index !== -1) {
-            router.put(`/funcionarios`, {
-                employee: formData
-            })
-        }
-    }
+if (formData) {
+    console.log('FUNCIONARIO ATUAL:', formData);
 
+    router.put(`/funcionarios`, {
+        employee: formData
+    });
+}
     showEmployeeForm.value = false;
 }
 
-function validateFields() {
+function validateAndPrepareFields() {
+
+    // Formata CPF removendo caracteres não numéricos
+    formData.cpf = formData.cpf.replace(/[^\d]/g, '');
     // Basic validation of required fields
-    if (!formData.name || !formData.cpf || !formData.birth_date) {
-        alert('Please fill in all required fields.');
-        return false;
-    }
+    // if (!formData.name || !formData.cpf || !formData.birth_date) {
+    //     alert('Please fill in all required fields.');
+    //     return false;
+    // }
 }
 
 const createEmployee = () => {
-    validateFields()
+    validateAndPrepareFields();
 
-    router.post('funcionarios', {
-        employee: formData
-    })
+    const formDataToSend = new FormData();
+
+    // Adicionar todos os campos do formData ao FormData
+    Object.keys(formData).forEach((key) => {
+        if (key === 'attachments' && Array.isArray(formData.attachments)) {
+            formData.attachments.forEach((file, index) => {
+                formDataToSend.append(`attachments[${index}]`, file);
+            });
+        } else {
+            formDataToSend.append(key, formData[key]);
+        }
 
     resetForm();
 }
@@ -592,63 +600,50 @@ const resetForm = () => {
         accident_history: '',
 
         dependents: [],
-        documents: [],
         attachments: []
     });
 }
 
+const formatFileSize = (size: number): string => {
+    return size < 1024 * 1024
+        ? `${(size / 1024).toFixed(2)} KB`
+        : `${(size / 1024 / 1024).toFixed(2)} MB`;
+};
+
+const addFile = (file: File) => {
+    const fileSize = formatFileSize(file.size);
+
+    // evita duplicados
+    if (formData.attachments.some(a => a.name === file.name && a.size === fileSize)) {
+        return;
+    }
+
+    const newAttachment: Attachment = {
+        id: crypto.randomUUID(),
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        size: fileSize,
+        upload_date: new Date().toISOString().split('T')[0],
+        file: file,
+        url: URL.createObjectURL(file),
+    };
+
+    formData.attachments.push(newAttachment);
+};
+
 const handleFileUpload = (event: Event) => {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-        Array.from(input.files).forEach((file) => {
-            const fileSize = file.size / 1024 < 1024
-                ? `${(file.size / 1024).toFixed(2)} KB`
-                : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-
-            const newAttachment: Attachment = {
-                id: Date.now(),
-                name: file.name,
-                type: file.type,
-                size: fileSize,
-                upload_date: new Date().toISOString().split('T')[0],
-                file: file,
-                url: URL.createObjectURL(file),
-            };
-
-            formData.attachments.push(newAttachment);
-        });
-
-        // Reset input
+    if (input.files) {
+        Array.from(input.files).forEach(addFile);
         input.value = '';
     }
-}
+};
 
 const handleFileDrop = (event: DragEvent) => {
     isDragging.value = false;
-
     if (!event.dataTransfer?.files) return;
-
-    const files = Array.from(event.dataTransfer.files);
-
-    files.forEach(file => {
-        const fileSize = file.size / 1024 < 1024
-            ? `${(file.size / 1024).toFixed(2)} KB`
-            : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-
-        const newAttachment: Attachment = {
-            id: Date.now() + Math.floor(Math.random() * 1000), // Ensures unique IDs even with multiple files
-            name: file.name,
-            type: file.type || 'application/octet-stream',
-            size: fileSize,
-            upload_date: new Date().toISOString().split('T')[0],
-            file: file,
-            url: URL.createObjectURL(file),
-        };
-
-        formData.attachments.push(newAttachment);
-    });
-}
-
+    Array.from(event.dataTransfer.files).forEach(addFile);
+};
 const removeAttachment = (id: number) => {
     const index = formData.attachments.findIndex(attachment => attachment.id === id);
     if (index !== -1) {
@@ -722,7 +717,7 @@ watch([searchQuery, statusFilter], () => {
     // Aqui poderia implementar lógica adicional se necessário
 });
 
-console.log(newEmployee.value)
+console.log('SHOW EMPLOYEE:', employee);
 </script>
 
 <template>
@@ -1935,7 +1930,7 @@ console.log(newEmployee.value)
                             Cancelar
                         </button>
                         <button
-                            v-if="formData"
+                            v-if="!newEmployee"
                             type="button"
                             @click="saveEmployee"
                             class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
