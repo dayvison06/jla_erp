@@ -22,10 +22,10 @@ class EmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'cpf' => 'required|size:11|unique:employees,cpf',
-            'rg' => 'required|string|max:20',
+//            'name' => 'required|string|max:255',
+//            'email' => 'required|email|max:255',
+//            'cpf' => 'required|size:11|unique:employees,cpf',
+//            'rg' => 'required|string|max:20',
         ];
     }
 }

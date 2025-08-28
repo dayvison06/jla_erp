@@ -26,8 +26,9 @@ class EmployeeController extends Controller
         $employee = Employee::create($payload);
         Log::info('Funcionário criado com sucesso: ' . $employee->id);
 
-        if ($request->hasFile('attachments')) {
+        if ($request->attachments) {
             foreach ($request->file('attachments') as $file) {
+                $file = $file['file'];
                 $path = $file->store('employees', 'public');
                 $employee->attachments()->create([
                     'employee_id' => $employee->id,

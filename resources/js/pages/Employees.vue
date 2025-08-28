@@ -516,12 +516,7 @@ function validateAndPrepareFields() {
 const createEmployee = () => {
     validateAndPrepareFields();
 
-    const postData = { ...formData };
-    if (postData.attachments) {
-        postData.attachments = postData.attachments.map(a => a.file).filter(f => f);
-    }
-
-    router.post('/funcionarios', postData, {
+    router.post('/funcionarios', formData, {
         forceFormData: true,
         onSuccess: () => resetForm(),
     });
