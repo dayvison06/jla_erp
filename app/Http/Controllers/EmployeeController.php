@@ -6,6 +6,7 @@ use App\Http\Requests\EmployeeRequest;
 use App\Models\Employee;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,10 +25,10 @@ class EmployeeController extends Controller
 
         $employee = Employee::create($payload);
         Log::info('Funcionário criado com sucesso: ' . $employee->id);
-        if ($request->attachments) {
+
+        if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('employees', 'public');
-
                 $employee->attachments()->create([
                     'employee_id' => $employee->id,
                     'name' => $file->getClientOriginalName(),

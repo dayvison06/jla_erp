@@ -516,20 +516,16 @@ function validateAndPrepareFields() {
 const createEmployee = () => {
     validateAndPrepareFields();
 
-    const formDataToSend = new FormData();
+    const postData = { ...formData };
+    if (postData.attachments) {
+        postData.attachments = postData.attachments.map(a => a.file).filter(f => f);
+    }
 
-    // Adicionar todos os campos do formData ao FormData
-    Object.keys(formData).forEach((key) => {
-        if (key === 'attachments' && Array.isArray(formData.attachments)) {
-            formData.attachments.forEach((file, index) => {
-                formDataToSend.append(`attachments[${index}]`, file);
-            });
-        } else {
-            formDataToSend.append(key, formData[key]);
-        }
-
-    resetForm();
-}
+    router.post('/funcionarios', postData, {
+        forceFormData: true,
+        onSuccess: () => resetForm(),
+    });
+};
 
 const resetForm = () => {
     // Reset the form to default values
