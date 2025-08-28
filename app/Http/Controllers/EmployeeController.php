@@ -20,7 +20,6 @@ class EmployeeController extends Controller
 
     public function store (EmployeeRequest $request) : RedirectResponse
     {
-        dd($request->file('attachments'));
         $payload = $request->except('attachments');
 
         $employee = Employee::create($payload);
@@ -56,10 +55,8 @@ class EmployeeController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $data = $request->all();
-        dd($data);
         try {
             $employee = Employee::where('cpf', $data['employee']['cpf'])->firstOrFail();
-            dd($employee);
             $employee->update($data['employee']);
             Log::info('Funcionário atualizado com sucesso: ' . $employee->id);
 
