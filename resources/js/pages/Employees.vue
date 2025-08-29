@@ -67,13 +67,14 @@ interface Document {
 }
 
 interface Attachment {
-    id: number;
-    name: string;
-    type: string;
-    size: string;
-    upload_date: string;
-    file: File | null;
-    url: string;
+  employee_id: number;
+  name: string;
+  type: string;
+  path: string;
+  size: string;
+  upload_date: string;
+  uploaded_by: string;
+  file: File | null;
 }
 
 interface RoleHistory {
@@ -839,7 +840,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                         </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button @click="showEmployeeByCPF(employee.cpf)"
+                                <button @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))"
                                         class="text-gray-600 hover:text-gray-900 mr-3">
                                     <EditIcon class="w-5 h-5"/>
                                 </button>
@@ -1853,7 +1854,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                     <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
                                         <div class="flex items-center">
                                             <a
-                                                :href="attachment.url"
+                                                :href="attachment.path"
                                                 target="_blank"
                                                 p                 class="text-gray-900 hover:text-gray-900 mr-3"
                                                 title="Visualizar"
