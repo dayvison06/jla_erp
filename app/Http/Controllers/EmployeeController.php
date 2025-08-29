@@ -50,7 +50,9 @@ class EmployeeController extends Controller
 
     public function show ($cpf, Employee $employee) : Response
     {
-        $findEmployee = $employee->where('cpf', $cpf)->first();
+        $findEmployee = $employee->where('cpf', $cpf)
+            ->with('attachments')
+            ->first();
         return Inertia::render('Employees', ['employee' => $findEmployee]);
     }
 
