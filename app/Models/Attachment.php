@@ -15,4 +15,9 @@ class Attachment extends Model
         'size',
         'uploaded_by',
     ];
+
+    protected function getPathAttribute($value)
+    {
+        return asset('storage/' . $value);
+    }
 }
