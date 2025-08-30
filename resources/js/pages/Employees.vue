@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, router, usePage } from '@inertiajs/vue3';
+import ProgressBar from '@/components/ProgressBar.vue'
 import { ref, reactive, watch, onMounted } from 'vue'
 import {
     FileUp,
@@ -245,7 +246,6 @@ const formData = reactive<Employee>({
     accident_history: '',
 
     dependents: [],
-    documents: [],
     attachments: [],
 })
 
@@ -490,23 +490,32 @@ const confirmDelete = (employee: Employee) => {
     employeeToDelete.value = employee;
     showDeleteModal.value = true;
 }
+
+const getUpdatedTextFields = (original: Employee, updated: Employee) => {
+    const changes: Partial<Employee> = {};
+    for (const key in updated) {
+
+        if (updated[key] !== original[key] && typeof updated[key] !== 'object') {
+            changes[key] = updated[key];
+        }
+    }
+    return changes;
+};
+
 const saveEmployee = () => {
     validateAndPrepareFields()
 
-if (formData) {
-    console.log('FUNCIONARIO ATUAL:', formData);
+    const updatedFields = getUpdatedTextFields(employee, formData);
 
-    router.put(`/funcionarios`, {
-        employee: formData
-    });
-}
+    if (Object.keys(updatedFields).length > 0) {
+        router.put(`/funcionarios/${employee.cpf}`, { updatedFields });
+    } else {
+        console.log('Nenhuma alteração detectada.');
+    }
     showEmployeeForm.value = false;
 }
 
 function validateAndPrepareFields() {
-
-    // Formata CPF removendo caracteres não numéricos
-    formData.cpf = formData.cpf.replace(/[^\d]/g, '');
     // Basic validation of required fields
     // if (!formData.name || !formData.cpf || !formData.birth_date) {
     //     alert('Please fill in all required fields.');
@@ -514,12 +523,24 @@ function validateAndPrepareFields() {
     // }
 }
 
+const progressbar = ref(0);
 const createEmployee = () => {
     validateAndPrepareFields();
 
     router.post('/funcionarios', formData, {
         forceFormData: true,
-        onSuccess: () => resetForm(),
+        onProgress: (event) => {
+            if (event?.lengthComputable) {
+                progressbar.value = Math.round((event.loaded / event.total) * 100);
+            }
+        },
+        onSuccess: () => {
+            progressbar.value = 0;
+            resetForm();
+        },
+        onError: () => {
+            progressbar.value = 0;
+        }
     });
 };
 
@@ -715,6 +736,7 @@ console.log('SHOW EMPLOYEE:', employee);
 <template>
     <Head title='Funcionários'/>
     <AppLayout :breadcrumbs="breadcrumbs">
+        <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
         <main class="container mx-auto px-4 py-8">
             <!-- Cabeçalho do módulo -->
             <header v-if="!showEmployeeForm" class="text-black mb-6">
@@ -740,7 +762,6 @@ console.log('SHOW EMPLOYEE:', employee);
                     </div>
                 </div>
             </header>
-
             <!-- Modo de listagem -->
             <div v-if="!showEmployeeForm">
                 <div class="mb-6">

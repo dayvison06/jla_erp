@@ -83,6 +83,11 @@ class Employee extends Model
         return preg_replace("/(\d{3})(\d{3})(\d{3})(\d{2})/", "$1.$2.$3-$4", $value);
     }
 
+    public function setCpfAttribute($value) : void
+    {
+        $this->attributes['cpf'] = preg_replace("/\D/", '', $value);
+    }
+
     public function dependents()
     {
         return $this->hasMany(Dependent::class);

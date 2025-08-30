@@ -56,12 +56,16 @@ class EmployeeController extends Controller
         return Inertia::render('Employees', ['employee' => $findEmployee]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, $cpf): RedirectResponse
     {
         $data = $request->all();
+        dd($cpf);
+        $cpf = preg_replace("/\D/", '', $cpf);
+
         try {
-            $employee = Employee::where('cpf', $data['employee']['cpf'])->firstOrFail();
-            $employee->update($data['employee']);
+            $employee = Employee::where('cpf', $cpf)->firstOrFail();
+
+            $employee->update($data['updatedFields']);
             Log::info('Funcionário atualizado com sucesso: ' . $employee->id);
 
             return redirect()->route('employees.index')->with('notify', [
