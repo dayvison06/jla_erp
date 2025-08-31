@@ -22,6 +22,7 @@ class EmployeeController extends Controller
     public function store (EmployeeRequest $request) : RedirectResponse
     {
         $payload = $request->except('attachments');
+        Log::info('Recebendo dados para cadastro de funcionário', ['payload' => $payload,]);
 
         $employee = Employee::create($payload);
         Log::info('Funcionário criado com sucesso: ' . $employee->id);
