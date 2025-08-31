@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ProgressBar from '@/components/ProgressBar.vue'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup, DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { ref, reactive, watch, onMounted } from 'vue'
 import {
     FileUp,
@@ -12,10 +18,12 @@ import {
     Users,
     SearchIcon,
     EditIcon,
+    BookUser,
     TrashIcon,
     UploadIcon,
     FileIcon,
     File,
+    Ellipsis,
     EyeIcon,
     FileSpreadsheetIcon,
     ImageIcon,
@@ -28,8 +36,11 @@ import {
     Paperclip,
     BriefcaseBusiness,
     MapPinHouse,
-} from 'lucide-vue-next'
+    ShieldBan,
+} from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
+import AttachmentDialog from '@/components/AttachmentDialog.vue';
+
 const page = usePage()
 const employees: Employee[] = page.props.employees || []
 const employee: Employee | null = page.props.employee || null
@@ -56,25 +67,14 @@ interface Dependent {
     purposes: string[];
 }
 
-interface Document {
-    id: number;
-    name: string;
-    type: string;
-    issue_date: string;
-    expiry_date: string | null;
-    file: File | null;
-    url: string;
-    status: 'valid' | 'pending' | 'expired';
-}
-
 interface Attachment {
   employee_id: number;
   name: string;
   type: string;
   path: string;
   size: string;
-  upload_date: string;
   uploaded_by: string;
+  created_at: string;
   file: File | null;
 }
 
@@ -490,6 +490,16 @@ const confirmDelete = (employee: Employee) => {
     employeeToDelete.value = employee;
     showDeleteModal.value = true;
 }
+const removeAttachment = (id: number) => {
+    const index = formData.attachments.findIndex(attachment => attachment.id === id);
+    if (index !== -1) {
+        // Revoke object URL to prevent memory leaks
+        if (formData.attachments[index].url) {
+            URL.revokeObjectURL(formData.attachments[index].url);
+        }
+        formData.attachments.splice(index, 1);
+    }
+}
 
 const getUpdatedTextFields = (original: Employee, updated: Employee) => {
     const changes: Partial<Employee> = {};
@@ -632,11 +642,9 @@ const addFile = (file: File) => {
     }
 
     const newAttachment: Attachment = {
-        id: crypto.randomUUID(),
         name: file.name,
         type: file.type || 'application/octet-stream',
         size: fileSize,
-        upload_date: new Date().toISOString().split('T')[0],
         file: file,
         url: URL.createObjectURL(file),
     };
@@ -657,16 +665,6 @@ const handleFileDrop = (event: DragEvent) => {
     if (!event.dataTransfer?.files) return;
     Array.from(event.dataTransfer.files).forEach(addFile);
 };
-const removeAttachment = (id: number) => {
-    const index = formData.attachments.findIndex(attachment => attachment.id === id);
-    if (index !== -1) {
-        // Revoke object URL to prevent memory leaks
-        if (formData.attachments[index].url) {
-            URL.revokeObjectURL(formData.attachments[index].url);
-        }
-        formData.attachments.splice(index, 1);
-    }
-}
 
 const getFileIcon = (type: string) => {
     if (type.includes('pdf')) return FileTextIcon;
@@ -740,26 +738,35 @@ console.log('SHOW EMPLOYEE:', employee);
         <main class="container mx-auto px-4 py-8">
             <!-- Cabeçalho do módulo -->
             <header v-if="!showEmployeeForm" class="text-black mb-6">
-                <div class="mx-auto flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-2xl font-bold">Funcionários</h1>
+                <div class="mx-auto flex items-start mb-4">
+                    <!-- Título e descrição -->
+                    <div class="flex flex-col flex-1 gap-2">
+                        <div class="flex items-center gap-2">
+                            <Users class="w-6 h-6"/>
+                            <h1 class="text-2xl font-bold">Funcionários</h1>
+                        </div>
+                        <p class="text-gray-600 text-sm">
+                            O módulo de funcionários permite cadastrar, editar e controlar colaboradores da empresa em um só lugar,
+                            facilitando a gestão de dados, permissões e status de cada funcionário.
+                        </p>
                     </div>
-                    <div class="flex gap-2">
-                        <button
-                            @click="showEmployeeForm = true; resetForm(); newEmployee = true;"
-                            class="bg-gray-800 cursor-pointer hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center"
-                        >
-                            <PlusIcon class="w-5 h-5 mr-2"/>
-                            Novo Funcionário
-                        </button>
-                        <button
-                            @click=""
-                            class="border border-gray-800 cursor-pointer hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md flex items-center"
-                        >
-                            <FileUp class="w-5 h-5 mr-2"/>
-                            Importar funcionários
-                        </button>
-                    </div>
+                </div>
+                <!-- Ações -->
+                <div class="flex items-center gap-3">
+                    <button
+                        @click="showEmployeeForm = true; resetForm(); newEmployee = true;"
+                        class="flex items-center px-3 py-1.5 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        <PlusIcon class="w-5 h-5 mr-2"/>
+                        Novo Funcionário
+                    </button>
+<!--                    <button-->
+<!--                        @click=""-->
+<!--                        class="flex items-center px-4 py-2 bg-secondary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"-->
+<!--                    >-->
+<!--                        <FileUp class="w-5 h-5 mr-2"/>-->
+<!--                        Importar Funcionários-->
+<!--                    </button>-->
                 </div>
             </header>
             <!-- Modo de listagem -->
@@ -861,10 +868,42 @@ console.log('SHOW EMPLOYEE:', employee);
                                         </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))"
-                                        class="text-gray-600 hover:text-gray-900 mr-3">
-                                    <EditIcon class="w-5 h-5"/>
-                                </button>
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <button class="cursor-pointer text-gray-600 hover:text-gray-900 hover:bg-gray-300 hover:rounded-lg mr-3">
+                                            <BookUser class="w-5 h-5"/>
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                                        :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
+                                        align="end"
+                                        :side-offset="4"
+                                    >
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem :as-child="true">
+                                                <Link class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
+                                                    <EditIcon class="mr-2 h-4 w-4" />
+                                                    Editar
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem :as-child="true">
+                                                <Link class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
+                                                    <ShieldBan class="mr-2 h-4 w-4" />
+                                                    Desativar
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem :as-child="true">
+                                                <Link class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
+                                                    <EditIcon class="mr-2 h-4 w-4" />
+                                                    Editar
+                                                </Link>
+                                            </DropdownMenuItem>
+
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </td>
                         </tr>
                         <tr v-if="employees.length === 0">
@@ -1859,7 +1898,9 @@ console.log('SHOW EMPLOYEE:', employee);
                                                 <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ attachment.name }}</div>
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    <a class="hover:underline" :href="attachment.path" title="Visualizar" target="_blank">{{ attachment.name }}</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -1870,10 +1911,11 @@ console.log('SHOW EMPLOYEE:', employee);
                                         {{ attachment.size }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ formatDate(attachment.upload_date) }}
+                                        {{ formatDate(attachment.created_at) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
                                         <div class="flex items-center">
+                                            <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />
                                             <a
                                                 :href="attachment.path"
                                                 target="_blank"
@@ -1906,13 +1948,13 @@ console.log('SHOW EMPLOYEE:', employee);
                                     class="relative group"
                                 >
                                     <img
-                                        :src="attachment.url"
+                                        :src="attachment.path"
                                         :alt="attachment.name"
                                         class="h-40 w-full object-cover rounded-md border"
                                     />
                                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                                         <a
-                                            :href="attachment.url"
+                                            :href="attachment.path"
                                             target="_blank"
                                             class="p-2 bg-white rounded-full mx-1"
                                             title="Visualizar"
