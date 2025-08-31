@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ref, reactive, watch, onMounted } from 'vue'
 import {
-    FileUp,
     PlusIcon,
     Cross,
     Banknote,
@@ -23,7 +22,6 @@ import {
     UploadIcon,
     FileIcon,
     File,
-    Ellipsis,
     EyeIcon,
     FileSpreadsheetIcon,
     ImageIcon,
@@ -57,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Funcionários', href: '/funcionarios' },
 ];
 
-// Types
+// Interfaces
 interface Dependent {
     id: number;
     name: string;
@@ -310,6 +308,19 @@ const getInitials = (name: string) => {
         .join('')
         .substring(0, 2)
         .toUpperCase();
+}
+
+
+function localCacheForm () {
+    localStorage.setItem('localEmployee', JSON.stringify(formData));
+}
+
+function loadLoadCacheForm () {
+    console.log('CARREGANDO CACHE ');
+    const cached = localStorage.getItem('localEmployee');
+    if (cached) {
+        Object.assign(formData, JSON.parse(cached));
+    }
 }
 
 const formatDate = (dateString: string) => {
@@ -754,7 +765,7 @@ console.log('SHOW EMPLOYEE:', employee);
                 <!-- Ações -->
                 <div class="flex items-center gap-3">
                     <button
-                        @click="showEmployeeForm = true; resetForm(); newEmployee = true;"
+                        @click="showEmployeeForm = true; resetForm(); newEmployee = true; loadLoadCacheForm()"
                         class="flex items-center px-3 py-1.5 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
