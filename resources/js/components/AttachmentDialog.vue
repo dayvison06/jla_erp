@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash } from 'lucide-vue-next';
+import { Trash, EditIcon } from 'lucide-vue-next';
 import { defineEmits } from 'vue';
 
 const emit = defineEmits(['remove']);
@@ -29,22 +29,29 @@ console.log(name);
     <Dialog>
         <DialogTrigger as-child>
             <Button variant="outline">
-                Edit Profile
+                <EditIcon/>
+                Editar
             </Button>
         </DialogTrigger>
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>Edit profile</DialogTitle>
+                <DialogTitle>Editar Anexo</DialogTitle>
                 <DialogDescription>
-                    Make changes to your profile here. Click save when you're done.
+                    Você pode editar o nome e definir uma data de vencimento para este anexo, permitindo receber notificação quando estiver proximo de expirar.
                 </DialogDescription>
             </DialogHeader>
             <div class="grid gap-4 py-4">
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="name" class="text-right">
-                        Name
+                        Nome
                     </Label>
                     <Input :default-value="attachment.name" class="col-span-3" />
+                </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="name" class="text-right">
+                        Vencimento
+                    </Label>
+                    <Input :default-value="''" type="datetime-local" placeholder="" class="col-span-3" />
                 </div>
             </div>
             <DialogFooter>
