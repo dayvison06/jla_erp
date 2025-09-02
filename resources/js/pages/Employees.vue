@@ -311,11 +311,11 @@ const getInitials = (name: string) => {
 }
 
 
-function localCacheForm () {
+function setLocalCacheForm () {
     localStorage.setItem('localEmployee', JSON.stringify(formData));
 }
 
-function loadLoadCacheForm () {
+function loadLocalCacheForm () {
     console.log('CARREGANDO CACHE ');
     const cached = localStorage.getItem('localEmployee');
     if (cached) {
@@ -547,7 +547,9 @@ function validateAndPrepareFields() {
 const progressbar = ref(0);
 const createEmployee = () => {
     validateAndPrepareFields();
+    setLocalCacheForm();
 
+    console.log('FORM DATA:', formData);
     router.post('/funcionarios', formData, {
         forceFormData: true,
         onProgress: (event) => {
@@ -765,7 +767,7 @@ console.log('SHOW EMPLOYEE:', employee);
                 <!-- Ações -->
                 <div class="flex items-center gap-3">
                     <button
-                        @click="showEmployeeForm = true; resetForm(); newEmployee = true; loadLoadCacheForm()"
+                        @click="showEmployeeForm = true; resetForm(); newEmployee = true; loadLocalCacheForm()"
                         class="flex items-center px-3 py-1.5 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
