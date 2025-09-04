@@ -38,6 +38,7 @@ import {
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
 import AttachmentDialog from '@/components/AttachmentDialog.vue';
+import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 
 const page = usePage()
 const employees: Employee[] = page.props.employees || []
@@ -310,17 +311,27 @@ const getInitials = (name: string) => {
         .toUpperCase();
 }
 
-
+// Variavel reativa para armazenar o formulário em cache no localStorage
+const cacheDialog = ref(false);
+console.log('CACHE DIALOG', cacheDialog.value);
 function setLocalCacheForm () {
-    localStorage.setItem('localEmployee', JSON.stringify(formData));
+    localStorage.setItem('cachedEmployee', JSON.stringify(formData));
 }
 
 function loadLocalCacheForm () {
     console.log('CARREGANDO CACHE ');
-    const cached = localStorage.getItem('localEmployee');
-    if (cached) {
-        Object.assign(formData, JSON.parse(cached));
+
+    const cachedEmployee = localStorage.getItem('cachedEmployee');
+
+
+    console.log('cachedEmployee', cachedEmployee);
+    if (!!cachedEmployee) {
+        cacheDialog.value = true;
+        console.log('CACHE DIALOG', cacheDialog.value);
     }
+    // cachedEmployee.value = localStorage.getItem('cachedEmployee');
+    // Object.assign(formData, JSON.parse(cachedEmployee.value));
+
 }
 
 const formatDate = (dateString: string) => {
@@ -749,6 +760,7 @@ console.log('SHOW EMPLOYEE:', employee);
     <AppLayout :breadcrumbs="breadcrumbs">
         <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
         <main class="container mx-auto px-4 py-8">
+            <EmployeeCachedDialog v-if="cacheDialog"/>
             <!-- Cabeçalho do módulo -->
             <header v-if="!showEmployeeForm" class="text-black mb-6">
                 <div class="mx-auto flex items-start mb-4">
@@ -767,12 +779,13 @@ console.log('SHOW EMPLOYEE:', employee);
                 <!-- Ações -->
                 <div class="flex items-center gap-3">
                     <button
-                        @click="showEmployeeForm = true; resetForm(); newEmployee = true; loadLocalCacheForm()"
+                        @click="loadLocalCacheForm(); showEmployeeForm = true; resetForm(); newEmployee = true;"
                         class="flex items-center px-3 py-1.5 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
                         Novo Funcionário
                     </button>
+
 <!--                    <button-->
 <!--                        @click=""-->
 <!--                        class="flex items-center px-4 py-2 bg-secondary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"-->
