@@ -90,7 +90,12 @@ class Employee extends Model
 
     public function dependents()
     {
-        return $this->hasMany(Dependent::class);
+        return $this->hasMany(Dependent::class, 'employee_id', 'id');
+    }
+
+    public function benefits()
+    {
+        return $this->hasMany(Benefit::class, 'employee_id', 'id');
     }
 
     public function attachments() : HasMany
