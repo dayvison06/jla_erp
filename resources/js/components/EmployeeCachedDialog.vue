@@ -18,6 +18,10 @@ defineProps<{
     isDialogOpen: boolean;
 }>()
 
+const emit = defineEmits<{
+    (e: 'continue'): void
+}>()
+
 </script>
 
 <template>
@@ -30,32 +34,18 @@ defineProps<{
         </DialogTrigger>
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>Rascunho</DialogTitle>
+                <DialogTitle>Cadastro de funcionário em andamento</DialogTitle>
                 <DialogDescription>
-                    Você pode editar o nome e definir uma data de vencimento para este anexo, permitindo receber notificação quando estiver proximo de expirar.
+                    Você possui um cadastro de funcionário em andamento. Deseja continuar editando?
                 </DialogDescription>
             </DialogHeader>
-            <div class="grid gap-4 py-4">
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="name" class="text-right">
-                        Nome
-                    </Label>
-                    <Input :default-value="teste" class="col-span-3" />
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="name" class="text-right">
-                        Vencimento
-                    </Label>
-                    <Input :default-value="''" type="datetime-local" placeholder="" class="col-span-3" />
-                </div>
-            </div>
             <DialogFooter>
-                <Button type="submit" class="cursor-pointer">
-                    Salvar
+                <Button type="submit" @click="emit('continue')" class="cursor-pointer">
+                    Continuar
                 </Button>
                 <Button variant="destructive" class="cursor-pointer ml-auto">
                     <Trash />
-                    Excluir
+                    Cadastrar novo
                 </Button>
             </DialogFooter>
         </DialogContent>

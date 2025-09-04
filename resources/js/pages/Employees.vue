@@ -318,11 +318,16 @@ function setLocalCacheForm () {
     localStorage.setItem('cachedEmployee', JSON.stringify(formData));
 }
 
-function loadLocalCacheForm () {
+function handleContinueForm() {
+    const cachedEmployee = localStorage.getItem('cachedEmployee');
+
+    Object.assign(formData, JSON.parse(cachedEmployee));
+    cacheDialog.value = false;
+}
+function loadLocalCacheFormDialog () {
     console.log('CARREGANDO CACHE ');
 
     const cachedEmployee = localStorage.getItem('cachedEmployee');
-
 
     console.log('cachedEmployee', cachedEmployee);
     if (!!cachedEmployee) {
@@ -454,6 +459,7 @@ const searchZipCode = async () => {
 
     try {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+
         const data = await response.json();
 
         if (!data.erro) {
@@ -537,13 +543,16 @@ const getUpdatedTextFields = (original: Employee, updated: Employee) => {
 const saveEmployee = () => {
     validateAndPrepareFields()
 
-    const updatedFields = getUpdatedTextFields(employee, formData);
-
-    if (Object.keys(updatedFields).length > 0) {
-        router.put(`/funcionarios/${employee.cpf}`, { updatedFields });
-    } else {
-        console.log('Nenhuma alteração detectada.');
-    }
+    router.put(`/funcionarios/${formData.cpf}`, { formData }, {
+        onSuccess: () => {
+            resetForm();
+            showEmployeeForm.value = false;
+        },
+        onError: (errors) => {
+            console.error('Error updating employee:', errors);
+            alert('Error updating employee. Please check the form and try again.');
+        }
+    });
     showEmployeeForm.value = false;
 }
 
@@ -760,7 +769,7 @@ console.log('SHOW EMPLOYEE:', employee);
     <AppLayout :breadcrumbs="breadcrumbs">
         <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
         <main class="container mx-auto px-4 py-8">
-            <EmployeeCachedDialog v-if="cacheDialog"/>
+            <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" />
             <!-- Cabeçalho do módulo -->
             <header v-if="!showEmployeeForm" class="text-black mb-6">
                 <div class="mx-auto flex items-start mb-4">
@@ -779,7 +788,7 @@ console.log('SHOW EMPLOYEE:', employee);
                 <!-- Ações -->
                 <div class="flex items-center gap-3">
                     <button
-                        @click="loadLocalCacheForm(); showEmployeeForm = true; resetForm(); newEmployee = true;"
+                        @click="loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm(); newEmployee = true;"
                         class="flex items-center px-3 py-1.5 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
@@ -1296,7 +1305,7 @@ console.log('SHOW EMPLOYEE:', employee);
                     <div v-if="activeTab === 'contact'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CEP *</label>
+                                <label class="block text-sm font-medium text-gray-700">CEP * <span class="text-xs font-medium text-gray-700">(Preenchimento automático)</span></label>
                                 <input
                                     v-model="formData.postal_code"
                                     type="text"

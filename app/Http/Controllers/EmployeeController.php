@@ -59,15 +59,17 @@ class EmployeeController extends Controller
 
     public function update(Request $request, $cpf): RedirectResponse
     {
-        $data = $request->all();
-        dd($cpf);
+       $payload = $request->input('formData');
+       $data = array_filter($payload, fn($value) => !is_array($value));
+
+        Log::info('Recebendo dados para atualização de funcionário', ['data' => $data,]);
         $cpf = preg_replace("/\D/", '', $cpf);
+
 
         try {
             $employee = Employee::where('cpf', $cpf)->firstOrFail();
 
-            $employee->update($data['updatedFields']);
-            Log::info('Funcionário atualizado com sucesso: ' . $employee->id);
+            $result = $employee->update($data);
 
             return redirect()->route('employees.index')->with('notify', [
                 'type' => 'success',
