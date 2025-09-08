@@ -2,10 +2,13 @@
 import {toast, Toaster as Sonner, type ToasterProps} from 'vue-sonner'
 import {usePage} from "@inertiajs/vue3";
 import {watch} from "vue";
+import { useToast, type ToastInternal } from '@/composables/useToast';
 
+const { toastMessage }: ToastInternal = useToast();
 const props = defineProps<ToasterProps>()
 const page = usePage();
 const hasNotify  = page.props.session.message.notify
+console.log('Toast:', toastMessage.value)
 console.log('hasNotify', hasNotify)
 
 watch(
@@ -23,6 +26,21 @@ watch(
     },
     {immediate: true}
 );
+
+
+// Observa mudanças na mensagem de toast e exibe a notificação
+watch(toastMessage, (newValue) => {
+    if (toastMessage) {
+        console.log('New Toast:', newValue)
+        toast(newValue.title, {
+            type: newValue.type,
+            description: newValue.description,
+            duration: 5000,
+            position: 'top-center',
+            closeButton: true,
+        });
+    }
+});
 </script>
 
 <template>

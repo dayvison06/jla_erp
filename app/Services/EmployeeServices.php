@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 class EmployeeServices
 {
@@ -19,5 +19,10 @@ class EmployeeServices
         return array_filter($dependents, function ($dependent) {
             return isset($dependent['name'], $dependent['relationship']) && !empty($dependent['name']) && !empty($dependent['relationship']);
         });
+    }
+
+    public function cleanCpf(string $cpf): string
+    {
+        return preg_replace("/\D/", '', $cpf);
     }
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { useToast } from '@/composables/useToast';
 import ProgressBar from '@/components/ProgressBar.vue'
 import {
     DropdownMenu,
@@ -9,6 +10,8 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { ref, reactive, watch, onMounted } from 'vue'
+import type { Employee, RoleHistory, Attachment, Dependent } from '@/types/Employees';
+import { debouncedWatch} from '@vueuse/core';
 import {
     PlusIcon,
     Cross,
@@ -40,11 +43,15 @@ import type { BreadcrumbItem } from "@/types";
 import AttachmentDialog from '@/components/AttachmentDialog.vue';
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 
+const { showToast } = useToast();
 const page = usePage()
-const employees: Employee[] = page.props.employees || []
+const employees: Employee[] = page.props.employees.data || []
 const employee: Employee | null = page.props.employee || null
+console.table('LISTANDO FUNCIONARIOS', employees);
 
 onMounted( () => {
+    router.get('/funcionarios', {}, { preserveState: true, preserveScroll: true });
+    // Se veio um funcionário para editar, carrega os dados no form
     if (employee) {
         Object.assign(formData, employee);
         showEmployeeForm.value = true;
@@ -55,107 +62,6 @@ onMounted( () => {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Funcionários', href: '/funcionarios' },
 ];
-
-// Interfaces
-interface Dependent {
-    id: number;
-    name: string;
-    birth_date: string;
-    cpf: string;
-    relationship: string;
-    purposes: string[];
-}
-
-interface Attachment {
-  employee_id: number;
-  name: string;
-  type: string;
-  path: string;
-  size: string;
-  uploaded_by: string;
-  created_at: string;
-  file: File | null;
-}
-
-interface RoleHistory {
-    id: number;
-    role: string;
-    department: string;
-    start_date: string;
-    end_date: string | null;
-    salary: string;
-    reason: string;
-}
-
-interface Employee {
-    name: string;
-    birth_date: string;
-    gender: string;
-    civil_state: string;
-    nationality: string;
-    birthplace: string;
-    cnpj: string;
-    cpf: string;
-    rg: string;
-    issuing_agency: string;
-    issue_date: string;
-    escolarity: 'Ensino Fundamental' | 'Ensino Médio' | 'Ensino Superior Incompleto' | 'Ensino Superior Completo' | 'Pós-Graduação (Especialização/MBA)' | 'Mestrado' | 'Doutorado';
-    voter_registration: string;
-    military_certificate: string;
-    mother_name: string;
-    father_name: string;
-    photo: string | null;
-    status: 'active' | 'inactive' | 'vacation' | 'leave' | 'terminated';
-
-    ctps_number: string;
-    ctps_series: string;
-    ctps_state: string;
-    pis_pasep: string;
-    nit: string;
-    cnh: string;
-    cnh_category: string;
-    cnh_expiry: string;
-    professional_registration: string;
-
-    postal_code: string;
-    street: string;
-    number: string;
-    complement: string;
-    district: string;
-    city: string;
-    state: string;
-    phone: string;
-    mobile: string;
-    email: string;
-    emergency_contact: string;
-    emergency_phone: string;
-
-    bank: string;
-    agency: string;
-    account: string;
-    account_type: string;
-    pix_key: string;
-
-    role: string;
-    department: string;
-    contract_type: string;
-    admission_date: string;
-    termination_date: string | null;
-    salary: string;
-    work_schedule: string;
-    benefits: string[];
-    role_history: RoleHistory[];
-
-    last_exam_date: string;
-    next_exam_date: string;
-    aso_result: string;
-    allergies: string;
-    blood_type: string;
-    accident_history: string;
-
-    dependents: Dependent[];
-    attachments: Attachment[];
-}
 
 // State
 const newEmployee = ref(false)
@@ -315,14 +221,7 @@ const getInitials = (name: string) => {
 const cacheDialog = ref(false);
 console.log('CACHE DIALOG', cacheDialog.value);
 function setLocalCacheForm () {
-    localStorage.setItem('cachedEmployee', JSON.stringify(formData));
-}
-
-function handleContinueForm() {
-    const cachedEmployee = localStorage.getItem('cachedEmployee');
-
-    Object.assign(formData, JSON.parse(cachedEmployee));
-    cacheDialog.value = false;
+    localStorage.setItem('cachedEmployee', JSON.stringify({ ...formData, attachments: [] }));
 }
 function loadLocalCacheFormDialog () {
     console.log('CARREGANDO CACHE ');
@@ -339,6 +238,12 @@ function loadLocalCacheFormDialog () {
 
 }
 
+function handleContinueForm() {
+    const cachedEmployee = localStorage.getItem('cachedEmployee');
+
+    Object.assign(formData, JSON.parse(cachedEmployee));
+    cacheDialog.value = false;
+}
 const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -462,14 +367,17 @@ const searchZipCode = async () => {
 
         const data = await response.json();
 
-        if (!data.erro) {
-            formData.street = data.logradouro;
-            formData.district = data.bairro;
-            formData.city = data.localidade;
-            formData.state = data.uf;
+        if (data.erro) {
+            showToast('Falha', 'error', 'CEP não encontrado, corrija ou preencha manualmente.');
+            return;
         }
+
+        formData.street = data.logradouro;
+        formData.district = data.bairro;
+        formData.city = data.localidade;
+        formData.state = data.uf;
     } catch (error) {
-        console.error('Error searching for zip code:', error);
+        showToast('Buscar CEP', 'error', 'Falha ao buscar CEP, preencha manualmente.');
     }
 }
 
@@ -542,17 +450,26 @@ const getUpdatedTextFields = (original: Employee, updated: Employee) => {
 
 const saveEmployee = () => {
     validateAndPrepareFields()
+    console.table('CPF', formData.cpf, 'FORM DATA', formData);
 
-    router.put(`/funcionarios/${formData.cpf}`, { formData }, {
+    router.put(`/funcionarios/${formData.cpf}`, formData, {
+        onProgress: (event) => {
+            if (event?.lengthComputable) {
+                progressbar.value = Math.round((event.loaded / event.total) * 100);
+            }
+        },
         onSuccess: () => {
+            progressbar.value = 0;
             resetForm();
             showEmployeeForm.value = false;
         },
         onError: (errors) => {
+            progressbar.value = 0;
             console.error('Error updating employee:', errors);
             alert('Error updating employee. Please check the form and try again.');
         }
     });
+    console.log('FORM DATA UPDATE:', formData);
     showEmployeeForm.value = false;
 }
 
@@ -580,6 +497,7 @@ const createEmployee = () => {
         onSuccess: () => {
             progressbar.value = 0;
             resetForm();
+            localStorage.removeItem('cachedEmployee');
         },
         onError: () => {
             progressbar.value = 0;
@@ -667,6 +585,7 @@ const formatFileSize = (size: number): string => {
 };
 
 const addFile = (file: File) => {
+    console.log('Adding file:', URL.createObjectURL(file),);
     const fileSize = formatFileSize(file.size);
 
     // evita duplicados
@@ -679,10 +598,12 @@ const addFile = (file: File) => {
         type: file.type || 'application/octet-stream',
         size: fileSize,
         file: file,
-        url: URL.createObjectURL(file),
+        path: URL.createObjectURL(file),
+        created_at: new Date().toISOString(),
     };
 
     formData.attachments.push(newAttachment);
+    uploadAttachments();
 };
 
 const handleFileUpload = (event: Event) => {
@@ -698,6 +619,27 @@ const handleFileDrop = (event: DragEvent) => {
     if (!event.dataTransfer?.files) return;
     Array.from(event.dataTransfer.files).forEach(addFile);
 };
+
+function uploadAttachments() {
+
+    console.log('newEmployee', newEmployee.value);
+    // if (newEmployee) return;
+
+    router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
+        forceFormData: true,
+        onProgress: (event) => {
+            if (event?.lengthComputable) {
+                progressbar.value = Math.round((event.loaded / event.total) * 100);
+            }
+        },
+        onSuccess: () => {
+            progressbar.value = 0;
+        },
+        onError: () => {
+            progressbar.value = 0;
+        }
+    });
+}
 
 const getFileIcon = (type: string) => {
     if (type.includes('pdf')) return FileTextIcon;
@@ -761,14 +703,25 @@ watch([searchQuery, statusFilter], () => {
     // Aqui poderia implementar lógica adicional se necessário
 });
 
+debouncedWatch(
+    () => formData.postal_code,
+    (cep) => {
+        if (cep && cep.replace(/\D/g, '').length === 8) {
+            console.log('WATCH CEP', cep);
+            searchZipCode();
+        }
+    },
+    { debounce: 500 }
+);
+
 console.log('SHOW EMPLOYEE:', employee);
 </script>
 
 <template>
     <Head title='Funcionários'/>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
         <main class="container mx-auto px-4 py-8">
+            <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
             <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" />
             <!-- Cabeçalho do módulo -->
             <header v-if="!showEmployeeForm" class="text-black mb-6">
@@ -918,24 +871,17 @@ console.log('SHOW EMPLOYEE:', employee);
                                     >
                                         <DropdownMenuGroup>
                                             <DropdownMenuItem :as-child="true">
-                                                <Link class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
+                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
                                                     <EditIcon class="mr-2 h-4 w-4" />
                                                     Editar
-                                                </Link>
+                                                </div>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem :as-child="true">
-                                                <Link class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
+                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
                                                     <ShieldBan class="mr-2 h-4 w-4" />
                                                     Desativar
-                                                </Link>
+                                                </div>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem :as-child="true">
-                                                <Link class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
-                                                    <EditIcon class="mr-2 h-4 w-4" />
-                                                    Editar
-                                                </Link>
-                                            </DropdownMenuItem>
-
                                         </DropdownMenuGroup>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -1000,7 +946,7 @@ console.log('SHOW EMPLOYEE:', employee);
                     <div v-if="activeTab === 'personal'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
+                                <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
                                 <input
                                     v-model="formData.name"
                                     type="text"
@@ -1312,7 +1258,6 @@ console.log('SHOW EMPLOYEE:', employee);
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                     @input="formatCEP"
-                                    @blur="searchZipCode"
                                 />
                             </div>
 
@@ -1639,72 +1584,72 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
 
                         <!-- Histórico de cargos -->
-                        <div class="mt-8">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-medium">Histórico de Cargos</h3>
-                            </div>
+<!--                        <div class="mt-8">-->
+<!--                            <div class="flex justify-between items-center mb-4">-->
+<!--                                <h3 class="text-lg font-medium">Histórico de Cargos</h3>-->
+<!--                            </div>-->
 
-                            <div v-if="formData.role_history.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                Nenhum histórico de cargo cadastrado
-                            </div>
+<!--                            <div v-if="formData.role_history.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">-->
+<!--                                Nenhum histórico de cargo cadastrado-->
+<!--                            </div>-->
 
-                            <div v-else class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Cargo
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Departamento
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Data Início
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Data Fim
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Salário
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Motivo
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ações
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="hist in formData.role_history" :key="hist.id" class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ hist.role }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.department }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ formatDate(hist.start_date) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.end_date ? formatDate(hist.end_date) : 'Atual' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.salary }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ hist.reason }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button @click="removeRoleHistory(hist.id)" class="text-red-600 hover:text-red-900">
-                                                <TrashIcon class="w-5 h-5" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+<!--                            <div v-else class="overflow-x-auto">-->
+<!--                                <table class="min-w-full divide-y divide-gray-200">-->
+<!--                                    <thead class="bg-gray-50">-->
+<!--                                    <tr>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Cargo-->
+<!--                                        </th>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Departamento-->
+<!--                                        </th>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Data Início-->
+<!--                                        </th>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Data Fim-->
+<!--                                        </th>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Salário-->
+<!--                                        </th>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Motivo-->
+<!--                                        </th>-->
+<!--                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                            Ações-->
+<!--                                        </th>-->
+<!--                                    </tr>-->
+<!--                                    </thead>-->
+<!--                                    <tbody class="bg-white divide-y divide-gray-200">-->
+<!--                                    <tr v-for="hist in formData.role_history" :key="hist.id" class="hover:bg-gray-50">-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">-->
+<!--                                            {{ hist.role }}-->
+<!--                                        </td>-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                            {{ hist.department }}-->
+<!--                                        </td>-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                            {{ formatDate(hist.start_date) }}-->
+<!--                                        </td>-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                            {{ hist.end_date ? formatDate(hist.end_date) : 'Atual' }}-->
+<!--                                        </td>-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                            {{ hist.salary }}-->
+<!--                                        </td>-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                            {{ hist.reason }}-->
+<!--                                        </td>-->
+<!--                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">-->
+<!--                                            <button @click="removeRoleHistory(hist.id)" class="text-red-600 hover:text-red-900">-->
+<!--                                                <TrashIcon class="w-5 h-5" />-->
+<!--                                            </button>-->
+<!--                                        </td>-->
+<!--                                    </tr>-->
+<!--                                    </tbody>-->
+<!--                                </table>-->
+<!--                            </div>-->
+<!--                        </div>-->
                     </div>
 
                     <!-- 6. Saúde e Segurança do Trabalho -->
@@ -1951,21 +1896,6 @@ console.log('SHOW EMPLOYEE:', employee);
                                     <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
                                         <div class="flex items-center">
                                             <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />
-                                            <a
-                                                :href="attachment.path"
-                                                target="_blank"
-                                                p                 class="text-gray-900 hover:text-gray-900 mr-3"
-                                                title="Visualizar"
-                                            >
-                                                <EyeIcon class="w-5 h-5" />
-                                            </a>
-                                            <button
-                                                @click="removeAttachment(attachment.id)"
-                                                class="text-red-600 hover:text-red-900"
-                                                title="Excluir"
-                                            >
-                                                <TrashIcon class="w-5 h-5" />
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>

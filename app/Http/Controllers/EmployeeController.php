@@ -3,19 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EmployeeRequest;
-use App\Models\Employee;
+use App\Models\Employee\Employee;
+use App\Services\EmployeeServices;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class EmployeeController extends Controller
 {
+    protected EmployeeServices $employeeServices;
+
+    public function __construct(EmployeeServices $employeeServices)
+    {
+        $this->employeeServices = $employeeServices;
+    }
+
     public function index() : Response
     {
-        $employees = Employee::all()->take(10);
+        $employees = Employee::paginate(25);
         return Inertia::render('Employees', ['employees' => $employees]);
     }
 
@@ -45,7 +53,7 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('notify', [
             'type' => 'success',
             'title' => 'Funcionário Adicionado',
-            'message' => 'O funcionário foi adicionado com sucesso.',
+            'message' => 'O funcionário ' . $employee->name . ' foi adicionado com sucesso.',
         ]);
     }
 
@@ -57,20 +65,20 @@ class EmployeeController extends Controller
         return Inertia::render('Employees', ['employee' => $findEmployee]);
     }
 
-    public function update(Request $request, $cpf): RedirectResponse
+    public function update(FormRequest $request, $cpf): RedirectResponse
     {
-       $payload = $request->input('formData');
-       $data = array_filter($payload, fn($value) => !is_array($value));
+        $payload = $request->all();
+        $data = array_filter($payload, fn($value) => !is_array($value));
 
         Log::info('Recebendo dados para atualização de funcionário', ['data' => $data,]);
-        $cpf = preg_replace("/\D/", '', $cpf);
-
+        $cpf = $this->employeeServices->cleanCpf($cpf);
 
         try {
             $employee = Employee::where('cpf', $cpf)->firstOrFail();
-
-            $result = $employee->update($data);
-
+            $employee->update($data);
+            $employee->dependents()->update($payload['dependents']);
+            $employee->benefits()->update($payload['benefits']);
+            // Atualizar outros relacionamentos conforme necessário
             return redirect()->route('employees.index')->with('notify', [
                 'type' => 'success',
                 'title' => 'Funcionário Atualizado',
@@ -85,5 +93,30 @@ class EmployeeController extends Controller
                 'message' => 'Não foi possível atualizar o funcionário.',
             ]);
         }
+    }
+
+    public function uploadFiles(Request $request, $cpf) : RedirectResponse
+    {
+        $cpf = $this->employeeServices->cleanCpf($cpf);
+        $employee = Employee::where('cpf', $cpf)->firstOrFail();
+
+        foreach ($request->file('attachments') as $file) {
+            $file = $file['file'];
+            $path = $file->store('employees', 'public');
+            $employee->attachments()->create([
+                'employee_id' => $employee->id,
+                'name' => $file->getClientOriginalName(),
+                'type' => $file->getMimeType(),
+                'path' => $path,
+                'size' => $file->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+
+        return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Arquivos Enviados',
+            'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
+        ]);
     }
 }

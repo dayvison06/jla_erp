@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Employee;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
@@ -88,18 +89,23 @@ class Employee extends Model
         $this->attributes['cpf'] = preg_replace("/\D/", '', $value);
     }
 
-    public function dependents()
+    public function dependents() : HasMany
     {
-        return $this->hasMany(Dependent::class, 'employee_id', 'id');
+        return $this->hasMany(Depedent::class, 'employee_id', 'id');
     }
 
-    public function benefits()
+    public function benefits() : BelongsToMany
     {
-        return $this->hasMany(Benefit::class, 'employee_id', 'id');
+        return $this->belongsToMany(Benefit::class, 'employee_has_benefits', 'employee_id', 'benefit_id');
     }
 
     public function attachments() : HasMany
     {
         return $this->hasMany(Attachment::class);
+    }
+
+    public function roles() : HasMany
+    {
+        return $this->hasMany(Role::class, 'employee_id', 'id');
     }
 }

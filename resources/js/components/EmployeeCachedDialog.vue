@@ -14,10 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ref } from 'vue';
 
-defineProps<{
-    isDialogOpen: boolean;
-}>()
-
 const emit = defineEmits<{
     (e: 'continue'): void
 }>()
@@ -26,12 +22,6 @@ const emit = defineEmits<{
 
 <template>
     <Dialog :default-open="true" >
-        <DialogTrigger as-child>
-            <Button variant="outline">
-                <EditIcon/>
-                Editar
-            </Button>
-        </DialogTrigger>
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
                 <DialogTitle>Cadastro de funcionário em andamento</DialogTitle>

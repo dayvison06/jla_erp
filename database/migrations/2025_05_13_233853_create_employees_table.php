@@ -82,12 +82,37 @@ return new class extends Migration
             $table->text('accident_history')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('employee_benefits', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->boolean('active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('employee_roles', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->string('benefit');
+            $table->string('name');
+            $table->decimal('base_salary', 10, 2);
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('employee_has_benefits', function (Blueprint $table) {
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
+            $table->foreignId('benefit_id')->constrained('employee_benefits')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        Schema::create('employee_departaments', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
+            $table->string('name');
+            $table->text('description')->nullable();
             $table->timestamps();
         });
 
@@ -98,6 +123,12 @@ return new class extends Migration
             $table->string('relationship');
             $table->date('birth_date');
             $table->string('cpf', 14)->nullable();
+            $table->string('rg', 20)->nullable();
+            $table->string('issuing_agency', 20)->nullable();
+            $table->date('issue_date')->nullable();
+            $table->boolean('is_income_tax_dependent')->default(false);
+            $table->boolean('is_health_plan_dependent')->default(false);
+            $table->string('civil_state', 20)->nullable();
             $table->timestamps();
         });
 
@@ -129,6 +160,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('employee_job_histories');
+        Schema::dropIfExists('employee_has_benefits');
+        Schema::dropIfExists('employee_roles');
         Schema::dropIfExists('employee_attachments');
         Schema::dropIfExists('employee_documents');
         Schema::dropIfExists('employee_dependents');
