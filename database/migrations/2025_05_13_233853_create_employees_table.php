@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->date('birth_date');
+            $table->date('birth_date')->nullable();
             $table->string('gender', 10)->nullable();
             $table->string('civil_state', 20)->nullable();
             $table->string('nationality', 50)->nullable();

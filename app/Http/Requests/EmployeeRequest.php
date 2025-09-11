@@ -22,10 +22,22 @@ class EmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-//            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
 //            'email' => 'required|email|max:255',
-//            'cpf' => 'required|size:11|unique:employees,cpf',
+            'cpf' => 'required|size:14|unique:employees,cpf',
 //            'rg' => 'required|string|max:20',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'O nome é obrigatório.',
+            'name.string' => 'O nome deve ser uma string.',
+            'name.max' => 'O nome não pode ter mais de 255 caracteres.',
+            'cpf.required' => 'O CPF é obrigatório.',
+            'cpf.size' => 'O CPF deve ter exatamente 14 caracteres.',
+            'cpf.unique' => 'Este CPF já está cadastrado.',
         ];
     }
 }

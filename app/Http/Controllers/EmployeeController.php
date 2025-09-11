@@ -23,8 +23,10 @@ class EmployeeController extends Controller
 
     public function index() : Response
     {
-        $employees = Employee::paginate(25);
-        return Inertia::render('Employees', ['employees' => $employees]);
+        $employees = Employee::orderBy('name', 'ASC')->paginate(25);
+        return Inertia::render('Employees', [
+            'employees' => $employees
+        ]);
     }
 
     public function store (EmployeeRequest $request) : RedirectResponse
@@ -65,29 +67,28 @@ class EmployeeController extends Controller
         return Inertia::render('Employees', ['employee' => $findEmployee]);
     }
 
-    public function update(FormRequest $request, $cpf): RedirectResponse
+    public function update(FormRequest $request, $cpf): Response
     {
         $payload = $request->all();
         $data = array_filter($payload, fn($value) => !is_array($value));
 
         Log::info('Recebendo dados para atualização de funcionário', ['data' => $data,]);
         $cpf = $this->employeeServices->cleanCpf($cpf);
-
+        $employee = Employee::where('cpf', $cpf)->firstOrFail();
         try {
-            $employee = Employee::where('cpf', $cpf)->firstOrFail();
             $employee->update($data);
             $employee->dependents()->update($payload['dependents']);
             $employee->benefits()->update($payload['benefits']);
             // Atualizar outros relacionamentos conforme necessário
-            return redirect()->route('employees.index')->with('notify', [
+            return Inertia::render('Employees', ['employee' => $employee])->with('notify', [
                 'type' => 'success',
                 'title' => 'Funcionário Atualizado',
-                'message' => 'O funcionário foi atualizado com sucesso.',
+                'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
             ]);
 
         } catch (\Throwable $e) {
             Log::error('Erro ao atualizar funcionário: ' . $e->getMessage());
-            return redirect()->back()->with('notify', [
+            return Inertia::render('Employees', ['employee' => $employee])->with('notify', [
                 'type' => 'error',
                 'title' => 'Erro',
                 'message' => 'Não foi possível atualizar o funcionário.',
