@@ -45,15 +45,13 @@ import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 
 const { showToast } = useToast();
 const page = usePage()
-const employees: Employee[] = page.props.employees.data || []
-const employee: Employee | null = page.props.employee || null
-console.table('LISTANDO FUNCIONARIOS', employees);
-
+const employees = ref<Employee[]>(page.props.employees?.data ?? []);
+const employee = ref<Employee | null>(page.props.employee || null);
+console.table('LISTANDO FUNCIONARIOS', employees.value);
 onMounted( () => {
-    router.get('/funcionarios', {}, { preserveState: true, preserveScroll: true });
     // Se veio um funcionário para editar, carrega os dados no form
-    if (employee) {
-        Object.assign(formData, employee);
+    if (employee.value) {
+        Object.assign(formData, employee.value);
         showEmployeeForm.value = true;
         newEmployee.value = false;
     }
@@ -407,6 +405,7 @@ async function showEmployeeByCPF(cpf: string) {
         preserveScroll: true,
         onSuccess: (page) => {
             // Check if the employee was found
+            console.log('PAGE PROPS', page.props);
             if (page.props.employee) {
                 Object.assign(formData, page.props.employee);
                 showEmployeeForm.value = true;
@@ -449,19 +448,21 @@ const getUpdatedTextFields = (original: Employee, updated: Employee) => {
 };
 
 const saveEmployee = () => {
-    validateAndPrepareFields()
+    // validateAndPrepareFields()
     console.table('CPF', formData.cpf, 'FORM DATA', formData);
 
-    router.put(`/funcionarios/${formData.cpf}`, formData, {
+    router.put(`/funcionarios/${formData.cpf.replace(/\D/g, '')}`, formData, {
+        preserveState: true,
+        preserveScroll: true,
         onProgress: (event) => {
             if (event?.lengthComputable) {
                 progressbar.value = Math.round((event.loaded / event.total) * 100);
             }
         },
-        onSuccess: () => {
+        onSuccess: (page) => {
+            console.log('SUCESSO UPDATE', page);
             progressbar.value = 0;
-            resetForm();
-            showEmployeeForm.value = false;
+            employee.value = page.props.employee;
         },
         onError: (errors) => {
             progressbar.value = 0;
@@ -470,8 +471,25 @@ const saveEmployee = () => {
         }
     });
     console.log('FORM DATA UPDATE:', formData);
-    showEmployeeForm.value = false;
 }
+
+function closeEmployeeForm() {
+    showEmployeeForm.value = false;
+    resetForm();
+    router.get('/funcionarios', {  }, { preserveState: true, preserveScroll: true });
+}
+
+function loadEmployees() {
+  router.get('/funcionarios', {}, {
+      only: ['employees'],
+      preserveState: true,
+      preserveScroll: true,
+    onSuccess: (page) => {
+      employees.value = page.props.employees.data;
+    }
+  });
+}
+
 
 function validateAndPrepareFields() {
     // Basic validation of required fields
@@ -498,9 +516,16 @@ const createEmployee = () => {
             progressbar.value = 0;
             resetForm();
             localStorage.removeItem('cachedEmployee');
+            showEmployeeForm.value = false;
+            loadEmployees();
         },
-        onError: () => {
+        onError: (error) => {
+            const msgError = []
+            Object.keys(error).forEach((campo) => {
+                msgError.push(`${error[campo]}`);
+            });
             progressbar.value = 0;
+            showToast('Error', 'error', msgError[0]);
         }
     });
 };
@@ -914,8 +939,14 @@ console.log('SHOW EMPLOYEE:', employee);
             <!-- Formulário de funcionário -->
             <div v-else>
                 <div class="flex justify-between items-center mb-5">
-                    <h2 class="text-xl font-semibold">{{ !newEmployee ? `Alterando dados de ${ formData.name }` : 'Novo Funcionário' }}</h2>
-                    <button @click="showEmployeeForm = false, router.get('/funcionarios')" class="text-gray-500 hover:text-gray-700">
+                    <h2 class="text-xl font-semibold">
+                        <span v-if="!newEmployee">
+                            Alterando dados de
+                            <span class="bg-secondary px-2 py-0.5 rounded-lg text-white font-bold">{{ formData.name }}</span>
+                        </span>
+                        <span v-else>Novo Funcionário</span>
+                    </h2>
+                    <button @click="showEmployeeForm = false;" class="text-gray-500 hover:text-gray-700">
                         <XIcon class="w-6 h-6"/>
                     </button>
                 </div>
@@ -930,8 +961,8 @@ console.log('SHOW EMPLOYEE:', employee);
                             :class="[
                                         'px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center',
                                         activeTab === tab.id
-                                            ? 'border-b-2 border-gray-600 bg-gray-50 rounded-t text-gray-700'
-                                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            ? 'border-b-2 border-gray-600 bg-gray-50 rounded-t-lg text-gray-700'
+                                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 cursor-pointer'
                                     ]"
                         >
                             <component :is="tab.icon" class="w-4 h-4 mr-2" />
@@ -1944,7 +1975,7 @@ console.log('SHOW EMPLOYEE:', employee);
                     <div class="flex justify-end space-x-4 mt-8 pt-4">
                         <button
                             type="button"
-                            @click="showEmployeeForm = false; router.get('/funcionarios');"
+                            @click="closeEmployeeForm()"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                         >
                             Cancelar

@@ -7,9 +7,6 @@ import { useToast, type ToastInternal } from '@/composables/useToast';
 const { toastMessage }: ToastInternal = useToast();
 const props = defineProps<ToasterProps>()
 const page = usePage();
-const hasNotify  = page.props.session.message.notify
-console.log('Toast:', toastMessage.value)
-console.log('hasNotify', hasNotify)
 
 watch(
     () => page.props.session.message.notify,
@@ -22,6 +19,23 @@ watch(
                 position: 'top-center',
                 closeButton: true,
             });
+        }
+    },
+    {immediate: true}
+);
+
+watch(
+    () => page.props.notify,
+    (hasNotify) => {
+        if (hasNotify) {
+            toast(hasNotify.title, {
+                type: hasNotify.type,
+                duration: 10000,
+                description: hasNotify.message,
+                position: 'top-center',
+                closeButton: true,
+            });
+            console.log('INERTIA NOTIFY:', hasNotify)
         }
     },
     {immediate: true}
