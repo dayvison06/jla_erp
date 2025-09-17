@@ -21,12 +21,29 @@ class EmployeeController extends Controller
         $this->employeeServices = $employeeServices;
     }
 
-    public function index() : Response
+    public function index(Request $request) : Response
     {
-        $employees = Employee::orderBy('name', 'ASC')->paginate(25);
+        $query = Employee::query();
+
+        if ($request->filled('search')) {
+            if (is_numeric(preg_replace('/\D/', '', $request->search))) {
+                $query->where('cpf', 'like', '%' . preg_replace('/\D/', '', $request->search) . '%');
+            } else {
+                $query->whereRaw('LOWER(name) LIKE ?', [strtolower($request->search) . '%']);
+            }
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $employees = $query->orderBy('name', 'ASC')->paginate(25);
+
         return Inertia::render('Employees', [
-            'employees' => $employees
+            'employees' => $employees,
+            // outros dados
         ]);
+
     }
 
     public function store (EmployeeRequest $request) : RedirectResponse
