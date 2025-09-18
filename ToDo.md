@@ -36,6 +36,8 @@
   - Exibir erros e impedir envio se faltar dados.
 - [ ] Permitir edição de dependentes já cadastrados.
   - Adicionar lógica para editar e salvar dependentes.
+  - Adicionar Campo de RG e Estado Civil.
+  - 
 
 ### 5. Histórico de Cargos
 - [ ] Finalizar CRUD do histórico de cargos.
