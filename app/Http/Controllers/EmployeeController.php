@@ -69,6 +69,12 @@ class EmployeeController extends Controller
             }
         }
 
+        if ($request->has('dependents')) {
+            foreach ($request->dependents as $dependent) {
+                $employee->dependents()->create($dependent);
+            }
+        }
+
         return redirect()->route('employees.index')->with('notify', [
             'type' => 'success',
             'title' => 'Funcionário Adicionado',
@@ -94,7 +100,7 @@ class EmployeeController extends Controller
         $employee = Employee::where('cpf', $cpf)->firstOrFail();
         try {
             $employee->update($data);
-            $employee->dependents()->update($payload['dependents']);
+            $this->employeeServices->processDependents($employee, $payload['dependents'] ?? []);
             $employee->benefits()->update($payload['benefits']);
             // Atualizar outros relacionamentos conforme necessário
             return Inertia::render('Employees', ['employee' => $employee])->with('notify', [

@@ -385,12 +385,15 @@ const searchZipCode = async () => {
 
 const addDependent = () => {
     formData.dependents.push({
-        id: Date.now(),
         name: '',
+        relationship: '',
         birth_date: '',
         cpf: '',
-        relationship: '',
-        purposes: []
+        rg: '',
+        issuing_agency: '',
+        issue_date: '',
+        purposes: [],
+        civil_state: '',
     });
 }
 
@@ -793,7 +796,7 @@ console.log('SHOW EMPLOYEE:', employee);
                 <div class="flex items-center gap-3">
                     <button
                         @click="loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm(); newEmployee = true;"
-                        class="flex items-center px-3 py-1.5 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
                         Novo Funcionário
@@ -1856,13 +1859,33 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </div>
 
                                 <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Orgão Emissor *</label>
+                                    <input
+                                        v-model="dependent.issuing_agency"
+                                        type="text"
+                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        required
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Data de Emissão *</label>
+                                    <input
+                                        v-model="dependent.issue_date"
+                                        type="date"
+                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        required
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Finalidade *</label>
                                     <div class="space-y-2">
                                         <div class="flex items-center">
                                             <input
                                                 v-model="dependent.purposes"
                                                 type="checkbox"
-                                                value="ir"
+                                                value="income_tax"
                                                 class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                             />
                                             <label class="ml-2 text-sm text-gray-700">Imposto de Renda</label>
@@ -1871,7 +1894,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                             <input
                                                 v-model="dependent.purposes"
                                                 type="checkbox"
-                                                value="planoSaude"
+                                                value="health_plan"
                                                 class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                             />
                                             <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
@@ -1880,7 +1903,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                             <input
                                                 v-model="dependent.purposes"
                                                 type="checkbox"
-                                                value="planoOdontologico"
+                                                value="dental_plan"
                                                 class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                             />
                                             <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Employee\Employee;
+
 class EmployeeServices
 {
 
@@ -13,12 +15,26 @@ class EmployeeServices
         });
     }
 
-    public function processDependents(array $dependents): array
+    public function processDependents(Employee $employee, array $dependents): void
     {
-        // Example processing: ensure each dependent has a valid relationship
-        return array_filter($dependents, function ($dependent) {
-            return isset($dependent['name'], $dependent['relationship']) && !empty($dependent['name']) && !empty($dependent['relationship']);
-        });
+
+        foreach ($dependents as $dependent) {
+            $purposes = $dependent['purposes'] ?? [];
+            unset($dependent['purposes']);
+
+            foreach ($purposes as $purpose) {
+                switch ($purpose) {
+                    case 'income_tax':
+                        $dependent['is_income_tax_dependent'] = true;
+                        break;
+                    case 'health_plan':
+                        $dependent['is_health_plan_dependent'] = true;
+                        break;
+                }
+            }
+
+            $employee->dependents()->updateOrCreate($dependent);
+        }
     }
 
     public function cleanCpf(string $cpf): string

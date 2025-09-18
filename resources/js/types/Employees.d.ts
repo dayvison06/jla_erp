@@ -71,11 +71,14 @@ export interface Employee {
 }
 
 interface Dependent {
-    id: number;
     name: string;
+    relationship: string;
     birth_date: string;
     cpf: string;
-    relationship: string;
+    rg: string;
+    issuing_agency: string;
+    issue_date: string;
+    civil_state: string;
     purposes: string[];
 }
 
