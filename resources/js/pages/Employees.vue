@@ -1,4 +1,13 @@
 <script setup lang="ts">
+/**
+ * Componente para gerenciamento de funcionários.
+ *
+ * Este componente permite listar, cadastrar, editar e excluir funcionários,
+ * além de gerenciar seus dados pessoais, documentos, informações de contato,
+ * dados bancários, informações contratuais, saúde, dependentes e anexos.
+ */
+
+// Importações de componentes e bibliotecas
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
@@ -43,38 +52,47 @@ import type { BreadcrumbItem } from "@/types";
 import AttachmentDialog from '@/components/AttachmentDialog.vue';
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 
+// Composables e serviços
 const { showToast } = useToast();
 const page = usePage()
+
+// Estado do componente
 const employees = ref<Employee[]>(page.props.employees?.data ?? []);
 const employee = ref<Employee | null>(page.props.employee || null);
-console.table('LISTANDO FUNCIONARIOS', employees.value);
+
+/**
+ * Executa ao montar o componente.
+ * Se um funcionário for passado como propriedade, carrega seus dados no formulário.
+ * Caso contrário, carrega a lista de funcionários.
+ */
 onMounted( () => {
-    // Se veio um funcionário para editar, carrega os dados no form
     if (employee.value) {
         Object.assign(formData, employee.value);
         showEmployeeForm.value = true;
         newEmployee.value = false;
         return;
     }
-
     loadEmployees();
 })
 
+// Breadcrumbs para navegação
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Funcionários', href: '/funcionarios' },
 ];
 
-// Estados reativos
-const newEmployee = ref(false)
-const showEmployeeForm = ref(false)
-const activeTab = ref('personal')
-const searchQuery = ref('')
-const statusFilter = ref('all')
-const showDeleteModal = ref(false)
-const employeeToDelete = ref<Employee | null>(null)
-const isDragging = ref(false)
-const showHistoryModal = ref(false)
-const isLoading = ref(false)
+// Estados reativos para controle da UI
+const newEmployee = ref(false) // Indica se o formulário é para um novo funcionário
+const showEmployeeForm = ref(false) // Controla a exibição do formulário de funcionário
+const activeTab = ref('personal') // Aba ativa no formulário de funcionário
+const searchQuery = ref('') // Termo de busca para funcionários
+const statusFilter = ref('all') // Filtro de status dos funcionários
+const showDeleteModal = ref(false) // Controla a exibição do modal de exclusão
+const employeeToDelete = ref<Employee | null>(null) // Funcionário a ser excluído
+const isDragging = ref(false) // Indica se um arquivo está sendo arrastado sobre a área de drop
+const showHistoryModal = ref(false) // Controla a exibição do modal de histórico de cargos
+const isLoading = ref(false) // Indica se os dados estão sendo carregados
+
+// Objeto reativo para um novo histórico de cargo
 const newRoleHistory = reactive<RoleHistory>({
     id: 0,
     role: '',
@@ -85,7 +103,7 @@ const newRoleHistory = reactive<RoleHistory>({
     reason: ''
 })
 
-// Dados de formulário
+// Objeto reativo para os dados do formulário do funcionário
 const formData = reactive<Employee>({
     name: '',
     birth_date: '',
@@ -156,7 +174,7 @@ const formData = reactive<Employee>({
     attachments: [],
 })
 
-// Dados de referência
+// Dados de referência para o formulário
 const tabs = [
     {id: 'personal', name: 'Dados Pessoais', icon: UserIcon},
     {id: 'documents', name: 'Documentos Trabalhistas', icon: BriefcaseBusiness},
@@ -208,7 +226,13 @@ const cnhCategories = [
 const bloodTypes = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
 ]
-// Methods
+// Métodos
+/**
+ * Retorna as iniciais de um nome.
+ *
+ * @param {string} name - O nome completo.
+ * @returns {string} As iniciais do nome.
+ */
 const getInitials = (name: string) => {
     if (!name) return '';
     return name
@@ -221,37 +245,54 @@ const getInitials = (name: string) => {
 
 // Variavel reativa para armazenar o formulário em cache no localStorage
 const cacheDialog = ref(false);
-console.log('CACHE DIALOG', cacheDialog.value);
+
+/**
+ * Salva o formulário atual no localStorage.
+ * @returns {void}
+ */
 function setLocalCacheForm () {
     localStorage.setItem('cachedEmployee', JSON.stringify({ ...formData, attachments: [] }));
 }
+
+/**
+ * Exibe o diálogo de cache se houver um formulário salvo no localStorage.
+ * @returns {void}
+ */
 function loadLocalCacheFormDialog () {
-    console.log('CARREGANDO CACHE ');
-
     const cachedEmployee = localStorage.getItem('cachedEmployee');
-
-    console.log('cachedEmployee', cachedEmployee);
     if (!!cachedEmployee) {
         cacheDialog.value = true;
-        console.log('CACHE DIALOG', cacheDialog.value);
     }
-    // cachedEmployee.value = localStorage.getItem('cachedEmployee');
-    // Object.assign(formData, JSON.parse(cachedEmployee.value));
-
 }
 
+/**
+ * Carrega o formulário do localStorage e fecha o diálogo de cache.
+ * @returns {void}
+ */
 function handleContinueForm() {
     const cachedEmployee = localStorage.getItem('cachedEmployee');
-
     Object.assign(formData, JSON.parse(cachedEmployee));
     cacheDialog.value = false;
 }
+
+/**
+ * Formata uma string de data para o formato dd/mm/aaaa.
+ *
+ * @param {string} dateString - A string de data.
+ * @returns {string} A data formatada.
+ */
 const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR');
 }
 
+/**
+ * Formata o CPF no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatCPF = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -265,6 +306,13 @@ const formatCPF = (e: Event) => {
     formData.cpf = value;
 }
 
+/**
+ * Formata o CPF do dependente no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @param {number} index - O índice do dependente.
+ * @returns {void}
+ */
 const formatDependentCPF = (e: Event, index: number) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -278,6 +326,12 @@ const formatDependentCPF = (e: Event, index: number) => {
     formData.dependents[index].cpf = value;
 }
 
+/**
+ * Formata o CEP no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatCEP = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -289,6 +343,12 @@ const formatCEP = (e: Event) => {
     formData.postal_code = value;
 }
 
+/**
+ * Formata o telefone no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatPhone = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -301,6 +361,12 @@ const formatPhone = (e: Event) => {
     formData.phone = value;
 }
 
+/**
+ * Formata o celular no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatMobile = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -313,6 +379,12 @@ const formatMobile = (e: Event) => {
     formData.mobile = value;
 }
 
+/**
+ * Formata o telefone de emergência no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatEmergencyPhone = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -325,6 +397,12 @@ const formatEmergencyPhone = (e: Event) => {
     formData.emergency_phone = value;
 }
 
+/**
+ * Formata o salário no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatSalary = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -342,6 +420,12 @@ const formatSalary = (e: Event) => {
     formData.salary = value;
 }
 
+/**
+ * Formata o salário do histórico de cargos no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
 const formatHistorySalary = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.replace(/\D/g, '');
@@ -359,6 +443,10 @@ const formatHistorySalary = (e: Event) => {
     newRoleHistory.salary = value;
 }
 
+/**
+ * Busca o endereço a partir do CEP.
+ * @returns {Promise<void>}
+ */
 const searchZipCode = async () => {
     const cep = formData.postal_code.replace(/\D/g, '');
 
@@ -383,6 +471,10 @@ const searchZipCode = async () => {
     }
 }
 
+/**
+ * Adiciona um novo dependente ao formulário.
+ * @returns {void}
+ */
 const addDependent = () => {
     formData.dependents.push({
         name: '',
@@ -397,14 +489,32 @@ const addDependent = () => {
     });
 }
 
+/**
+ * Remove um dependente do formulário.
+ *
+ * @param {number} index - O índice do dependente a ser removido.
+ * @returns {void}
+ */
 const removeDependent = (index: number) => {
     formData.dependents.splice(index, 1);
 }
 
+/**
+ * Remove um histórico de cargo do formulário.
+ *
+ * @param {number} id - O ID do histórico a ser removido.
+ * @returns {void}
+ */
 const removeRoleHistory = (id: number) => {
     formData.role_history = formData.role_history.filter(hist => hist.id !== id);
 }
 
+/**
+ * Busca e exibe um funcionário pelo CPF.
+ *
+ * @param {string} cpf - O CPF do funcionário.
+ * @returns {Promise<void>}
+ */
 async function showEmployeeByCPF(cpf: string) {
     router.get(`funcionarios/${cpf}`, {
     }, {
@@ -412,7 +522,7 @@ async function showEmployeeByCPF(cpf: string) {
         preserveScroll: true,
         onSuccess: (page) => {
             // Check if the employee was found
-            console.log('PAGE PROPS', page.props);
+            
             if (page.props.employee) {
                 Object.assign(formData, page.props.employee);
                 showEmployeeForm.value = true;
@@ -421,17 +531,30 @@ async function showEmployeeByCPF(cpf: string) {
             }
         },
         onError: (error) => {
-            console.error('Error searching for employee:', error);
+            
             alert('Error searching for employee. Check the CPF and try again.');
         }
     });
 
 }
 
+/**
+ * Confirma a exclusão de um funcionário.
+ *
+ * @param {Employee} employee - O funcionário a ser excluído.
+ * @returns {void}
+ */
 const confirmDelete = (employee: Employee) => {
     employeeToDelete.value = employee;
     showDeleteModal.value = true;
 }
+
+/**
+ * Remove um anexo do formulário.
+ *
+ * @param {number} id - O ID do anexo a ser removido.
+ * @returns {void}
+ */
 const removeAttachment = (id: number) => {
     const index = formData.attachments.findIndex(attachment => attachment.id === id);
     if (index !== -1) {
@@ -443,6 +566,13 @@ const removeAttachment = (id: number) => {
     }
 }
 
+/**
+ * Retorna os campos de texto que foram atualizados.
+ *
+ * @param {Employee} original - O funcionário original.
+ * @param {Employee} updated - O funcionário atualizado.
+ * @returns {Partial<Employee>} Os campos atualizados.
+ */
 const getUpdatedTextFields = (original: Employee, updated: Employee) => {
     const changes: Partial<Employee> = {};
     for (const key in updated) {
@@ -454,9 +584,34 @@ const getUpdatedTextFields = (original: Employee, updated: Employee) => {
     return changes;
 };
 
+/**
+ * Exclui um funcionário.
+ * @returns {void}
+ */
+const deleteEmployee = () => {
+    if (!employeeToDelete.value) return;
+
+    router.delete(`/funcionarios/${employeeToDelete.value.cpf.replace(/\D/g, '')}`, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            showDeleteModal.value = false;
+            loadEmployees();
+            showToast('Sucesso', 'success', 'Funcionário excluído com sucesso.');
+        },
+        onError: () => {
+            showToast('Falha', 'error', 'Falha ao excluir funcionário.');
+        }
+    });
+}
+
+/**
+ * Salva as alterações de um funcionário existente.
+ * @returns {void}
+ */
 const saveEmployee = () => {
     // validateAndPrepareFields()
-    console.table('CPF', formData.cpf, 'FORM DATA', formData);
+    
 
     router.put(`/funcionarios/${formData.cpf.replace(/\D/g, '')}`, formData, {
         preserveState: true,
@@ -467,25 +622,33 @@ const saveEmployee = () => {
             }
         },
         onSuccess: (page) => {
-            console.log('SUCESSO UPDATE', page);
+            
             progressbar.value = 0;
             employee.value = page.props.employee;
         },
         onError: (errors) => {
             progressbar.value = 0;
-            console.error('Error updating employee:', errors);
+            
             alert('Error updating employee. Please check the form and try again.');
         }
     });
-    console.log('FORM DATA UPDATE:', formData);
+    
 }
 
+/**
+ * Fecha o formulário de funcionário e reseta o estado.
+ * @returns {void}
+ */
 function closeEmployeeForm() {
     showEmployeeForm.value = false;
     resetForm();
     router.get('/funcionarios', {  }, { preserveState: true, preserveScroll: true });
 }
 
+/**
+ * Carrega a lista de funcionários.
+ * @returns {void}
+ */
 function loadEmployees() {
   router.get('/funcionarios', {}, {
       only: ['employees'],
@@ -497,7 +660,10 @@ function loadEmployees() {
   });
 }
 
-
+/**
+ * Valida e prepara os campos do formulário antes de salvar.
+ * @returns {void}
+ */
 function validateAndPrepareFields() {
     // Basic validation of required fields
     // if (!formData.name || !formData.cpf || !formData.birth_date) {
@@ -507,11 +673,16 @@ function validateAndPrepareFields() {
 }
 
 const progressbar = ref(0);
+
+/**
+ * Cria um novo funcionário.
+ * @returns {void}
+ */
 const createEmployee = () => {
     validateAndPrepareFields();
     setLocalCacheForm();
 
-    console.log('FORM DATA:', formData);
+    
     router.post('/funcionarios', formData, {
         forceFormData: true,
         onProgress: (event) => {
@@ -537,6 +708,10 @@ const createEmployee = () => {
     });
 };
 
+/**
+ * Reseta o formulário para os valores padrão.
+ * @returns {void}
+ */
 const resetForm = () => {
     // Reset the form to default values
     Object.assign(formData, {
@@ -610,14 +785,26 @@ const resetForm = () => {
     });
 }
 
+/**
+ * Formata o tamanho do arquivo para KB ou MB.
+ *
+ * @param {number} size - O tamanho do arquivo em bytes.
+ * @returns {string} O tamanho do arquivo formatado.
+ */
 const formatFileSize = (size: number): string => {
     return size < 1024 * 1024
         ? `${(size / 1024).toFixed(2)} KB`
         : `${(size / 1024 / 1024).toFixed(2)} MB`;
 };
 
+/**
+ * Adiciona um arquivo à lista de anexos.
+ *
+ * @param {File} file - O arquivo a ser adicionado.
+ * @returns {void}
+ */
 const addFile = (file: File) => {
-    console.log('Adding file:', URL.createObjectURL(file),);
+    
     const fileSize = formatFileSize(file.size);
 
     // evita duplicados
@@ -638,6 +825,12 @@ const addFile = (file: File) => {
     uploadAttachments();
 };
 
+/**
+ * Manipula o upload de arquivos a partir do input.
+ *
+ * @param {Event} event - O evento de change.
+ * @returns {void}
+ */
 const handleFileUpload = (event: Event) => {
     const input = event.target as HTMLInputElement;
     if (input.files) {
@@ -646,15 +839,25 @@ const handleFileUpload = (event: Event) => {
     }
 };
 
+/**
+ * Manipula o drop de arquivos na área de drop.
+ *
+ * @param {DragEvent} event - O evento de drop.
+ * @returns {void}
+ */
 const handleFileDrop = (event: DragEvent) => {
     isDragging.value = false;
     if (!event.dataTransfer?.files) return;
     Array.from(event.dataTransfer.files).forEach(addFile);
 };
 
+/**
+ * Envia os anexos para o servidor.
+ * @returns {void}
+ */
 function uploadAttachments() {
 
-    console.log('newEmployee', newEmployee.value);
+    
     // if (newEmployee) return;
 
     router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
@@ -673,6 +876,12 @@ function uploadAttachments() {
     });
 }
 
+/**
+ * Retorna o ícone do arquivo com base no tipo.
+ *
+ * @param {string} type - O tipo do arquivo.
+ * @returns {Component} O componente do ícone.
+ */
 const getFileIcon = (type: string) => {
     if (type.includes('pdf')) return FileTextIcon;
     if (type.includes('image')) return ImageIcon;
@@ -682,6 +891,19 @@ const getFileIcon = (type: string) => {
     return FileIcon;
 }
 
+/**
+ * Salva o histórico de cargo no formulário.
+ * @returns {void}
+ */
+const saveRoleHistory = () => {
+    formData.role_history.push({ ...newRoleHistory });
+    showHistoryModal.value = false;
+}
+
+/**
+ * Busca funcionários com base nos filtros de busca e status.
+ * @returns {void}
+ */
 function searchEmployees() {
     isLoading.value = true
     router.get('/funcionarios', {
@@ -702,6 +924,12 @@ function searchEmployees() {
     });
 }
 
+/**
+ * Retorna a cor do status do funcionário.
+ *
+ * @param {string} status - O status do funcionário.
+ * @returns {string} A classe de cor do status.
+ */
 const getStatusColor = (status: string) => {
     switch (status) {
         case 'active':
@@ -719,6 +947,12 @@ const getStatusColor = (status: string) => {
     }
 }
 
+/**
+ * Retorna o texto do status do funcionário.
+ *
+ * @param {string} status - O status do funcionário.
+ * @returns {string} O texto do status.
+ */
 const getStatusText = (status: string) => {
     switch (status) {
         case 'active':
@@ -736,51 +970,188 @@ const getStatusText = (status: string) => {
     }
 }
 
+/**
+ * Exporta os dados dos funcionários para um arquivo CSV.
+ */
 const exportData = () => {
-    // Basic implementation of CSV export
+    const headers = [
+        'Nome',
+        'Data de Nascimento',
+        'Sexo',
+        'Estado Civil',
+        'Nacionalidade',
+        'Naturalidade',
+        'CNPJ',
+        'CPF',
+        'RG',
+        'Órgão Emissor',
+        'Data de Emissão',
+        'Escolaridade',
+        'Título de Eleitor',
+        'Certificado Militar',
+        'Nome da Mãe',
+        'Nome do Pai',
+        'Status',
+        'Número da CTPS',
+        'Série da CTPS',
+        'UF da CTPS',
+        'PIS/PASEP',
+        'NIT',
+        'CNH',
+        'Categoria da CNH',
+        'Validade da CNH',
+        'Registro Profissional',
+        'CEP',
+        'Logradouro',
+        'Número',
+        'Complemento',
+        'Bairro',
+        'Cidade',
+        'Estado',
+        'Telefone',
+        'Celular',
+        'Email',
+        'Contato de Emergência',
+        'Telefone de Emergência',
+        'Banco',
+        'Agência',
+        'Conta',
+        'Tipo de Conta',
+        'Chave PIX',
+        'Cargo',
+        'Departamento',
+        'Tipo de Contrato',
+        'Data de Admissão',
+        'Data de Rescisão',
+        'Salário',
+        'Carga Horária',
+        'Benefícios',
+        'Data do Último Exame',
+        'Data do Próximo Exame',
+        'Resultado ASO',
+        'Alergias',
+        'Tipo Sanguíneo',
+        'Histórico de Acidentes'
+    ];
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = [
+        headers.join(';'),
+        ...employees.value.map(employee => {
+            return [
+                employee.name,
+                employee.birth_date,
+                employee.gender,
+                employee.civil_state,
+                employee.nationality,
+                employee.birthplace,
+                employee.cnpj,
+                employee.cpf,
+                employee.rg,
+                employee.issuing_agency,
+                employee.issue_date,
+                employee.escolarity,
+                employee.voter_registration,
+                employee.military_certificate,
+                employee.mother_name,
+                employee.father_name,
+                employee.status,
+                employee.ctps_number,
+                employee.ctps_series,
+                employee.ctps_state,
+                employee.pis_pasep,
+                employee.nit,
+                employee.cnh,
+                employee.cnh_category,
+                employee.cnh_expiry,
+                employee.professional_registration,
+                employee.postal_code,
+                employee.street,
+                employee.number,
+                employee.complement,
+                employee.district,
+                employee.city,
+                employee.state,
+                employee.phone,
+                employee.mobile,
+                employee.email,
+                employee.emergency_contact,
+                employee.emergency_phone,
+                employee.bank,
+                employee.agency,
+                employee.account,
+                employee.account_type,
+                employee.pix_key,
+                employee.role,
+                employee.department,
+                employee.contract_type,
+                employee.admission_date,
+                employee.termination_date,
+                employee.salary,
+                employee.work_schedule,
+                employee.benefits.join(', '),
+                employee.last_exam_date,
+                employee.next_exam_date,
+                employee.aso_result,
+                employee.allergies,
+                employee.blood_type,
+                employee.accident_history
+            ].join(';');
+        })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'employees.csv');
+    link.setAttribute('download', 'funcionarios.csv');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-// Observar mudanças nos filtros para atualizar a lista
+// Observadores
+/**
+ * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
+ */
 debouncedWatch([searchQuery, statusFilter], () => {
     // Aqui poderia implementar lógica adicional se necessário
     searchEmployees()
 
 }, { debounce: 300 });
 
+/**
+ * Observa mudanças no CEP para buscar o endereço automaticamente.
+ */
 debouncedWatch(
     () => formData.postal_code,
     (cep) => {
         if (cep && cep.replace(/\D/g, '').length === 8) {
-            console.log('WATCH CEP', cep);
+            
             searchZipCode();
         }
     },
     { debounce: 500 }
 );
 
-console.log('SHOW EMPLOYEE:', employee);
+
 </script>
 
 <template>
+    <!-- Define o título da página -->
     <Head title='Funcionários'/>
-    <AppLayout :breadcrumbs="breadcrumbs" >
+    <!-- Layout principal da aplicação com breadcrumbs -->
+    <AppLayout :breadcrumbs="breadcrumbs">
         <main class="container mx-auto px-4 py-8">
+            <!-- Barra de progresso para uploads e outras operações -->
             <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
+            <!-- Diálogo para carregar dados do cache -->
             <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" />
-            <!-- Cabeçalho do módulo -->
+
+            <!-- Cabeçalho do módulo, visível apenas na listagem -->
             <header v-if="!showEmployeeForm" class="text-black mb-6 p-6 rounded-lg shadow">
                 <div class="mx-auto flex items-start mb-4">
-                    <!-- Título e descrição -->
+                    <!-- Título e descrição do módulo -->
                     <div class="flex flex-col flex-1 gap-4">
                         <div class="flex items-center gap-2">
                             <Users class="w-6 h-6"/>
@@ -792,8 +1163,9 @@ console.log('SHOW EMPLOYEE:', employee);
                         </p>
                     </div>
                 </div>
-                <!-- Ações -->
+                <!-- Ações do módulo -->
                 <div class="flex items-center gap-3">
+                    <!-- Botão para adicionar novo funcionário -->
                     <button
                         @click="loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm(); newEmployee = true;"
                         class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
@@ -801,20 +1173,14 @@ console.log('SHOW EMPLOYEE:', employee);
                         <PlusIcon class="w-5 h-5 mr-2"/>
                         Novo Funcionário
                     </button>
-
-<!--                    <button-->
-<!--                        @click=""-->
-<!--                        class="flex items-center px-4 py-2 bg-secondary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"-->
-<!--                    >-->
-<!--                        <FileUp class="w-5 h-5 mr-2"/>-->
-<!--                        Importar Funcionários-->
-<!--                    </button>-->
                 </div>
             </header>
-            <!-- Modo de listagem -->
+            <!-- Seção de listagem de funcionários -->
             <div v-if="!showEmployeeForm">
+                <!-- Controles de busca e filtro -->
                 <div class="mb-6">
                     <div class="flex flex-col md:flex-row md:items-center mb-4 gap-4">
+                        <!-- Campo de busca -->
                         <div class="flex-grow">
                             <div class="relative flex flex-inline items-center">
                                 <input
@@ -834,7 +1200,9 @@ console.log('SHOW EMPLOYEE:', employee);
                             </div>
                         </div>
 
+                        <!-- Filtros e ações -->
                         <div class="flex flex-col md:flex-row gap-2">
+                            <!-- Filtro de status -->
                             <div class="relative">
                                 <select
                                     v-model="statusFilter"
@@ -849,6 +1217,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                                 <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
                             </div>
+                            <!-- Botão para exportar dados -->
                             <button
                                 @click="exportData"
                                 class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
@@ -890,10 +1259,12 @@ console.log('SHOW EMPLOYEE:', employee);
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Linha da tabela para cada funcionário -->
                         <tr v-for="employee in employees" :key="employee.cpf" class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
+                                        <!-- Avatar com iniciais ou foto -->
                                         <div v-if="!employee.photo"
                                              class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">
                                             {{ getInitials(employee.name) }}
@@ -912,12 +1283,13 @@ console.log('SHOW EMPLOYEE:', employee);
                                 {{ formatDate(employee.admission_date) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
-                                            {{ getStatusText(employee.status) }}
-                                        </span>
+                                <!-- Status do funcionário com cor -->
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
+                                    {{ getStatusText(employee.status) }}
+                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-
+                                <!-- Menu de ações para cada funcionário -->
                                 <DropdownMenu>
                                     <DropdownMenuTrigger as-child>
                                         <button class="cursor-pointer text-gray-600 hover:text-gray-900 hover:bg-gray-300 hover:rounded-lg mr-3">
@@ -948,6 +1320,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </DropdownMenu>
                             </td>
                         </tr>
+                        <!-- Mensagem exibida quando não há funcionários -->
                         <tr v-if="employees.length === 0">
                             <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                                 Nenhum funcionário encontrado
@@ -957,7 +1330,7 @@ console.log('SHOW EMPLOYEE:', employee);
                     </table>
                 </div>
 
-                <!-- Paginação -->
+                <!-- Paginação da tabela -->
                 <div class="flex items-center justify-between mt-4">
                     <div class="text-sm text-gray-700">
                         Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{
@@ -972,22 +1345,25 @@ console.log('SHOW EMPLOYEE:', employee);
                 </div>
             </div>
 
-            <!-- Formulário de funcionário -->
+            <!-- Formulário de funcionário, visível ao criar ou editar -->
             <div v-else>
+                <!-- Cabeçalho do formulário -->
                 <div class="flex justify-between items-center mb-5">
                     <h2 class="text-xl font-semibold">
+                        <!-- Título dinâmico para edição ou novo funcionário -->
                         <span v-if="!newEmployee">
                             Alterando dados de
                             <span class="bg-secondary px-2 py-0.5 rounded-lg text-white font-bold">{{ formData.name }}</span>
                         </span>
                         <span v-else>Novo Funcionário</span>
                     </h2>
+                    <!-- Botão para fechar o formulário -->
                     <button @click="showEmployeeForm = false;" class="text-gray-500 hover:text-gray-700">
                         <XIcon class="w-6 h-6"/>
                     </button>
                 </div>
 
-                <!-- Abas -->
+                <!-- Abas de navegação do formulário -->
                 <div>
                     <div class="flex overflow-x-auto mb-6">
                         <button
@@ -1007,11 +1383,12 @@ console.log('SHOW EMPLOYEE:', employee);
                     </div>
                 </div>
 
-                <!-- Conteúdo das abas -->
+                <!-- Conteúdo das abas do formulário -->
                 <div class="p-4 bg-white">
-                    <!-- 1. Dados Pessoais -->
+                    <!-- Aba 1: Dados Pessoais -->
                     <div v-if="activeTab === 'personal'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Campo: Nome completo -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
                                 <input
@@ -1022,6 +1399,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Data de nascimento -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
                                 <input
@@ -1032,6 +1410,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Sexo/gênero -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
                                 <select
@@ -1046,6 +1425,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Estado civil -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
                                 <select
@@ -1062,6 +1442,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Nacionalidade -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
                                 <input
@@ -1072,6 +1453,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Naturalidade -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
                                 <input
@@ -1082,6 +1464,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: CNPJ -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">CNPJ</label>
                                 <input
@@ -1092,6 +1475,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: CPF -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">CPF *</label>
                                 <input
@@ -1103,6 +1487,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: RG -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">RG *</label>
                                 <input
@@ -1113,6 +1498,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Órgão emissor -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
                                 <input
@@ -1123,6 +1509,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Data de emissão -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
                                 <input
@@ -1133,6 +1520,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Título de eleitor -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
                                 <input
@@ -1143,6 +1531,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Certidão de reservista -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
                                 <input
@@ -1153,6 +1542,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 <p class="text-xs text-gray-500">Opcional para homens</p>
                             </div>
 
+                            <!-- Campo: Nome da mãe -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
                                 <input
@@ -1162,6 +1552,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Nome do pai -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
                                 <input
@@ -1171,6 +1562,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Status -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Status *</label>
                                 <select
@@ -1186,6 +1578,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Grau de escolaridade -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
                                 <select
@@ -1204,6 +1597,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Tipo sanguíneo -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
                                 <select
@@ -1217,9 +1611,10 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
                     </div>
 
-                    <!-- 2. Documentos Trabalhistas -->
+                    <!-- Aba 2: Documentos Trabalhistas -->
                     <div v-if="activeTab === 'documents'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Campo: Número da Carteira de Trabalho -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho
                                     *</label>
@@ -1231,6 +1626,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Série CTPS -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
                                 <input
@@ -1241,6 +1637,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: UF CTPS -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">UF CTPS *</label>
                                 <select
@@ -1253,6 +1650,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: PIS/PASEP -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
                                 <input
@@ -1263,6 +1661,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Número do NIT -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Número do NIT</label>
                                 <input
@@ -1273,6 +1672,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 <p class="text-xs text-gray-500">Para autônomos ou contribuintes individuais</p>
                             </div>
 
+                            <!-- Campo: CNH -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">CNH</label>
                                 <input
@@ -1282,6 +1682,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Categoria CNH -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Categoria CNH</label>
                                 <select
@@ -1293,6 +1694,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Validade CNH -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
                                 <input
@@ -1302,6 +1704,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Registro profissional -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
                                 <input
@@ -1314,9 +1717,10 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
                     </div>
 
-                    <!-- 3. Endereço e Contato -->
+                    <!-- Aba 3: Endereço e Contato -->
                     <div v-if="activeTab === 'contact'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Campo: CEP -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">CEP * <span class="text-xs font-medium text-gray-700">(Preenchimento automático)</span></label>
                                 <input
@@ -1328,6 +1732,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Logradouro -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
                                 <input
@@ -1338,6 +1743,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Número -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Número *</label>
                                 <input
@@ -1348,6 +1754,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Complemento -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Complemento</label>
                                 <input
@@ -1357,6 +1764,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Bairro -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Bairro *</label>
                                 <input
@@ -1367,6 +1775,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Cidade -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Cidade *</label>
                                 <input
@@ -1377,6 +1786,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Estado -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Estado *</label>
                                 <select
@@ -1389,6 +1799,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Telefone -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Telefone *</label>
                                 <input
@@ -1400,6 +1811,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Celular -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Celular</label>
                                 <input
@@ -1410,6 +1822,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: E-mail -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">E-mail *</label>
                                 <input
@@ -1420,6 +1833,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Contato de emergência -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
                                 <input
@@ -1429,6 +1843,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Telefone de emergência -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
                                 <input
@@ -1441,9 +1856,10 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
                     </div>
 
-                    <!-- 4. Dados Bancários -->
+                    <!-- Aba 4: Dados Bancários -->
                     <div v-if="activeTab === 'bank'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Campo: Banco -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Banco *</label>
                                 <select
@@ -1458,6 +1874,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Agência -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Agência *</label>
                                 <input
@@ -1468,6 +1885,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Conta -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Conta *</label>
                                 <input
@@ -1478,6 +1896,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Tipo de conta -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Tipo de conta *</label>
                                 <select
@@ -1492,6 +1911,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Chave PIX -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
                                 <input
@@ -1504,9 +1924,10 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
                     </div>
 
-                    <!-- 5. Informações Contratuais -->
+                    <!-- Aba 5: Informações Contratuais -->
                     <div v-if="activeTab === 'contract'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Campo: Cargo/função -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
                                 <input
@@ -1517,6 +1938,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Setor/departamento -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Setor/departamento *</label>
                                 <select
@@ -1530,6 +1952,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Tipo de vínculo -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Tipo de vínculo *</label>
                                 <select
@@ -1546,6 +1969,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Data de admissão -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
                                 <input
@@ -1556,6 +1980,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Data de desligamento -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
                                 <input
@@ -1567,6 +1992,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 <p class="text-xs text-gray-500">Aplicável apenas para funcionários desligados</p>
                             </div>
 
+                            <!-- Campo: Salário -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Salário *</label>
                                 <input
@@ -1578,6 +2004,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Jornada de trabalho -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
                                 <input
@@ -1589,6 +2016,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Benefícios -->
                             <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Benefícios</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1649,79 +2077,12 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Histórico de cargos -->
-<!--                        <div class="mt-8">-->
-<!--                            <div class="flex justify-between items-center mb-4">-->
-<!--                                <h3 class="text-lg font-medium">Histórico de Cargos</h3>-->
-<!--                            </div>-->
-
-<!--                            <div v-if="formData.role_history.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">-->
-<!--                                Nenhum histórico de cargo cadastrado-->
-<!--                            </div>-->
-
-<!--                            <div v-else class="overflow-x-auto">-->
-<!--                                <table class="min-w-full divide-y divide-gray-200">-->
-<!--                                    <thead class="bg-gray-50">-->
-<!--                                    <tr>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Cargo-->
-<!--                                        </th>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Departamento-->
-<!--                                        </th>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Data Início-->
-<!--                                        </th>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Data Fim-->
-<!--                                        </th>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Salário-->
-<!--                                        </th>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Motivo-->
-<!--                                        </th>-->
-<!--                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">-->
-<!--                                            Ações-->
-<!--                                        </th>-->
-<!--                                    </tr>-->
-<!--                                    </thead>-->
-<!--                                    <tbody class="bg-white divide-y divide-gray-200">-->
-<!--                                    <tr v-for="hist in formData.role_history" :key="hist.id" class="hover:bg-gray-50">-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">-->
-<!--                                            {{ hist.role }}-->
-<!--                                        </td>-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
-<!--                                            {{ hist.department }}-->
-<!--                                        </td>-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
-<!--                                            {{ formatDate(hist.start_date) }}-->
-<!--                                        </td>-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
-<!--                                            {{ hist.end_date ? formatDate(hist.end_date) : 'Atual' }}-->
-<!--                                        </td>-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
-<!--                                            {{ hist.salary }}-->
-<!--                                        </td>-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
-<!--                                            {{ hist.reason }}-->
-<!--                                        </td>-->
-<!--                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">-->
-<!--                                            <button @click="removeRoleHistory(hist.id)" class="text-red-600 hover:text-red-900">-->
-<!--                                                <TrashIcon class="w-5 h-5" />-->
-<!--                                            </button>-->
-<!--                                        </td>-->
-<!--                                    </tr>-->
-<!--                                    </tbody>-->
-<!--                                </table>-->
-<!--                            </div>-->
-<!--                        </div>-->
                     </div>
 
-                    <!-- 6. Saúde e Segurança do Trabalho -->
+                    <!-- Aba 6: Saúde e Segurança do Trabalho -->
                     <div v-if="activeTab === 'health'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Campo: Data do último exame -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data do último exame
                                     admissional/periódico *</label>
@@ -1733,6 +2094,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Data do próximo exame -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
                                 <input
@@ -1743,6 +2105,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 />
                             </div>
 
+                            <!-- Campo: Resultado do ASO -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Resultado do ASO *</label>
                                 <select
@@ -1757,6 +2120,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </select>
                             </div>
 
+                            <!-- Campo: Alergias ou restrições médicas -->
                             <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Alergias ou restrições
                                     médicas</label>
@@ -1767,6 +2131,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 ></textarea>
                             </div>
 
+                            <!-- Campo: Histórico de acidentes ou doenças ocupacionais -->
                             <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Histórico de acidentes ou doenças
                                     ocupacionais</label>
@@ -1779,10 +2144,12 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
                     </div>
 
-                    <!-- 7. Dependentes -->
+                    <!-- Aba 7: Dependentes -->
                     <div v-if="activeTab === 'dependents'" class="space-y-6">
+                        <!-- Cabeçalho da seção de dependentes -->
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-medium">Dependentes</h3>
+                            <!-- Botão para adicionar novo dependente -->
                             <button
                                 @click="addDependent"
                                 type="button"
@@ -1793,14 +2160,17 @@ console.log('SHOW EMPLOYEE:', employee);
                             </button>
                         </div>
 
+                        <!-- Mensagem exibida quando não há dependentes -->
                         <div v-if="formData.dependents.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                             Nenhum dependente cadastrado
                         </div>
 
+                        <!-- Formulário para cada dependente -->
                         <div v-for="(dependent, index) in formData.dependents" :key="dependent.id"
                              class="border p-4 rounded-md mb-4 bg-white shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h4 class="font-medium">Dependente #{{ index + 1 }}</h4>
+                                <!-- Botão para remover dependente -->
                                 <button
                                     @click="removeDependent(index)"
                                     type="button"
@@ -1811,6 +2181,7 @@ console.log('SHOW EMPLOYEE:', employee);
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Campos do formulário do dependente -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
                                     <input
@@ -1914,13 +2285,14 @@ console.log('SHOW EMPLOYEE:', employee);
                         </div>
                     </div>
 
-                    <!-- 8. Anexos -->
+                    <!-- Aba 8: Anexos -->
                     <div v-if="activeTab === 'attachments'" class="space-y-6">
+                        <!-- Cabeçalho da seção de anexos -->
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-medium">Anexos e Documentos</h3>
                         </div>
 
-                        <!-- Área de Drag and Drop -->
+                        <!-- Área para arrastar e soltar arquivos -->
                         <div
                             class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200"
                             :class="isDragging ? 'border-gray-500 bg-gray-50' : 'border-gray-300 hover:border-gray-400'"
@@ -1934,6 +2306,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                     Arraste e solte arquivos aqui
                                 </p>
                                 <p class="text-sm text-gray-500 mt-1">ou</p>
+                                <!-- Botão para selecionar arquivos -->
                                 <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer">
                                     <UploadIcon class="h-4 w-4 mr-1" />
                                     Selecionar arquivos
@@ -1942,10 +2315,12 @@ console.log('SHOW EMPLOYEE:', employee);
                             </div>
                         </div>
 
+                        <!-- Mensagem exibida quando não há anexos -->
                         <div v-if="formData.attachments.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                             Nenhum anexo cadastrado
                         </div>
 
+                        <!-- Tabela de anexos -->
                         <div v-else class="border rounded-md overflow-hidden">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
@@ -1958,10 +2333,12 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- Linha da tabela para cada anexo -->
                                 <tr v-for="attachment in formData.attachments" :key="attachment.id" class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
+                                                <!-- Ícone do tipo de arquivo -->
                                                 <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />
                                             </div>
                                             <div class="ml-4">
@@ -1981,6 +2358,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                         {{ formatDate(attachment.created_at) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
+                                        <!-- Ações para cada anexo -->
                                         <div class="flex items-center">
                                             <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />
                                         </div>
@@ -2025,10 +2403,9 @@ console.log('SHOW EMPLOYEE:', employee);
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Botões de ação -->
+                    <!-- Botões de ação do formulário -->
                     <div class="flex justify-end space-x-4 mt-8 pt-4">
+                        <!-- Botão para cancelar a operação -->
                         <button
                             type="button"
                             @click="closeEmployeeForm()"
@@ -2036,6 +2413,7 @@ console.log('SHOW EMPLOYEE:', employee);
                         >
                             Cancelar
                         </button>
+                        <!-- Botão para salvar funcionário existente -->
                         <button
                             v-if="!newEmployee"
                             type="button"
@@ -2044,6 +2422,7 @@ console.log('SHOW EMPLOYEE:', employee);
                         >
                             Salvar
                         </button>
+                        <!-- Botão para criar novo funcionário -->
                         <button
                             v-else
                             type="button"
@@ -2079,7 +2458,7 @@ console.log('SHOW EMPLOYEE:', employee);
                 </div>
             </div>
 
-            <!-- Modal de histórico de cargo -->
+            <!-- Modal para adicionar histórico de cargo -->
             <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 max-w-lg w-full">
                     <div class="flex justify-between items-center mb-4">
@@ -2108,7 +2487,7 @@ console.log('SHOW EMPLOYEE:', employee);
                                 required
                             >
                                 <option value="">Selecione</option>
-                                <option v-for="dept in departamentos" :key="dept" :value="dept">{{ dept }}</option>
+                                <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
                                 <option value="outro">Outro</option>
                             </select>
                         </div>
@@ -2116,7 +2495,7 @@ console.log('SHOW EMPLOYEE:', employee);
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Data de início *</label>
                             <input
-                                v-model="newCargoHistory.dataInicio"
+                                v-model="newRoleHistory.start_date"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
@@ -2126,7 +2505,7 @@ console.log('SHOW EMPLOYEE:', employee);
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Data de término</label>
                             <input
-                                v-model="newCargoHistory.dataFim"
+                                v-model="newRoleHistory.end_date"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                             />
@@ -2147,7 +2526,7 @@ console.log('SHOW EMPLOYEE:', employee);
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Motivo da alteração *</label>
                             <select
-                                v-model="newCargoHistory.motivo"
+                                v-model="newRoleHistory.reason"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
                             >
@@ -2172,7 +2551,7 @@ console.log('SHOW EMPLOYEE:', employee);
                         </button>
                         <button
                             type="button"
-                            @click="saveHistoricoCargo"
+                            @click="saveRoleHistory"
                             class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                         >
                             Salvar
