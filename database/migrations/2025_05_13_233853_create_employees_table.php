@@ -95,10 +95,17 @@ return new class extends Migration
 
         Schema::create('employee_roles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->string('name');
             $table->decimal('base_salary', 10, 2);
             $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('employee_has_roles', function (Blueprint $table) {
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
+            $table->foreignId('role_id')->constrained('employee_roles')->onDelete('cascade');
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
             $table->timestamps();
         });
 
@@ -140,16 +147,6 @@ return new class extends Migration
             $table->text('path');
             $table->bigInteger('size');
             $table->unsignedBigInteger('uploaded_by')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('employee_job_histories', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->string('position');
-            $table->string('department');
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }
