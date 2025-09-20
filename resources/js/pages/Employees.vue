@@ -89,8 +89,8 @@ const statusFilter = ref('all') // Filtro de status dos funcionários
 const showDeleteModal = ref(false) // Controla a exibição do modal de exclusão
 const employeeToDelete = ref<Employee | null>(null) // Funcionário a ser excluído
 const isDragging = ref(false) // Indica se um arquivo está sendo arrastado sobre a área de drop
-const showHistoryModal = ref(false) // Controla a exibição do modal de histórico de cargos
 const isLoading = ref(false) // Indica se os dados estão sendo carregados
+console.log('OBESERVANDO NEW EMPLOYEE', newEmployee.value);
 
 // Objeto reativo para um novo histórico de cargo
 const newRoleHistory = reactive<RoleHistory>({
@@ -505,6 +505,7 @@ const removeDependent = (index: number) => {
  * @returns {Promise<void>}
  */
 async function showEmployeeByCPF(cpf: string) {
+    newEmployee.value = false;
     router.get(`funcionarios/${cpf}`, {
     }, {
         preserveState: true,
@@ -519,7 +520,7 @@ async function showEmployeeByCPF(cpf: string) {
                 alert('Employee not found.');
             }
         },
-        onError: (error) => {
+        onError: () => {
 
             alert('Error searching for employee. Check the CPF and try again.');
         }
@@ -1006,7 +1007,7 @@ debouncedWatch(
                 <div class="flex items-center gap-3">
                     <!-- Botão para adicionar novo funcionário -->
                     <button
-                        @click="loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm(); newEmployee = true;"
+                        @click="newEmployee = true;loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm();"
                         class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
@@ -1188,13 +1189,15 @@ debouncedWatch(
             <div v-else>
                 <!-- Cabeçalho do formulário -->
                 <div class="flex justify-between items-center mb-5">
-                    <h2 class="text-xl font-semibold">
-                        <!-- Título dinâmico para edição ou novo funcionário -->
-                        <span v-if="!newEmployee">
-                            Alterando dados de
-                            <span class="bg-secondary px-2 py-0.5 rounded-lg text-white font-bold">{{ formData.name }}</span>
-                        </span>
-                        <span v-else>Novo Funcionário</span>
+                    <h2 class="text-2xl font-bold text-[#222931] mb-6 flex items-center gap-3">
+                        <div class="w-1 h-8 bg-secondary rounded-full"></div>
+                        <div>
+                            <span v-if="!newEmployee" class="block">
+                                Editando Funcionário
+                                <span class="block text-xl font-normal text-secondary mt-1">{{ formData.name }}</span>
+                            </span>
+                            <span v-else class="block">Novo Funcionário</span>
+                        </div>
                     </h2>
                     <!-- Botão para fechar o formulário -->
                     <button @click="showEmployeeForm = false; loadEmployees();" class="text-gray-500 hover:text-gray-700">
@@ -2146,7 +2149,7 @@ debouncedWatch(
                                 </p>
                                 <p class="text-sm text-gray-500 mt-1">ou</p>
                                 <!-- Botão para selecionar arquivos -->
-                                <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer">
+                                <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white btn-primary hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer">
                                     <UploadIcon class="h-4 w-4 mr-1" />
                                     Selecionar arquivos
                                     <input type="file" class="hidden" @change="handleFileUpload" multiple />
