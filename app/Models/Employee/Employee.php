@@ -70,7 +70,6 @@ class Employee extends Model
         'certifications',
         'experience',
         'benefits',
-        'role_history',
         'dependents',
         'attachments',
     ];
@@ -104,8 +103,9 @@ class Employee extends Model
         return $this->hasMany(Attachment::class);
     }
 
-    public function roles() : HasMany
+    public function roles() : BelongsToMany
     {
-        return $this->hasMany(Role::class, 'employee_id', 'id');
+        return $this->belongsToMany(Role::class, 'employee_has_roles', 'employee_id', 'role_id')
+            ->withPivot('start_date', 'end_date')->withTimestamps();
     }
 }

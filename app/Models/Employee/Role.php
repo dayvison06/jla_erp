@@ -3,6 +3,7 @@
 namespace App\Models\Employee;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
@@ -15,8 +16,8 @@ class Role extends Model
         'description',
     ];
 
-    public function employees() : hasMany
+    public function employees() : belongsToMany
     {
-        return $this->hasMany(Employee::class, 'id', 'employee_id');
+        return $this->belongsToMany(Employee::class, 'employee_has_roles', 'employee_id', 'role_id');
     }
 }

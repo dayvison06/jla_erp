@@ -161,7 +161,6 @@ const formData = reactive<Employee>({
     salary: '',
     work_schedule: '',
     benefits: [],
-    role_history: [],
 
     last_exam_date: '',
     next_exam_date: '',
@@ -500,16 +499,6 @@ const removeDependent = (index: number) => {
 }
 
 /**
- * Remove um histórico de cargo do formulário.
- *
- * @param {number} id - O ID do histórico a ser removido.
- * @returns {void}
- */
-const removeRoleHistory = (id: number) => {
-    formData.role_history = formData.role_history.filter(hist => hist.id !== id);
-}
-
-/**
  * Busca e exibe um funcionário pelo CPF.
  *
  * @param {string} cpf - O CPF do funcionário.
@@ -522,7 +511,7 @@ async function showEmployeeByCPF(cpf: string) {
         preserveScroll: true,
         onSuccess: (page) => {
             // Check if the employee was found
-            
+
             if (page.props.employee) {
                 Object.assign(formData, page.props.employee);
                 showEmployeeForm.value = true;
@@ -531,7 +520,7 @@ async function showEmployeeByCPF(cpf: string) {
             }
         },
         onError: (error) => {
-            
+
             alert('Error searching for employee. Check the CPF and try again.');
         }
     });
@@ -611,7 +600,7 @@ const deleteEmployee = () => {
  */
 const saveEmployee = () => {
     // validateAndPrepareFields()
-    
+
 
     router.put(`/funcionarios/${formData.cpf.replace(/\D/g, '')}`, formData, {
         preserveState: true,
@@ -622,17 +611,17 @@ const saveEmployee = () => {
             }
         },
         onSuccess: (page) => {
-            
+
             progressbar.value = 0;
             employee.value = page.props.employee;
         },
-        onError: (errors) => {
+        onError: () => {
             progressbar.value = 0;
-            
+
             alert('Error updating employee. Please check the form and try again.');
         }
     });
-    
+
 }
 
 /**
@@ -682,7 +671,7 @@ const createEmployee = () => {
     validateAndPrepareFields();
     setLocalCacheForm();
 
-    
+
     router.post('/funcionarios', formData, {
         forceFormData: true,
         onProgress: (event) => {
@@ -771,7 +760,6 @@ const resetForm = () => {
         salary: '',
         work_schedule: '',
         benefits: [],
-        role_history: [],
 
         last_exam_date: '',
         next_exam_date: '',
@@ -804,7 +792,7 @@ const formatFileSize = (size: number): string => {
  * @returns {void}
  */
 const addFile = (file: File) => {
-    
+
     const fileSize = formatFileSize(file.size);
 
     // evita duplicados
@@ -857,8 +845,8 @@ const handleFileDrop = (event: DragEvent) => {
  */
 function uploadAttachments() {
 
-    
-    // if (newEmployee) return;
+    console.log('Uploading attachments...', newEmployee.value);
+    if (newEmployee.value === true) return;
 
     router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
         forceFormData: true,
@@ -889,15 +877,6 @@ const getFileIcon = (type: string) => {
     if (type.includes('excel') || type.includes('sheet')) return FileSpreadsheetIcon;
     if (type.includes('presentation') || type.includes('powerpoint')) return File;
     return FileIcon;
-}
-
-/**
- * Salva o histórico de cargo no formulário.
- * @returns {void}
- */
-const saveRoleHistory = () => {
-    formData.role_history.push({ ...newRoleHistory });
-    showHistoryModal.value = false;
 }
 
 /**
@@ -970,146 +949,6 @@ const getStatusText = (status: string) => {
     }
 }
 
-/**
- * Exporta os dados dos funcionários para um arquivo CSV.
- */
-const exportData = () => {
-    const headers = [
-        'Nome',
-        'Data de Nascimento',
-        'Sexo',
-        'Estado Civil',
-        'Nacionalidade',
-        'Naturalidade',
-        'CNPJ',
-        'CPF',
-        'RG',
-        'Órgão Emissor',
-        'Data de Emissão',
-        'Escolaridade',
-        'Título de Eleitor',
-        'Certificado Militar',
-        'Nome da Mãe',
-        'Nome do Pai',
-        'Status',
-        'Número da CTPS',
-        'Série da CTPS',
-        'UF da CTPS',
-        'PIS/PASEP',
-        'NIT',
-        'CNH',
-        'Categoria da CNH',
-        'Validade da CNH',
-        'Registro Profissional',
-        'CEP',
-        'Logradouro',
-        'Número',
-        'Complemento',
-        'Bairro',
-        'Cidade',
-        'Estado',
-        'Telefone',
-        'Celular',
-        'Email',
-        'Contato de Emergência',
-        'Telefone de Emergência',
-        'Banco',
-        'Agência',
-        'Conta',
-        'Tipo de Conta',
-        'Chave PIX',
-        'Cargo',
-        'Departamento',
-        'Tipo de Contrato',
-        'Data de Admissão',
-        'Data de Rescisão',
-        'Salário',
-        'Carga Horária',
-        'Benefícios',
-        'Data do Último Exame',
-        'Data do Próximo Exame',
-        'Resultado ASO',
-        'Alergias',
-        'Tipo Sanguíneo',
-        'Histórico de Acidentes'
-    ];
-
-    const csvContent = [
-        headers.join(';'),
-        ...employees.value.map(employee => {
-            return [
-                employee.name,
-                employee.birth_date,
-                employee.gender,
-                employee.civil_state,
-                employee.nationality,
-                employee.birthplace,
-                employee.cnpj,
-                employee.cpf,
-                employee.rg,
-                employee.issuing_agency,
-                employee.issue_date,
-                employee.escolarity,
-                employee.voter_registration,
-                employee.military_certificate,
-                employee.mother_name,
-                employee.father_name,
-                employee.status,
-                employee.ctps_number,
-                employee.ctps_series,
-                employee.ctps_state,
-                employee.pis_pasep,
-                employee.nit,
-                employee.cnh,
-                employee.cnh_category,
-                employee.cnh_expiry,
-                employee.professional_registration,
-                employee.postal_code,
-                employee.street,
-                employee.number,
-                employee.complement,
-                employee.district,
-                employee.city,
-                employee.state,
-                employee.phone,
-                employee.mobile,
-                employee.email,
-                employee.emergency_contact,
-                employee.emergency_phone,
-                employee.bank,
-                employee.agency,
-                employee.account,
-                employee.account_type,
-                employee.pix_key,
-                employee.role,
-                employee.department,
-                employee.contract_type,
-                employee.admission_date,
-                employee.termination_date,
-                employee.salary,
-                employee.work_schedule,
-                employee.benefits.join(', '),
-                employee.last_exam_date,
-                employee.next_exam_date,
-                employee.aso_result,
-                employee.allergies,
-                employee.blood_type,
-                employee.accident_history
-            ].join(';');
-        })
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'funcionarios.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
 // Observadores
 /**
  * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
@@ -1127,7 +966,7 @@ debouncedWatch(
     () => formData.postal_code,
     (cep) => {
         if (cep && cep.replace(/\D/g, '').length === 8) {
-            
+
             searchZipCode();
         }
     },
@@ -1358,7 +1197,7 @@ debouncedWatch(
                         <span v-else>Novo Funcionário</span>
                     </h2>
                     <!-- Botão para fechar o formulário -->
-                    <button @click="showEmployeeForm = false;" class="text-gray-500 hover:text-gray-700">
+                    <button @click="showEmployeeForm = false; loadEmployees();" class="text-gray-500 hover:text-gray-700">
                         <XIcon class="w-6 h-6"/>
                     </button>
                 </div>
@@ -1373,7 +1212,7 @@ debouncedWatch(
                             :class="[
                                         'px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center',
                                         activeTab === tab.id
-                                            ? 'border-b-2 border-gray-600 bg-gray-50 rounded-t-lg text-gray-700'
+                                            ? 'border-b-2 border-secondary bg-gray-50 rounded-t-lg text-black'
                                             : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 cursor-pointer'
                                     ]"
                         >
@@ -2403,47 +2242,17 @@ debouncedWatch(
                                 </div>
                             </div>
                         </div>
-                    <!-- Botões de ação do formulário -->
-                    <div class="flex justify-end space-x-4 mt-8 pt-4">
-                        <!-- Botão para cancelar a operação -->
-                        <button
-                            type="button"
-                            @click="closeEmployeeForm()"
-                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                        >
-                            Cancelar
-                        </button>
-                        <!-- Botão para salvar funcionário existente -->
-                        <button
-                            v-if="!newEmployee"
-                            type="button"
-                            @click="saveEmployee"
-                            class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
-                        >
-                            Salvar
-                        </button>
-                        <!-- Botão para criar novo funcionário -->
-                        <button
-                            v-else
-                            type="button"
-                            @click="createEmployee"
-                            class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
-                        >
-                            Criar
-                        </button>
-                    </div>
                 </div>
-            </div>
-
-            <!-- Modal de confirmação de exclusão -->
-            <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                </div>
+                <!-- Modal de confirmação de exclusão -->
+                <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 max-w-md w-full">
                     <h3 class="text-lg font-medium mb-4">Confirmar exclusão</h3>
                     <p class="mb-6">Tem certeza que deseja excluir o funcionário <span
                         class="font-semibold">{{ employeeToDelete?.name }}</span>? Esta ação não pode ser desfeita.</p>
                     <div class="flex justify-end space-x-4">
                         <button
-                            @click="showDeleteModal = false"
+                            @click="showDeleteModal = false, loadEmployees();"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                         >
                             Cancelar
@@ -2457,108 +2266,37 @@ debouncedWatch(
                     </div>
                 </div>
             </div>
-
-            <!-- Modal para adicionar histórico de cargo -->
-            <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 max-w-lg w-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium">Adicionar Histórico de Cargo</h3>
-                        <button @click="showHistoryModal = false" class="text-gray-500 hover:text-gray-700">
-                            <XIcon class="w-6 h-6"/>
-                        </button>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Cargo *</label>
-                            <input
-                                v-model="newRoleHistory.role"
-                                type="text"
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                required
-                            />
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Departamento *</label>
-                            <select
-                                v-model="newRoleHistory.department"
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                required
-                            >
-                                <option value="">Selecione</option>
-                                <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
-                                <option value="outro">Outro</option>
-                            </select>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data de início *</label>
-                            <input
-                                v-model="newRoleHistory.start_date"
-                                type="date"
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                required
-                            />
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data de término</label>
-                            <input
-                                v-model="newRoleHistory.end_date"
-                                type="date"
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                            />
-                            <p class="text-xs text-gray-500">Deixe em branco se for o cargo atual</p>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Salário *</label>
-                            <input
-                                v-model="newRoleHistory.salary"
-                                type="text"
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                required
-                                @input="formatHistorySalary"
-                            />
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Motivo da alteração *</label>
-                            <select
-                                v-model="newRoleHistory.reason"
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                required
-                            >
-                                <option value="">Selecione</option>
-                                <option value="Contratação">Contratação</option>
-                                <option value="Promoção">Promoção</option>
-                                <option value="Transferência">Transferência</option>
-                                <option value="Reajuste">Reajuste Salarial</option>
-                                <option value="Desligamento">Desligamento</option>
-                                <option value="Outro">Outro</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end space-x-4 mt-6 pt-4 border-t">
-                        <button
-                            type="button"
-                            @click="showHistoryModal = false"
-                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="button"
-                            @click="saveRoleHistory"
-                            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-                        >
-                            Salvar
-                        </button>
-                    </div>
+                <!-- Botões de ação do formulário -->
+                <div class="flex justify-end space-x-4 mt-8 pt-4">
+                    <!-- Botão para cancelar a operação -->
+                    <button
+                        type="button"
+                        @click="closeEmployeeForm()"
+                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancelar
+                    </button>
+                    <!-- Botão para salvar funcionário existente -->
+                    <button
+                        v-if="!newEmployee"
+                        type="button"
+                        @click="saveEmployee"
+                        class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
+                    >
+                        Salvar
+                    </button>
+                    <!-- Botão para criar novo funcionário -->
+                    <button
+                        v-else
+                        type="button"
+                        @click="createEmployee"
+                        class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
+                    >
+                        Criar
+                    </button>
                 </div>
             </div>
+
         </main>
     </AppLayout>
 </template>
