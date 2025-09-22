@@ -1207,7 +1207,7 @@ debouncedWatch(
 
                 <!-- Abas de navegação do formulário -->
                 <div>
-                    <div class="flex overflow-x-auto mb-6">
+                    <div class="flex flex-wrap overflow-x-auto gap-2 mb-6">
                         <button
                             v-for="tab in tabs"
                             :key="tab.id"
@@ -2163,7 +2163,7 @@ debouncedWatch(
                         </div>
 
                         <!-- Tabela de anexos -->
-                        <div v-else class="border rounded-md overflow-hidden">
+                        <div v-else class="border rounded-md overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                 <tr>
@@ -2224,7 +2224,7 @@ debouncedWatch(
                                         :alt="attachment.name"
                                         class="h-40 w-full object-cover rounded-md border"
                                     />
-                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <div class="absolute inset-0 bg-opacity-0 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                                         <a
                                             :href="attachment.path"
                                             target="_blank"
