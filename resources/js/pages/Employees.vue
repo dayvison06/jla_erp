@@ -52,6 +52,7 @@ import type { BreadcrumbItem } from "@/types";
 import AttachmentDialog from '@/components/AttachmentDialog.vue';
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
+import EmployeeManager from '@/components/employees/EmployeeManager.vue';
 
 // Composables e serviços
 const { showToast } = useToast();
@@ -1017,174 +1018,175 @@ debouncedWatch(
                 </div>
             </header>
             <!-- Seção de listagem de funcionários -->
-            <div v-if="!showEmployeeForm">
-                <!-- Controles de busca e filtro -->
-                <div class="mb-6">
-                    <div class="flex flex-col md:flex-row md:items-center mb-4 gap-4">
-                        <!-- Campo de busca -->
-                        <div class="flex-grow">
-                            <div class="relative flex flex-inline items-center">
-                                <input
-                                    v-model="searchQuery"
-                                    type="text"
-                                    placeholder="Buscar funcionário por nome ou CPF"
-                                    class="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                                <SearchIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2" v-if="isLoading">
-                                    <small class="text-sm animate-pulse">Carregando</small>
-                                    <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-secondary" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                                    </svg>
-                                </span>
-                            </div>
-                        </div>
+            <EmployeeManager v-if="!showEmployeeForm"/>
+<!--            <div v-if="!showEmployeeForm">-->
+<!--                &lt;!&ndash; Controles de busca e filtro &ndash;&gt;-->
+<!--                <div class="mb-6">-->
+<!--                    <div class="flex flex-col md:flex-row md:items-center mb-4 gap-4">-->
+<!--                        &lt;!&ndash; Campo de busca &ndash;&gt;-->
+<!--                        <div class="flex-grow">-->
+<!--                            <div class="relative flex flex-inline items-center">-->
+<!--                                <input-->
+<!--                                    v-model="searchQuery"-->
+<!--                                    type="text"-->
+<!--                                    placeholder="Buscar funcionário por nome ou CPF"-->
+<!--                                    class="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"-->
+<!--                                />-->
+<!--                                <SearchIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>-->
+<!--                                <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2" v-if="isLoading">-->
+<!--                                    <small class="text-sm animate-pulse">Carregando</small>-->
+<!--                                    <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-secondary" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>-->
+<!--                                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>-->
+<!--                                    </svg>-->
+<!--                                </span>-->
+<!--                            </div>-->
+<!--                        </div>-->
 
-                        <!-- Filtros e ações -->
-                        <div class="flex flex-col md:flex-row gap-2">
-                            <!-- Filtro de status -->
-                            <div class="relative">
-                                <select
-                                    v-model="statusFilter"
-                                    class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"
-                                >
-                                    <option value="all">Todos os status</option>
-                                    <option value="active">Ativos</option>
-                                    <option value="inactive">Inativos</option>
-                                    <option value="vacation">Em férias</option>
-                                    <option value="leave">Afastados</option>
-                                    <option value="terminated">Desligados</option>
-                                </select>
-                                <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
-                            </div>
-                            <!-- Botão para exportar dados -->
-                            <button
-                                @click="exportData"
-                                class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                            >
-                                <DownloadIcon class="w-5 h-5 mr-2" />
-                                Exportar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+<!--                        &lt;!&ndash; Filtros e ações &ndash;&gt;-->
+<!--                        <div class="flex flex-col md:flex-row gap-2">-->
+<!--                            &lt;!&ndash; Filtro de status &ndash;&gt;-->
+<!--                            <div class="relative">-->
+<!--                                <select-->
+<!--                                    v-model="statusFilter"-->
+<!--                                    class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"-->
+<!--                                >-->
+<!--                                    <option value="all">Todos os status</option>-->
+<!--                                    <option value="active">Ativos</option>-->
+<!--                                    <option value="inactive">Inativos</option>-->
+<!--                                    <option value="vacation">Em férias</option>-->
+<!--                                    <option value="leave">Afastados</option>-->
+<!--                                    <option value="terminated">Desligados</option>-->
+<!--                                </select>-->
+<!--                                <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash; Botão para exportar dados &ndash;&gt;-->
+<!--                            <button-->
+<!--                                @click="exportData"-->
+<!--                                class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"-->
+<!--                            >-->
+<!--                                <DownloadIcon class="w-5 h-5 mr-2" />-->
+<!--                                Exportar-->
+<!--                            </button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
 
-                <!-- Tabela de funcionários -->
-                <div class="overflow-x-auto bg-white rounded-lg shadow">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Departamento
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data
-                                de Admissão
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Ações
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Linha da tabela para cada funcionário -->
-                        <tr v-for="employee in employees" :key="employee.cpf" class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <!-- Avatar com iniciais ou foto -->
-                                        <div v-if="!employee.photo"
-                                             class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">
-                                            {{ getInitials(employee.name) }}
-                                        </div>
-                                        <img v-else :src="employee.photo" alt="" class="h-10 w-10 rounded-full object-cover">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
-                                        <div class="text-sm text-gray-500">{{ employee.email }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.role }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.department }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ formatDate(employee.admission_date) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <!-- Status do funcionário com cor -->
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
-                                    {{ getStatusText(employee.status) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <!-- Menu de ações para cada funcionário -->
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <button class="cursor-pointer text-gray-600 hover:text-gray-900 hover:bg-gray-300 hover:rounded-lg mr-3">
-                                            <BookUser class="w-5 h-5"/>
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                                        :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
-                                        align="end"
-                                        :side-offset="4"
-                                    >
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem :as-child="true">
-                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
-                                                    <EditIcon class="mr-2 h-4 w-4" />
-                                                    Editar
-                                                </div>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem :as-child="true">
-                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
-                                                    <ShieldBan class="mr-2 h-4 w-4" />
-                                                    Desativar
-                                                </div>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </td>
-                        </tr>
-                        <!-- Mensagem exibida quando não há funcionários -->
-                        <tr v-if="employees.length === 0">
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                Nenhum funcionário encontrado
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+<!--                &lt;!&ndash; Tabela de funcionários &ndash;&gt;-->
+<!--                <div class="overflow-x-auto bg-white rounded-lg shadow">-->
+<!--                    <table class="min-w-full divide-y divide-gray-200">-->
+<!--                        <thead class="bg-gray-50">-->
+<!--                        <tr>-->
+<!--                            <th scope="col"-->
+<!--                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome-->
+<!--                            </th>-->
+<!--                            <th scope="col"-->
+<!--                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo-->
+<!--                            </th>-->
+<!--                            <th scope="col"-->
+<!--                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                Departamento-->
+<!--                            </th>-->
+<!--                            <th scope="col"-->
+<!--                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data-->
+<!--                                de Admissão-->
+<!--                            </th>-->
+<!--                            <th scope="col"-->
+<!--                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                Status-->
+<!--                            </th>-->
+<!--                            <th scope="col"-->
+<!--                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                Ações-->
+<!--                            </th>-->
+<!--                        </tr>-->
+<!--                        </thead>-->
+<!--                        <tbody class="bg-white divide-y divide-gray-200">-->
+<!--                        &lt;!&ndash; Linha da tabela para cada funcionário &ndash;&gt;-->
+<!--                        <tr v-for="employee in employees" :key="employee.cpf" class="hover:bg-gray-50">-->
+<!--                            <td class="px-6 py-4 whitespace-nowrap">-->
+<!--                                <div class="flex items-center">-->
+<!--                                    <div class="flex-shrink-0 h-10 w-10">-->
+<!--                                        &lt;!&ndash; Avatar com iniciais ou foto &ndash;&gt;-->
+<!--                                        <div v-if="!employee.photo"-->
+<!--                                             class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">-->
+<!--                                            {{ getInitials(employee.name) }}-->
+<!--                                        </div>-->
+<!--                                        <img v-else :src="employee.photo" alt="" class="h-10 w-10 rounded-full object-cover">-->
+<!--                                    </div>-->
+<!--                                    <div class="ml-4">-->
+<!--                                        <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>-->
+<!--                                        <div class="text-sm text-gray-500">{{ employee.email }}</div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </td>-->
+<!--                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.role }}</td>-->
+<!--                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.department }}</td>-->
+<!--                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                {{ formatDate(employee.admission_date) }}-->
+<!--                            </td>-->
+<!--                            <td class="px-6 py-4 whitespace-nowrap">-->
+<!--                                &lt;!&ndash; Status do funcionário com cor &ndash;&gt;-->
+<!--                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">-->
+<!--                                    {{ getStatusText(employee.status) }}-->
+<!--                                </span>-->
+<!--                            </td>-->
+<!--                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">-->
+<!--                                &lt;!&ndash; Menu de ações para cada funcionário &ndash;&gt;-->
+<!--                                <DropdownMenu>-->
+<!--                                    <DropdownMenuTrigger as-child>-->
+<!--                                        <button class="cursor-pointer text-gray-600 hover:text-gray-900 hover:bg-gray-300 hover:rounded-lg mr-3">-->
+<!--                                            <BookUser class="w-5 h-5"/>-->
+<!--                                        </button>-->
+<!--                                    </DropdownMenuTrigger>-->
+<!--                                    <DropdownMenuContent-->
+<!--                                        class="w-(&#45;&#45;reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"-->
+<!--                                        :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"-->
+<!--                                        align="end"-->
+<!--                                        :side-offset="4"-->
+<!--                                    >-->
+<!--                                        <DropdownMenuGroup>-->
+<!--                                            <DropdownMenuItem :as-child="true">-->
+<!--                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">-->
+<!--                                                    <EditIcon class="mr-2 h-4 w-4" />-->
+<!--                                                    Editar-->
+<!--                                                </div>-->
+<!--                                            </DropdownMenuItem>-->
+<!--                                            <DropdownMenuItem :as-child="true">-->
+<!--                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">-->
+<!--                                                    <ShieldBan class="mr-2 h-4 w-4" />-->
+<!--                                                    Desativar-->
+<!--                                                </div>-->
+<!--                                            </DropdownMenuItem>-->
+<!--                                        </DropdownMenuGroup>-->
+<!--                                    </DropdownMenuContent>-->
+<!--                                </DropdownMenu>-->
+<!--                            </td>-->
+<!--                        </tr>-->
+<!--                        &lt;!&ndash; Mensagem exibida quando não há funcionários &ndash;&gt;-->
+<!--                        <tr v-if="employees.length === 0">-->
+<!--                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">-->
+<!--                                Nenhum funcionário encontrado-->
+<!--                            </td>-->
+<!--                        </tr>-->
+<!--                        </tbody>-->
+<!--                    </table>-->
+<!--                </div>-->
 
-                <!-- Paginação da tabela -->
-                <div class="flex items-center justify-between mt-4">
-                    <div class="text-sm text-gray-700">
-                        Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{
-                            employees.length
-                        }}</span> de <span class="font-medium">{{ employees.length }}</span> resultados
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Anterior</button>
-                        <button class="px-3 py-1 border rounded-md bg-gray-50 text-gray-600 font-medium">1</button>
-                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Próxima</button>
-                    </div>
-                </div>
-            </div>
+<!--                &lt;!&ndash; Paginação da tabela &ndash;&gt;-->
+<!--                <div class="flex items-center justify-between mt-4">-->
+<!--                    <div class="text-sm text-gray-700">-->
+<!--                        Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{-->
+<!--                            employees.length-->
+<!--                        }}</span> de <span class="font-medium">{{ employees.length }}</span> resultados-->
+<!--                    </div>-->
+<!--                    <div class="flex space-x-2">-->
+<!--                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Anterior</button>-->
+<!--                        <button class="px-3 py-1 border rounded-md bg-gray-50 text-gray-600 font-medium">1</button>-->
+<!--                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Próxima</button>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
 
             <!-- Formulário de funcionário, visível ao criar ou editar -->
             <div v-else>
