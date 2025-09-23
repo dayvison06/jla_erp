@@ -51,6 +51,7 @@ import {
 import type { BreadcrumbItem } from "@/types";
 import AttachmentDialog from '@/components/AttachmentDialog.vue';
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
+import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 
 // Composables e serviços
 const { showToast } = useToast();
@@ -172,6 +173,8 @@ const formData = reactive<Employee>({
     dependents: [],
     attachments: [],
 })
+
+console.log('ATTACHMENTS', formData.attachments);
 
 // Dados de referência para o formulário
 const tabs = [
@@ -794,8 +797,6 @@ const formatFileSize = (size: number): string => {
  */
 const addFile = (file: File) => {
 
-    const fileSize = formatFileSize(file.size);
-
     // evita duplicados
     if (formData.attachments.some(a => a.name === file.name && a.size === fileSize)) {
         return;
@@ -804,7 +805,7 @@ const addFile = (file: File) => {
     const newAttachment: Attachment = {
         name: file.name,
         type: file.type || 'application/octet-stream',
-        size: fileSize,
+        size: file.size,
         file: file,
         path: URL.createObjectURL(file),
         created_at: new Date().toISOString(),
@@ -847,7 +848,7 @@ const handleFileDrop = (event: DragEvent) => {
 function uploadAttachments() {
 
     console.log('Uploading attachments...', newEmployee.value);
-    if (newEmployee.value === true) return;
+    if (newEmployee.value) return;
 
     router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
         forceFormData: true,
@@ -2157,94 +2158,54 @@ debouncedWatch(
                             </div>
                         </div>
 
-                        <!-- Mensagem exibida quando não há anexos -->
-                        <div v-if="formData.attachments.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                            Nenhum anexo cadastrado
-                        </div>
-
                         <!-- Tabela de anexos -->
-                        <div v-else class="border rounded-md overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamanho</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                <!-- Linha da tabela para cada anexo -->
-                                <tr v-for="attachment in formData.attachments" :key="attachment.id" class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
-                                                <!-- Ícone do tipo de arquivo -->
-                                                <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">
-                                                    <a class="hover:underline" :href="attachment.path" title="Visualizar" target="_blank">{{ attachment.name }}</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ attachment.type }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ attachment.size }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ formatDate(attachment.created_at) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
-                                        <!-- Ações para cada anexo -->
-                                        <div class="flex items-center">
-                                            <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />
-                                        </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Prévia de imagens -->
-                        <div v-if="formData.attachments.some(a => a.type.includes('image'))" class="mt-6">
-                            <h4 class="text-md font-medium mb-3">Prévia de Imagens</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <div
-                                    v-for="attachment in formData.attachments.filter(a => a.type.includes('image'))"
-                                    :key="`preview-${attachment.id}`"
-                                    class="relative group"
-                                >
-                                    <img
-                                        :src="attachment.path"
-                                        :alt="attachment.name"
-                                        class="h-40 w-full object-cover rounded-md border"
-                                    />
-                                    <div class="absolute inset-0 bg-opacity-0 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <a
-                                            :href="attachment.path"
-                                            target="_blank"
-                                            class="p-2 bg-white rounded-full mx-1"
-                                            title="Visualizar"
-                                        >
-                                            <EyeIcon class="w-5 h-5 text-gray-700" />
-                                        </a>
-                                        <button
-                                            @click="removeAttachment(attachment.id)"
-                                            class="p-2 bg-white rounded-full mx-1"
-                                            title="Excluir"
-                                        >
-                                            <TrashIcon class="w-5 h-5 text-red-600" />
-                                        </button>
-                                    </div>
-                                    <div class="mt-1 text-sm truncate">{{ attachment.name }}</div>
-                                </div>
-                            </div>
-                        </div>
+                        <AttachmentsDisplay :allAttachments="formData.attachments"/>
+<!--                        <div v-else class="border rounded-md overflow-x-auto">-->
+<!--                            <table class="min-w-full divide-y divide-gray-200">-->
+<!--                                <thead class="bg-gray-50">-->
+<!--                                <tr>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamanho</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>-->
+<!--                                </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody class="bg-white divide-y divide-gray-200">-->
+<!--                                &lt;!&ndash; Linha da tabela para cada anexo &ndash;&gt;-->
+<!--                                <tr v-for="attachment in formData.attachments" :key="attachment.id" class="hover:bg-gray-50">-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap">-->
+<!--                                        <div class="flex items-center">-->
+<!--                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">-->
+<!--                                                &lt;!&ndash; Ícone do tipo de arquivo &ndash;&gt;-->
+<!--                                                <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />-->
+<!--                                            </div>-->
+<!--                                            <div class="ml-4">-->
+<!--                                                <div class="text-sm font-medium text-gray-900">-->
+<!--                                                    <a class="hover:underline" :href="attachment.path" title="Visualizar" target="_blank">{{ attachment.name }}</a>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                        {{ attachment.type }}-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                        {{ attachment.size }}-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                        {{ formatDate(attachment.created_at) }}-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">-->
+<!--                                        &lt;!&ndash; Ações para cada anexo &ndash;&gt;-->
+<!--                                        <div class="flex items-center">-->
+<!--                                            <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />-->
+<!--                                        </div>-->
+<!--                                    </td>-->
+<!--                                </tr>-->
+<!--                                </tbody>-->
+<!--                            </table>-->
+<!--                        </div>-->
                 </div>
                 </div>
                 <!-- Modal de confirmação de exclusão -->

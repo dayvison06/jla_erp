@@ -1,47 +1,14 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { reactive, ref, watch } from 'vue';
 import { FileText, Download, Share2, Trash2, File, Image, Video, Music } from 'lucide-vue-next'
+import type { Attachment } from '@/types/Employees'
+
+const props = defineProps<{ allAttachments: Attachment[] }>()
+const attachments = ref(props.allAttachments || [])
+
 
 const selectedItems = ref([])
-
-const attachments = ref([
-    {
-        id: 1,
-        name: 'Relatório Mensal.pdf',
-        type: 'pdf',
-        size: 2048576,
-        uploadDate: '2024-01-15T10:30:00Z'
-    },
-    {
-        id: 2,
-        name: 'Apresentação.pptx',
-        type: 'pptx',
-        size: 5242880,
-        uploadDate: '2024-01-14T14:20:00Z'
-    },
-    {
-        id: 3,
-        name: 'Imagem_produto.jpg',
-        type: 'jpg',
-        size: 1024000,
-        uploadDate: '2024-01-13T09:15:00Z'
-    },
-    {
-        id: 4,
-        name: 'Video_demo.mp4',
-        type: 'mp4',
-        size: 15728640,
-        uploadDate: '2024-01-12T16:45:00Z'
-    },
-    {
-        id: 5,
-        name: 'Planilha_dados.xlsx',
-        type: 'xlsx',
-        size: 512000,
-        uploadDate: '2024-01-11T11:30:00Z'
-    }
-])
-
+console.log('Selected Items:', selectedItems.value)
 const getFileIcon = (type) => {
     const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp']
     const videoTypes = ['mp4', 'avi', 'mov', 'wmv']
@@ -57,11 +24,11 @@ const getFileIconBg = (type) => {
     const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp']
     const videoTypes = ['mp4', 'avi', 'mov', 'wmv']
     const audioTypes = ['mp3', 'wav', 'flac', 'aac']
-
-    if (imageTypes.includes(type.toLowerCase())) return 'bg-green-100'
-    if (videoTypes.includes(type.toLowerCase())) return 'bg-purple-100'
-    if (audioTypes.includes(type.toLowerCase())) return 'bg-yellow-100'
-    if (type.toLowerCase() === 'pdf') return 'bg-red-100'
+    const ext = type.split('/').pop()?.toLowerCase() || type.toLowerCase()
+    if (imageTypes.includes(ext)) return 'bg-green-100'
+    if (videoTypes.includes(ext)) return 'bg-purple-100'
+    if (audioTypes.includes(ext)) return 'bg-yellow-100'
+    if (ext === 'pdf') return 'bg-red-100'
     return 'bg-gray-100'
 }
 
@@ -69,15 +36,16 @@ const getFileIconColor = (type) => {
     const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp']
     const videoTypes = ['mp4', 'avi', 'mov', 'wmv']
     const audioTypes = ['mp3', 'wav', 'flac', 'aac']
-
-    if (imageTypes.includes(type.toLowerCase())) return 'text-green-600'
-    if (videoTypes.includes(type.toLowerCase())) return 'text-purple-600'
-    if (audioTypes.includes(type.toLowerCase())) return 'text-yellow-600'
-    if (type.toLowerCase() === 'pdf') return 'text-red-600'
+    const ext = type.split('/').pop()?.toLowerCase() || type.toLowerCase()
+    if (imageTypes.includes(ext)) return 'text-green-600'
+    if (videoTypes.includes(ext)) return 'text-purple-600'
+    if (audioTypes.includes(ext)) return 'text-yellow-600'
+    if (ext === 'pdf') return 'text-red-600'
     return 'text-gray-600'
 }
 
 const formatFileSize = (bytes) => {
+
     if (bytes === 0) return '0 Bytes'
     const k = 1024
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
@@ -111,18 +79,23 @@ const exportSelected = () => {
     const selectedFiles = attachments.value.filter(file =>
         selectedItems.value.includes(file.id)
     )
+    console.log('Arquivos selecionados para exportação:', selectedFiles)
     console.log('Exportando arquivos:', selectedFiles)
     // Implementar lógica de exportação
     alert(`Exportando ${selectedFiles.length} arquivos...`)
 }
 
 const downloadFile = (attachment) => {
-    console.log('Download:', attachment.name)
-    // Implementar lógica de download
+    console.log('Download:', attachment)
+    const link = document.createElement('a')
+    link.href = attachment.path
+    link.download = attachment.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
 }
 
 const shareFile = (attachment) => {
-    console.log('Compartilhar:', attachment.name)
     // Implementar lógica de compartilhamento
 }
 
@@ -138,7 +111,7 @@ const deleteFile = (attachment) => {
 </script>
 
 <template>
-    <div class="max-w-4xl mx-auto p-6">
+    <div class=" mx-auto p-6">
         <!-- Header com contador e ações -->
         <div class="flex items-center justify-between mb-6">
             <div>
@@ -194,7 +167,7 @@ const deleteFile = (attachment) => {
                     </div>
                     <div class="flex items-center gap-4 mt-1">
                         <span class="text-xs text-gray-500">{{ formatFileSize(attachment.size) }}</span>
-                        <span class="text-xs text-gray-500">{{ formatDate(attachment.uploadDate) }}</span>
+                        <span class="text-xs text-gray-500">{{ formatDate(attachment.created_at) }}</span>
                     </div>
                 </div>
 

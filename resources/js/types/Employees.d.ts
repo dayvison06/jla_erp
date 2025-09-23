@@ -83,6 +83,7 @@ interface Dependent {
 }
 
 interface Attachment {
+    id: number,
     employee_id: number;
     name: string;
     type: string;
