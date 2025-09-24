@@ -906,52 +906,6 @@ function searchEmployees() {
     });
 }
 
-/**
- * Retorna a cor do status do funcionário.
- *
- * @param {string} status - O status do funcionário.
- * @returns {string} A classe de cor do status.
- */
-const getStatusColor = (status: string) => {
-    switch (status) {
-        case 'active':
-            return 'bg-green-100 text-green-800';
-        case 'inactive':
-            return 'bg-gray-100 text-gray-800';
-        case 'vacation':
-            return 'bg-blue-100 text-blue-800';
-        case 'leave':
-            return 'bg-yellow-100 text-yellow-800';
-        case 'terminated':
-            return 'bg-red-100 text-red-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
-    }
-}
-
-/**
- * Retorna o texto do status do funcionário.
- *
- * @param {string} status - O status do funcionário.
- * @returns {string} O texto do status.
- */
-const getStatusText = (status: string) => {
-    switch (status) {
-        case 'active':
-            return 'Ativo';
-        case 'inactive':
-            return 'Inativo';
-        case 'vacation':
-            return 'Em Férias';
-        case 'leave':
-            return 'Afastado';
-        case 'terminated':
-            return 'Desligado';
-        default:
-            return 'Desconhecido';
-    }
-}
-
 // Observadores
 /**
  * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
@@ -1018,7 +972,7 @@ debouncedWatch(
                 </div>
             </header>
             <!-- Seção de listagem de funcionários -->
-            <EmployeeManager v-if="!showEmployeeForm"/>
+            <EmployeeManager v-if="!showEmployeeForm" :listEmployees="employees"/>
 <!--            <div v-if="!showEmployeeForm">-->
 <!--                &lt;!&ndash; Controles de busca e filtro &ndash;&gt;-->
 <!--                <div class="mb-6">-->
