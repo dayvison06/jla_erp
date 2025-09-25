@@ -779,18 +779,6 @@ const resetForm = () => {
 }
 
 /**
- * Formata o tamanho do arquivo para KB ou MB.
- *
- * @param {number} size - O tamanho do arquivo em bytes.
- * @returns {string} O tamanho do arquivo formatado.
- */
-const formatFileSize = (size: number): string => {
-    return size < 1024 * 1024
-        ? `${(size / 1024).toFixed(2)} KB`
-        : `${(size / 1024 / 1024).toFixed(2)} MB`;
-};
-
-/**
  * Adiciona um arquivo à lista de anexos.
  *
  * @param {File} file - O arquivo a ser adicionado.
@@ -867,54 +855,8 @@ function uploadAttachments() {
     });
 }
 
-/**
- * Retorna o ícone do arquivo com base no tipo.
- *
- * @param {string} type - O tipo do arquivo.
- * @returns {Component} O componente do ícone.
- */
-const getFileIcon = (type: string) => {
-    if (type.includes('pdf')) return FileTextIcon;
-    if (type.includes('image')) return ImageIcon;
-    if (type.includes('word') || type.includes('document')) return FileTextIcon;
-    if (type.includes('excel') || type.includes('sheet')) return FileSpreadsheetIcon;
-    if (type.includes('presentation') || type.includes('powerpoint')) return File;
-    return FileIcon;
-}
-
-/**
- * Busca funcionários com base nos filtros de busca e status.
- * @returns {void}
- */
-function searchEmployees() {
-    isLoading.value = true
-    router.get('/funcionarios', {
-        search: searchQuery.value,
-        status: statusFilter.value
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        only: ['employees'],
-        onSuccess: (page) => {
-            employees.value = page.props.employees.data;
-            isLoading.value = false
-            if (employees.value.length === 0) {
-                showToast('Nenhum funcionário encontrado', 'warning', 'A busca não retornou resultados.');
-            }
-        }
-
-    });
-}
-
 // Observadores
-/**
- * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
- */
-debouncedWatch([searchQuery, statusFilter], () => {
-    // Aqui poderia implementar lógica adicional se necessário
-    searchEmployees()
 
-}, { debounce: 300 });
 
 /**
  * Observa mudanças no CEP para buscar o endereço automaticamente.

@@ -2,12 +2,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { Employee } from '@/types/Employees'
+import { router } from '@inertiajs/vue3';
+import { debouncedWatch} from '@vueuse/core';
+import { useToast } from '@/composables/useToast';
+import { UserSearch, FileSpreadsheet } from 'lucide-vue-next'
 
 const props = defineProps<{
     listEmployees: Employee[]
 }>()
 
 const employees = ref<Employee[]>(props.listEmployees)
+const { showToast } = useToast();
 
 interface Filters {
     department: string
@@ -35,9 +40,9 @@ const filters = ref<Filters>({
 
 const columns = [
     { key: 'name', label: 'Nome' },
-    { key: 'contract_type', label: 'Contratação' },
-    { key: 'department', label: 'Departamento' },
-    { key: 'admissionDate', label: 'Data de Admissão' },
+    { key: 'civilState', label: 'Estado Civil' },
+    { key: 'role', label: 'Função' },
+    { key: 'admissionDate', label: 'Admissão' },
     { key: 'status', label: 'Status' }
 ]
 
@@ -52,15 +57,6 @@ const positions = computed(() => {
 
 const filteredEmployees = computed(() => {
     let filtered = employees.value
-
-    // Busca principal por nome ou CPF
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase()
-        filtered = filtered.filter(emp =>
-            emp.name.toLowerCase().includes(query) ||
-            emp.cpf.includes(query)
-        )
-    }
 
     // Filtros avançados
     if (filters.value.department) {
@@ -208,6 +204,28 @@ const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
+
+/**
+ * Busca funcionários com base nos filtros de busca e status.
+ * @returns {void}
+ */
+function searchEmployees() {
+    router.get('/funcionarios', {
+        search: searchQuery.value,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['employees'],
+        onSuccess: (page) => {
+            employees.value = page.props.employees.data;
+            if (employees.value.length === 0) {
+                showToast('Nenhum funcionário encontrado', 'warning', 'A busca não retornou resultados.');
+            }
+        }
+
+    });
+}
+
 /**
  * Retorna a cor do status do funcionário.
  *
@@ -254,6 +272,15 @@ const getStatusText = (status: string) => {
     }
 }
 
+/**
+ * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
+ */
+debouncedWatch([searchQuery], () => {
+    // Aqui poderia implementar lógica adicional se necessário
+    searchEmployees()
+
+}, { debounce: 300 });
+
 // Fechar dropdown ao clicar fora
 onMounted(() => {
     document.addEventListener('click', (e) => {
@@ -267,36 +294,38 @@ onMounted(() => {
 
 <template>
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+
+
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <!-- Busca Principal -->
+        <div class="mb-4 flex gap-4 items-center">
             <div>
-                <p class="text-sm text-gray-600 mt-1">{{ filteredEmployees.length }} funcionários encontrados</p>
+                <span class="text-xs font-semibold">Pesquisar</span>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <UserSearch class="w-5 h-5"/>
+                    </div>
+                    <input
+                        v-model="searchQuery"
+                        type="text"
+                        placeholder="Buscar por nome ou CPF..."
+                        class="pl-10 pr-4 py-1 border border-gray-300 rounded-lg text-base"
+                    />
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600 mt-1">{{ filteredEmployees.length }} funcionários encontrados</p>
+                </div>
             </div>
-            <div class="flex gap-3 mt-4 sm:mt-0">
+            <div class="flex py-1 gap-3 sm:mt-0">
                 <button
                     @click="exportSelected"
-                    v-if="selectedEmployees.length > 0"
-                    class="btn-primary"
+                    class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="selectedEmployees.length === 0"
                 >
-                    Exportar Selecionados ({{ selectedEmployees.length }})
+                    <div class="flex items-center gap-2">
+                        <FileSpreadsheet class="w-5 h-5" /> Exportar
+                    </div>
                 </button>
-            </div>
-        </div>
-
-        <!-- Busca Principal -->
-        <div class="mb-4">
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-                <input
-                    v-model="searchQuery"
-                    type="text"
-                    placeholder="Buscar por nome ou CPF..."
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                />
             </div>
         </div>
 
@@ -322,7 +351,7 @@ onMounted(() => {
         <!-- Filtros Avançados (Expansível) -->
         <div
             v-show="showAdvancedFilters"
-            class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-300"
+            class="mb-6 p-4 rounded-lg shadown-md transition-all duration-300"
         >
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Filtro por Departamento -->
@@ -379,13 +408,13 @@ onMounted(() => {
             <div class="flex gap-3 mt-4 pt-4 border-t border-gray-200">
                 <button
                     @click="clearFilters"
-                    class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    class="px-2 py-1.5 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                     Limpar Filtros
                 </button>
                 <button
                     @click="applyFilters"
-                    class="px-4 py-2 btn-primary transition-colors"
+                    class="px-2 py-1.5 btn-primary transition-colors"
                 >
                     Aplicar Filtros
                 </button>
@@ -402,7 +431,7 @@ onMounted(() => {
                             type="checkbox"
                             :checked="isAllSelected"
                             @change="toggleSelectAll"
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            class="rounded border-gray-300 accent-primary focus:ring-primary"
                         />
                     </th>
                     <th
@@ -416,7 +445,7 @@ onMounted(() => {
                             <svg
                                 v-if="sortColumn === column.key"
                                 class="h-4 w-4"
-                                :class="sortDirection === 'asc' ? 'text-blue-600' : 'text-blue-600 rotate-180'"
+                                :class="sortDirection === 'asc' ? 'text-gray-600' : 'text-gray-600 rotate-180'"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -441,15 +470,15 @@ onMounted(() => {
                             type="checkbox"
                             :checked="selectedEmployees.includes(employee.id)"
                             @change="toggleEmployee(employee.id)"
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            class="rounded border-gray-300 accent-primary focus:ring-primary"
                         />
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
-                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span class="text-sm font-medium text-blue-800">
-                    {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
-                  </span>
+                            <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                              <span class="text-sm font-medium text-gray-800">
+                                {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
+                              </span>
                             </div>
                             <div class="ml-4">
                                 <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
@@ -458,10 +487,13 @@ onMounted(() => {
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ employee.contract_type }}
+                        {{ employee.civil_state }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ employee.department }}
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ employee.role }}</div>
+                            <div class="text-sm text-gray-600">{{ employee.contract_type }}</div>
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ formatDate(employee.admission_date) }}
@@ -514,9 +546,17 @@ onMounted(() => {
                 >
                     Anterior
                 </button>
-                <span class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg">
-          {{ currentPage }}
-        </span>
+                <span
+                    v-for="page in totalPages"
+                    :key="page"
+                    @click="currentPage = page"
+                    :class="[
+                        'px-3 py-2 text-sm rounded-lg cursor-pointer',
+                        currentPage === page ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ]"
+                                >
+                    {{ page }}
+                </span>
                 <button
                     @click="nextPage"
                     :disabled="currentPage === totalPages"
