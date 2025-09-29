@@ -16,6 +16,7 @@ import { ref } from 'vue';
 
 const emit = defineEmits<{
     (e: 'continue'): void
+    (e: 'destroy'): void
 }>()
 
 </script>
@@ -33,7 +34,7 @@ const emit = defineEmits<{
                 <Button type="submit" @click="emit('continue')" class="cursor-pointer">
                     Continuar
                 </Button>
-                <Button variant="destructive" class="cursor-pointer ml-auto">
+                <Button variant="destructive" @click="emit('destroy')" class="cursor-pointer ml-auto">
                     <Trash />
                     Cadastrar novo
                 </Button>

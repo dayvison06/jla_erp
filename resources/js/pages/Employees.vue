@@ -1,13 +1,4 @@
 <script setup lang="ts">
-/**
- * Componente para gerenciamento de funcionários.
- *
- * Este componente permite listar, cadastrar, editar e excluir funcionários,
- * além de gerenciar seus dados pessoais, documentos, informações de contato,
- * dados bancários, informações contratuais, saúde, dependentes e anexos.
- */
-
-// Importações de componentes e bibliotecas
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
@@ -93,17 +84,6 @@ const employeeToDelete = ref<Employee | null>(null) // Funcionário a ser exclu�
 const isDragging = ref(false) // Indica se um arquivo está sendo arrastado sobre a área de drop
 const isLoading = ref(false) // Indica se os dados estão sendo carregados
 console.log('OBESERVANDO NEW EMPLOYEE', newEmployee.value);
-
-// Objeto reativo para um novo histórico de cargo
-const newRoleHistory = reactive<RoleHistory>({
-    id: 0,
-    role: '',
-    department: '',
-    start_date: '',
-    end_date: null,
-    salary: '',
-    reason: ''
-})
 
 // Objeto reativo para os dados do formulário do funcionário
 const formData = reactive<Employee>({
@@ -275,6 +255,11 @@ function loadLocalCacheFormDialog () {
 function handleContinueForm() {
     const cachedEmployee = localStorage.getItem('cachedEmployee');
     Object.assign(formData, JSON.parse(cachedEmployee));
+    cacheDialog.value = false;
+}
+
+function handleDestroyCacheForm() {
+    localStorage.removeItem('cachedEmployee');
     cacheDialog.value = false;
 }
 
@@ -669,6 +654,18 @@ function validateAndPrepareFields() {
 const progressbar = ref(0);
 
 /**
+ * Manipula o clique no botão de novo funcionário.
+ */
+function newEmployeeButtonClick() {
+    newEmployee.value = true;
+    loadLocalCacheFormDialog();
+    showEmployeeForm.value = true;
+    resetForm();
+    formData.benefits = ['Vale Transporte', 'valeRefeicao', 'planoSaude', 'Plano Odontológico', 'Seguro de Vida', 'previdenciaPrivada'];
+    console.log('BENEFITS', formData.benefits);
+}
+
+/**
  * Cria um novo funcionário.
  * @returns {void}
  */
@@ -687,7 +684,7 @@ const createEmployee = () => {
         onSuccess: () => {
             progressbar.value = 0;
             resetForm();
-            localStorage.removeItem('cachedEmployee');
+            // localStorage.removeItem('cachedEmployee');
             showEmployeeForm.value = false;
             loadEmployees();
         },
@@ -884,7 +881,7 @@ debouncedWatch(
             <!-- Barra de progresso para uploads e outras operações -->
             <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
             <!-- Diálogo para carregar dados do cache -->
-            <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" />
+            <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" @destroy="handleDestroyCacheForm()"/>
 
             <!-- Cabeçalho do módulo, visível apenas na listagem -->
             <header v-if="!showEmployeeForm" class="text-black mb-6 p-6 rounded-lg shadow">
@@ -905,7 +902,7 @@ debouncedWatch(
                 <div class="flex items-center gap-3">
                     <!-- Botão para adicionar novo funcionário -->
                     <button
-                        @click="newEmployee = true;loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm();"
+                        @click="newEmployeeButtonClick()"
                         class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
@@ -1765,7 +1762,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="valeTransporte"
+                                            value="Vale Transporte"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
@@ -1783,7 +1780,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="planoSaude"
+                                            value="Plano de Saúde"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
@@ -1792,7 +1789,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="planoOdontologico"
+                                            value="Plano Odontológico"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
@@ -1801,7 +1798,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="seguroVida"
+                                            value="Seguro de Vida"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
@@ -1810,7 +1807,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="previdenciaPrivada"
+                                            value="Previdência Privada"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
