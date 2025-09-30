@@ -33,7 +33,6 @@ watch(
                 duration: 10000,
                 description: hasNotify.message,
                 position: 'top-center',
-                closeButton: true,
             });
             console.log('INERTIA NOTIFY:', hasNotify)
         }
@@ -51,7 +50,6 @@ watch(toastMessage, (newValue) => {
             description: newValue.description,
             duration: 5000,
             position: 'top-center',
-            closeButton: true,
         });
     }
 });

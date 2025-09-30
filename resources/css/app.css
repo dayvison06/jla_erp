@@ -211,3 +211,12 @@
 .btn-neutral {
     @apply bg-white text-muted-foreground hover:bg-muted/90 cursor-pointer rounded-lg py-2 px-4 transition-colors duration-200 border border-gray-300;
 }
+
+details summary{
+    @apply hover:text-secondary;
+} & details[open] summary{
+    @apply text-secondary;
+}
+  details[open] {
+      @apply shadow-md;
+  }

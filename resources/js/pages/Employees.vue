@@ -21,12 +21,14 @@ import {
     Paperclip,
     BriefcaseBusiness,
     MapPinHouse,
+    ArrowRight
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import EmployeeManager from '@/components/employees/EmployeeManager.vue';
 import Cards from '@/components/employees/Cards.vue';
+import { toast } from 'vue-sonner';
 
 // Composables e serviços
 const { showToast } = useToast();
@@ -65,7 +67,6 @@ const statusFilter = ref('all') // Filtro de status dos funcionários
 const showDeleteModal = ref(false) // Controla a exibição do modal de exclusão
 const employeeToDelete = ref<Employee | null>(null) // Funcionário a ser excluído
 const isDragging = ref(false) // Indica se um arquivo está sendo arrastado sobre a área de drop
-const isLoading = ref(false) // Indica se os dados estão sendo carregados
 console.log('OBESERVANDO NEW EMPLOYEE', newEmployee.value);
 
 // Objeto reativo para os dados do formulário do funcionário
@@ -144,7 +145,7 @@ console.log('ATTACHMENTS', formData.attachments);
 const tabs = [
     {id: 'personal', name: 'Dados Pessoais', icon: UserIcon},
     {id: 'documents', name: 'Documentos Trabalhistas', icon: BriefcaseBusiness},
-    {id: 'contact', name: 'Endereço e Contato', icon: MapPinHouse},
+    {id: 'contact', name: 'Endereço', icon: MapPinHouse},
     {id: 'bank', name: 'Dados Bancários', icon: Banknote},
     {id: 'contract', name: 'Informações Contratuais', icon: FilePenLine},
     {id: 'health', name: 'Saúde e Segurança', icon: Cross},
@@ -423,23 +424,25 @@ const searchZipCode = async () => {
 
     if (cep.length !== 8) return;
 
-    try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-
-        const data = await response.json();
-
-        if (data.erro) {
-            showToast('Falha', 'error', 'CEP não encontrado, corrija ou preencha manualmente.');
-            return;
-        }
-
-        formData.street = data.logradouro;
-        formData.district = data.bairro;
-        formData.city = data.localidade;
-        formData.state = data.uf;
-    } catch (error) {
-        showToast('Buscar CEP', 'error', 'Falha ao buscar CEP, preencha manualmente.');
-    }
+    toast.promise(
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            .then(res => res.json())
+            .then(json => {
+                if (json.erro) {
+                    throw new Error('CEP não encontrado.');
+                }
+                formData.street = json.logradouro;
+                formData.district = json.bairro;
+                formData.city = json.localidade;
+                formData.state = json.uf;
+            }),
+        {
+            position: 'top-center',
+            loading: 'Buscando endereço...',
+            success: 'Endereço encontrado.',
+            error: 'Erro ao buscar CEP, preencha manualmente.'
+        },
+    );
 }
 
 /**
@@ -665,6 +668,7 @@ function newEmployeeButtonClick() {
     showEmployeeForm.value = true;
     resetForm();
     formData.benefits = ['Vale Transporte', 'valeRefeicao', 'planoSaude', 'Plano Odontológico', 'Seguro de Vida', 'previdenciaPrivada'];
+    formData.status = 'ativo';
     console.log('BENEFITS', formData.benefits);
 }
 
@@ -967,230 +971,303 @@ debouncedWatch(
                 <div class="p-4 bg-white">
                     <!-- Aba 1: Dados Pessoais -->
                     <div v-if="activeTab === 'personal'" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- Campo: Nome completo -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
-                                <input
-                                    v-model="formData.name"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                        <!-- IDENTIFICAÇÃO -->
+                        <details class="group border rounded-md mb-4" open>
+                            <summary
+                                class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700"
+                            >
+                                <span>Identificação</span>
+                                <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            </summary>
 
-                            <!-- Campo: Data de nascimento -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
-                                <input
-                                    v-model="formData.birth_date"
-                                    type="date"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Nome completo -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
+                                        <input
+                                            v-model="formData.name"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Sexo/gênero -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
-                                <select
-                                    v-model="formData.gender"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="">Selecione</option>
-                                    <option value="Masculino">Masculino</option>
-                                    <option value="Feminino">Feminino</option>
-                                    <option value="Outro">Outro</option>
-                                </select>
-                            </div>
+                                    <!-- Data de nascimento -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                        <input
+                                            v-model="formData.birth_date"
+                                            type="date"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Estado civil -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
-                                <select
-                                    v-model="formData.civil_state"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="">Selecione</option>
-                                    <option value="solteiro">Solteiro(a)</option>
-                                    <option value="casado">Casado(a)</option>
-                                    <option value="divorciado">Divorciado(a)</option>
-                                    <option value="viuvo">Viúvo(a)</option>
-                                    <option value="uniao">União Estável</option>
-                                </select>
-                            </div>
+                                    <!-- Sexo/gênero -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
+                                        <select
+                                            v-model="formData.gender"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Feminino">Feminino</option>
+                                            <option value="Outro">Outro</option>
+                                        </select>
+                                    </div>
 
-                            <!-- Campo: Nacionalidade -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
-                                <input
-                                    v-model="formData.nationality"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- Estado civil -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
+                                        <select
+                                            v-model="formData.civil_state"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option value="solteiro">Solteiro(a)</option>
+                                            <option value="casado">Casado(a)</option>
+                                            <option value="divorciado">Divorciado(a)</option>
+                                            <option value="viuvo">Viúvo(a)</option>
+                                            <option value="uniao">União Estável</option>
+                                        </select>
+                                    </div>
 
-                            <!-- Campo: Naturalidade -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
-                                <input
-                                    v-model="formData.birthplace"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- Nacionalidade -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
+                                        <input
+                                            v-model="formData.nationality"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: CNPJ -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CNPJ</label>
-                                <input
-                                    v-model="formData.cnpj"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
+                                    <!-- Naturalidade -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
+                                        <input
+                                            v-model="formData.birthplace"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
+                                </div>
                             </div>
+                        </details>
 
-                            <!-- Campo: CPF -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CPF *</label>
-                                <input
-                                    v-model="formData.cpf"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                    @input="formatCPF"
-                                />
-                            </div>
+                        <!-- DOCUMENTOS -->
+                        <details class="group border rounded-md mb-4">
+                            <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700">
+                                <span>Documentos</span>
+                                <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            </summary>
 
-                            <!-- Campo: RG -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">RG *</label>
-                                <input
-                                    v-model="formData.rg"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- CNPJ -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">CNPJ</label>
+                                        <input
+                                            v-model="formData.cnpj"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
 
-                            <!-- Campo: Órgão emissor -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
-                                <input
-                                    v-model="formData.issuing_agency"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- CPF -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                        <input
+                                            v-model="formData.cpf"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                            @input="formatCPF"
+                                        />
+                                    </div>
 
-                            <!-- Campo: Data de emissão -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
-                                <input
-                                    v-model="formData.issue_date"
-                                    type="date"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- RG -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">RG *</label>
+                                        <input
+                                            v-model="formData.rg"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Título de eleitor -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
-                                <input
-                                    v-model="formData.voter_registration"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- Órgão emissor -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
+                                        <input
+                                            v-model="formData.issuing_agency"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Certidão de reservista -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
-                                <input
-                                    v-model="formData.military_certificate"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                                <p class="text-xs text-gray-500">Opcional para homens</p>
-                            </div>
+                                    <!-- Data de emissão -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
+                                        <input
+                                            v-model="formData.issue_date"
+                                            type="date"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Nome da mãe -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
-                                <input
-                                    v-model="formData.mother_name"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                            </div>
+                                    <!-- Título de eleitor -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
+                                        <input
+                                            v-model="formData.voter_registration"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Nome do pai -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
-                                <input
-                                    v-model="formData.father_name"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
+                                    <!-- Certidão de reservista -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
+                                        <input
+                                            v-model="formData.military_certificate"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                        <p class="text-xs text-gray-500">Opcional para homens</p>
+                                    </div>
+                                </div>
                             </div>
+                        </details>
 
-                            <!-- Campo: Status -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Status *</label>
-                                <select
-                                    v-model="formData.status"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="ativo">Ativo</option>
-                                    <option value="inativo">Inativo</option>
-                                    <option value="ferias">Em Férias</option>
-                                    <option value="afastado">Afastado</option>
-                                    <option value="desligado">Desligado</option>
-                                </select>
-                            </div>
+                        <!-- INFORMAÇÕES PESSOAIS -->
+                        <details class="group border rounded-md mb-4">
+                            <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700">
+                                <span>Informações Pessoais</span>
+                                <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            </summary>
 
-                            <!-- Campo: Grau de escolaridade -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
-                                <select
-                                    v-model="formData.escolarity"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="">Selecione</option>
-                                    <option value="fundamental">Ensino Fundamental</option>
-                                    <option value="medio">Ensino Médio</option>
-                                    <option value="tecnico">Ensino Técnico</option>
-                                    <option value="superior">Ensino Superior</option>
-                                    <option value="posGraduacao">Pós-graduação</option>
-                                    <option value="mestrado">Mestrado</option>
-                                    <option value="doutorado">Doutorado</option>
-                                </select>
-                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Nome da mãe -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
+                                        <input
+                                            v-model="formData.mother_name"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
 
-                            <!-- Campo: Tipo sanguíneo -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
-                                <select
-                                    v-model="formData.blood_type"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                >
-                                    <option value="">Selecione</option>
-                                    <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
-                                </select>
+                                    <!-- Nome do pai -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
+                                        <input
+                                            v-model="formData.father_name"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
+
+                                    <!-- Grau de escolaridade -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
+                                        <select
+                                            v-model="formData.escolarity"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option value="fundamental">Ensino Fundamental</option>
+                                            <option value="medio">Ensino Médio</option>
+                                            <option value="tecnico">Ensino Técnico</option>
+                                            <option value="superior">Ensino Superior</option>
+                                            <option value="posGraduacao">Pós-graduação</option>
+                                            <option value="mestrado">Mestrado</option>
+                                            <option value="doutorado">Doutorado</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tipo sanguíneo -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
+                                        <select
+                                            v-model="formData.blood_type"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Telefone -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Telefone *</label>
+                                        <input
+                                            v-model="formData.phone"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                            @input="formatPhone"
+                                        />
+                                    </div>
+
+                                    <!-- Celular -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Celular</label>
+                                        <input
+                                            v-model="formData.mobile"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            @input="formatMobile"
+                                        />
+                                    </div>
+
+                                    <!-- E-mail -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">E-mail *</label>
+                                        <input
+                                            v-model="formData.email"
+                                            type="email"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
+
+                                    <!-- Contato de emergência -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
+                                        <input
+                                            v-model="formData.emergency_contact"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
+
+                                    <!-- Telefone de emergência -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
+                                        <input
+                                            v-model="formData.emergency_phone"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            @input="formatEmergencyPhone"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </details>
                     </div>
-
                     <!-- Aba 2: Documentos Trabalhistas -->
                     <div v-if="activeTab === 'documents'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1297,12 +1374,12 @@ debouncedWatch(
                         </div>
                     </div>
 
-                    <!-- Aba 3: Endereço e Contato -->
+                    <!-- Aba 3: Endereço -->
                     <div v-if="activeTab === 'contact'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Campo: CEP -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CEP * <span class="text-xs font-medium text-gray-700">(Preenchimento automático)</span></label>
+                                <label class="block text-sm font-medium text-gray-700"> CEP * <span class="text-xs font-medium text-primary">(Preenchimento automático)</span></label>
                                 <input
                                     v-model="formData.postal_code"
                                     type="text"
@@ -1378,61 +1455,6 @@ debouncedWatch(
                                     <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
                                 </select>
                             </div>
-
-                            <!-- Campo: Telefone -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Telefone *</label>
-                                <input
-                                    v-model="formData.phone"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                    @input="formatPhone"
-                                />
-                            </div>
-
-                            <!-- Campo: Celular -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Celular</label>
-                                <input
-                                    v-model="formData.mobile"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    @input="formatMobile"
-                                />
-                            </div>
-
-                            <!-- Campo: E-mail -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">E-mail *</label>
-                                <input
-                                    v-model="formData.email"
-                                    type="email"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
-
-                            <!-- Campo: Contato de emergência -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
-                                <input
-                                    v-model="formData.emergency_contact"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                            </div>
-
-                            <!-- Campo: Telefone de emergência -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
-                                <input
-                                    v-model="formData.emergency_phone"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    @input="formatEmergencyPhone"
-                                />
-                            </div>
                         </div>
                     </div>
 
@@ -1507,6 +1529,22 @@ debouncedWatch(
                     <!-- Aba 5: Informações Contratuais -->
                     <div v-if="activeTab === 'contract'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Status -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Status *</label>
+                                <select
+                                    v-model="formData.status"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="ativo">Ativo</option>
+                                    <option value="inativo">Inativo</option>
+                                    <option value="ferias">Em Férias</option>
+                                    <option value="afastado">Afastado</option>
+                                    <option value="desligado">Desligado</option>
+                                </select>
+                            </div>
+
                             <!-- Campo: Cargo/função -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
