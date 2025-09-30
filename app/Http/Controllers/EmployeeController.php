@@ -154,4 +154,24 @@ class EmployeeController extends Controller
             'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
         ]);
     }
+
+    public function deactivate(Request $request, Employee $employee) : Response
+    {
+        try {
+            $findEmployee = $employee->where('cpf', $request['cpf'])
+                ->first();
+            $findEmployee->status = 'inactive';
+            $findEmployee->save();
+
+            return Inertia::render('Employees', ['employee' => $findEmployee]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao desativar funcionário: ' . $e->getMessage());
+        }
+
+        return Inertia::render('Employees')->with('notify', [
+            'type' => 'error',
+            'title' => 'Erro',
+            'message' => 'Não foi possível desativar o funcionário.',
+        ]);
+    }
 }
