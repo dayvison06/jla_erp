@@ -5,12 +5,20 @@ import type { Employee } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { debouncedWatch} from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
-import { UserSearch, FileSpreadsheet } from 'lucide-vue-next'
+import {FileSpreadsheet, Filter, Search} from 'lucide-vue-next'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup, DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { BookUser, EditIcon, ShieldBan } from 'lucide-vue-next'
 
 const props = defineProps<{
     listEmployees: Employee[]
 }>()
 
+const emit = defineEmits(['showEmployee', 'deactivateEmployee']);
 const employees = ref<Employee[]>(props.listEmployees)
 const { showToast } = useToast();
 
@@ -90,6 +98,11 @@ const filteredEmployees = computed(() => {
     return filtered
 })
 
+const setOpenDropdown = (id: number | null) => {
+    openDropdown.value = id;
+};
+
+
 const totalPages = computed(() => {
     return Math.ceil(filteredEmployees.value.length / itemsPerPage.value)
 })
@@ -156,10 +169,6 @@ const clearFilters = () => {
 
 const applyFilters = () => {
     currentPage.value = 1
-}
-
-const toggleDropdown = (id: number) => {
-    openDropdown.value = openDropdown.value === id ? null : id
 }
 
 const previousPage = () => {
@@ -280,73 +289,44 @@ debouncedWatch([searchQuery], () => {
     searchEmployees()
 
 }, { debounce: 300 });
-
-// Fechar dropdown ao clicar fora
-onMounted(() => {
-    document.addEventListener('click', (e) => {
-        if (!(e.target as Element).closest('.relative')) {
-            openDropdown.value = null
-        }
-    })
-})
 </script>
 
 
 <template>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-
-
-        <!-- Header -->
-        <!-- Busca Principal -->
-        <div class="mb-4 flex gap-4 items-center">
+    <!-- Filters and Search -->
+    <div class="rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-                <span class="text-xs font-semibold">Pesquisar</span>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <UserSearch class="w-5 h-5"/>
-                    </div>
+                    <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary w-4 h-4" />
                     <input
                         v-model="searchQuery"
                         type="text"
                         placeholder="Buscar por nome ou CPF..."
-                        class="pl-10 pr-4 py-1 border border-gray-300 rounded-lg text-base"
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
-                <div>
-                    <p class="text-sm text-gray-600 mt-1">{{ filteredEmployees.length }} funcionários encontrados</p>
-                </div>
             </div>
-            <div class="flex py-1 gap-3 sm:mt-0">
+
+            <div class="flex gap-4 items-end">
+                <button class="btn-primary flex items-center gap-2" @click="showAdvancedFilters = !showAdvancedFilters">
+                    <Filter class="w-4 h-4" />
+                    Filtrar
+                </button>
                 <button
                     @click="exportSelected"
-                    class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="bg-gray-100 text-gray-700  px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="selectedEmployees.length === 0"
                 >
                     <div class="flex items-center gap-2">
-                        <FileSpreadsheet class="w-5 h-5" /> Exportar
+                        <FileSpreadsheet class="w-5 h-5" />
+                        Exportar
                     </div>
                 </button>
             </div>
         </div>
-
-        <!-- Toggle Mais Filtros -->
-        <div class="mb-4">
-            <button
-                @click="showAdvancedFilters = !showAdvancedFilters"
-                class="flex items-center gap-2 btn-link-secondary font-medium transition-colors"
-            >
-                <svg
-                    class="h-4 w-4 transition-transform duration-200"
-                    :class="{ 'rotate-180': showAdvancedFilters }"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-                {{ showAdvancedFilters ? 'Ocultar filtros' : 'Mais filtros' }}
-            </button>
-        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
 
         <!-- Filtros Avançados (Expansível) -->
         <div
@@ -463,7 +443,8 @@ onMounted(() => {
                 <tr
                     v-for="employee in paginatedEmployees"
                     :key="employee.id"
-                    class="hover:bg-gray-50 transition-colors"
+                    class="group hover:bg-gray-50 transition-colors"
+                    @mouseenter="setOpenDropdown(null)"
                 >
                     <td class="px-6 py-4">
                         <input
@@ -507,26 +488,37 @@ onMounted(() => {
               </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div class="relative">
-                            <button
-                                @click="toggleDropdown(employee.id)"
-                                class="text-gray-400 hover:text-gray-600 transition-colors"
+<!--                         Menu de ações para cada funcionário-->
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <button @click="setOpenDropdown(employee.id)"
+                                        class="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-900 mr-3"
+                                        :class="openDropdown === employee.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
+                                    <BookUser class="w-5 h-5"/>
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                                :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
+                                align="end"
+                                :side-offset="4"
                             >
-                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                </svg>
-                            </button>
-                            <div
-                                v-if="openDropdown === employee.id"
-                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200"
-                            >
-                                <div class="py-1">
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ver Detalhes</a>
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Editar</a>
-                                    <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Desativar</a>
-                                </div>
-                            </div>
-                        </div>
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem :as-child="true">
+                                        <div class="block w-full cursor-pointer" @click="emit('showEmployee', employee.cpf.replace(/\D/g, ''))" as="button">
+                                            <EditIcon class="mr-2 h-4 w-4" />
+                                            Editar
+                                        </div>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem :as-child="true">
+                                        <div class="block w-full text-secondary cursor-pointer" @click="emit('deactivateEmployee', employee.cpf.replace(/\D/g, ''))" as="button">
+                                            <ShieldBan class="mr-2 h-4 w-4 text-secondary" />
+                                            Desativar
+                                        </div>
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </td>
                 </tr>
                 </tbody>
