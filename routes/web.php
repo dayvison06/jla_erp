@@ -17,6 +17,7 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
     Route::get('/', [EmployeeController::class, 'index'])->name('index');
     Route::post('/', [EmployeeController::class, 'store']);
     Route::get('/{cpf}', [EmployeeController::class, 'show']);
+    Route::post('/deactivate', [EmployeeController::class, 'deactivate']);
     Route::put('/{cpf}', [EmployeeController::class, 'update']);
     Route::post('/upload/{cpf}', [EmployeeController::class, 'uploadFiles'])->name('upload');
 

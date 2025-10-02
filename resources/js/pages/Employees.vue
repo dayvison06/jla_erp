@@ -1,23 +1,8 @@
 <script setup lang="ts">
-/**
- * Componente para gerenciamento de funcionários.
- *
- * Este componente permite listar, cadastrar, editar e excluir funcionários,
- * além de gerenciar seus dados pessoais, documentos, informações de contato,
- * dados bancários, informações contratuais, saúde, dependentes e anexos.
- */
-
-// Importações de componentes e bibliotecas
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
 import ProgressBar from '@/components/ProgressBar.vue'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup, DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { ref, reactive, onMounted } from 'vue'
 import type { Employee, RoleHistory, Attachment, Dependent } from '@/types/Employees';
 import { debouncedWatch} from '@vueuse/core';
@@ -27,30 +12,23 @@ import {
     Banknote,
     FilePenLine,
     Users,
-    SearchIcon,
-    EditIcon,
-    BookUser,
     TrashIcon,
     UploadIcon,
-    FileIcon,
     File,
-    EyeIcon,
-    FileSpreadsheetIcon,
-    ImageIcon,
     UploadCloudIcon,
-    FileTextIcon,
     XIcon,
     UserIcon,
-    FilterIcon,
-    DownloadIcon,
     Paperclip,
     BriefcaseBusiness,
     MapPinHouse,
-    ShieldBan,
+    ArrowRight
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
-import AttachmentDialog from '@/components/AttachmentDialog.vue';
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
+import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
+import EmployeeManager from '@/components/employees/EmployeeManager.vue';
+import Cards from '@/components/employees/Cards.vue';
+import { toast } from 'vue-sonner';
 
 // Composables e serviços
 const { showToast } = useToast();
@@ -89,19 +67,7 @@ const statusFilter = ref('all') // Filtro de status dos funcionários
 const showDeleteModal = ref(false) // Controla a exibição do modal de exclusão
 const employeeToDelete = ref<Employee | null>(null) // Funcionário a ser excluído
 const isDragging = ref(false) // Indica se um arquivo está sendo arrastado sobre a área de drop
-const isLoading = ref(false) // Indica se os dados estão sendo carregados
 console.log('OBESERVANDO NEW EMPLOYEE', newEmployee.value);
-
-// Objeto reativo para um novo histórico de cargo
-const newRoleHistory = reactive<RoleHistory>({
-    id: 0,
-    role: '',
-    department: '',
-    start_date: '',
-    end_date: null,
-    salary: '',
-    reason: ''
-})
 
 // Objeto reativo para os dados do formulário do funcionário
 const formData = reactive<Employee>({
@@ -173,11 +139,13 @@ const formData = reactive<Employee>({
     attachments: [],
 })
 
+console.log('ATTACHMENTS', formData.attachments);
+
 // Dados de referência para o formulário
 const tabs = [
     {id: 'personal', name: 'Dados Pessoais', icon: UserIcon},
     {id: 'documents', name: 'Documentos Trabalhistas', icon: BriefcaseBusiness},
-    {id: 'contact', name: 'Endereço e Contato', icon: MapPinHouse},
+    {id: 'contact', name: 'Endereço', icon: MapPinHouse},
     {id: 'bank', name: 'Dados Bancários', icon: Banknote},
     {id: 'contract', name: 'Informações Contratuais', icon: FilePenLine},
     {id: 'health', name: 'Saúde e Segurança', icon: Cross},
@@ -271,6 +239,11 @@ function loadLocalCacheFormDialog () {
 function handleContinueForm() {
     const cachedEmployee = localStorage.getItem('cachedEmployee');
     Object.assign(formData, JSON.parse(cachedEmployee));
+    cacheDialog.value = false;
+}
+
+function handleDestroyCacheForm() {
+    localStorage.removeItem('cachedEmployee');
     cacheDialog.value = false;
 }
 
@@ -451,23 +424,25 @@ const searchZipCode = async () => {
 
     if (cep.length !== 8) return;
 
-    try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-
-        const data = await response.json();
-
-        if (data.erro) {
-            showToast('Falha', 'error', 'CEP não encontrado, corrija ou preencha manualmente.');
-            return;
-        }
-
-        formData.street = data.logradouro;
-        formData.district = data.bairro;
-        formData.city = data.localidade;
-        formData.state = data.uf;
-    } catch (error) {
-        showToast('Buscar CEP', 'error', 'Falha ao buscar CEP, preencha manualmente.');
-    }
+    toast.promise(
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            .then(res => res.json())
+            .then(json => {
+                if (json.erro) {
+                    throw new Error('CEP não encontrado.');
+                }
+                formData.street = json.logradouro;
+                formData.district = json.bairro;
+                formData.city = json.localidade;
+                formData.state = json.uf;
+            }),
+        {
+            position: 'top-center',
+            loading: 'Buscando endereço...',
+            success: 'Endereço encontrado.',
+            error: 'Erro ao buscar CEP, preencha manualmente.'
+        },
+    );
 }
 
 /**
@@ -506,7 +481,7 @@ const removeDependent = (index: number) => {
  */
 async function showEmployeeByCPF(cpf: string) {
     newEmployee.value = false;
-    router.get(`funcionarios/${cpf}`, {
+    router.get(`/funcionarios/${cpf}`, {
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -519,6 +494,26 @@ async function showEmployeeByCPF(cpf: string) {
             } else {
                 alert('Employee not found.');
             }
+        },
+        onError: () => {
+
+            alert('Error searching for employee. Check the CPF and try again.');
+        }
+    });
+
+}
+
+async function deactivateEmployee (cpf: string) {
+    newEmployee.value = false;
+    console.log('DEACTIVATE EMPLOYEE', cpf);
+    router.post(`/funcionarios/deactivate`, {
+        cpf: cpf
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            // Check if the employee was found
+            loadEmployees();
         },
         onError: () => {
 
@@ -665,6 +660,19 @@ function validateAndPrepareFields() {
 const progressbar = ref(0);
 
 /**
+ * Manipula o clique no botão de novo funcionário.
+ */
+function newEmployeeButtonClick() {
+    newEmployee.value = true;
+    loadLocalCacheFormDialog();
+    showEmployeeForm.value = true;
+    resetForm();
+    formData.benefits = ['Vale Transporte', 'valeRefeicao', 'planoSaude', 'Plano Odontológico', 'Seguro de Vida', 'previdenciaPrivada'];
+    formData.status = 'ativo';
+    console.log('BENEFITS', formData.benefits);
+}
+
+/**
  * Cria um novo funcionário.
  * @returns {void}
  */
@@ -683,7 +691,7 @@ const createEmployee = () => {
         onSuccess: () => {
             progressbar.value = 0;
             resetForm();
-            localStorage.removeItem('cachedEmployee');
+            // localStorage.removeItem('cachedEmployee');
             showEmployeeForm.value = false;
             loadEmployees();
         },
@@ -775,26 +783,12 @@ const resetForm = () => {
 }
 
 /**
- * Formata o tamanho do arquivo para KB ou MB.
- *
- * @param {number} size - O tamanho do arquivo em bytes.
- * @returns {string} O tamanho do arquivo formatado.
- */
-const formatFileSize = (size: number): string => {
-    return size < 1024 * 1024
-        ? `${(size / 1024).toFixed(2)} KB`
-        : `${(size / 1024 / 1024).toFixed(2)} MB`;
-};
-
-/**
  * Adiciona um arquivo à lista de anexos.
  *
  * @param {File} file - O arquivo a ser adicionado.
  * @returns {void}
  */
 const addFile = (file: File) => {
-
-    const fileSize = formatFileSize(file.size);
 
     // evita duplicados
     if (formData.attachments.some(a => a.name === file.name && a.size === fileSize)) {
@@ -804,7 +798,7 @@ const addFile = (file: File) => {
     const newAttachment: Attachment = {
         name: file.name,
         type: file.type || 'application/octet-stream',
-        size: fileSize,
+        size: file.size,
         file: file,
         path: URL.createObjectURL(file),
         created_at: new Date().toISOString(),
@@ -847,7 +841,7 @@ const handleFileDrop = (event: DragEvent) => {
 function uploadAttachments() {
 
     console.log('Uploading attachments...', newEmployee.value);
-    if (newEmployee.value === true) return;
+    if (newEmployee.value) return;
 
     router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
         forceFormData: true,
@@ -865,100 +859,8 @@ function uploadAttachments() {
     });
 }
 
-/**
- * Retorna o ícone do arquivo com base no tipo.
- *
- * @param {string} type - O tipo do arquivo.
- * @returns {Component} O componente do ícone.
- */
-const getFileIcon = (type: string) => {
-    if (type.includes('pdf')) return FileTextIcon;
-    if (type.includes('image')) return ImageIcon;
-    if (type.includes('word') || type.includes('document')) return FileTextIcon;
-    if (type.includes('excel') || type.includes('sheet')) return FileSpreadsheetIcon;
-    if (type.includes('presentation') || type.includes('powerpoint')) return File;
-    return FileIcon;
-}
-
-/**
- * Busca funcionários com base nos filtros de busca e status.
- * @returns {void}
- */
-function searchEmployees() {
-    isLoading.value = true
-    router.get('/funcionarios', {
-        search: searchQuery.value,
-        status: statusFilter.value
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        only: ['employees'],
-        onSuccess: (page) => {
-            employees.value = page.props.employees.data;
-            isLoading.value = false
-            if (employees.value.length === 0) {
-                showToast('Nenhum funcionário encontrado', 'warning', 'A busca não retornou resultados.');
-            }
-        }
-
-    });
-}
-
-/**
- * Retorna a cor do status do funcionário.
- *
- * @param {string} status - O status do funcionário.
- * @returns {string} A classe de cor do status.
- */
-const getStatusColor = (status: string) => {
-    switch (status) {
-        case 'active':
-            return 'bg-green-100 text-green-800';
-        case 'inactive':
-            return 'bg-gray-100 text-gray-800';
-        case 'vacation':
-            return 'bg-blue-100 text-blue-800';
-        case 'leave':
-            return 'bg-yellow-100 text-yellow-800';
-        case 'terminated':
-            return 'bg-red-100 text-red-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
-    }
-}
-
-/**
- * Retorna o texto do status do funcionário.
- *
- * @param {string} status - O status do funcionário.
- * @returns {string} O texto do status.
- */
-const getStatusText = (status: string) => {
-    switch (status) {
-        case 'active':
-            return 'Ativo';
-        case 'inactive':
-            return 'Inativo';
-        case 'vacation':
-            return 'Em Férias';
-        case 'leave':
-            return 'Afastado';
-        case 'terminated':
-            return 'Desligado';
-        default:
-            return 'Desconhecido';
-    }
-}
-
 // Observadores
-/**
- * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
- */
-debouncedWatch([searchQuery, statusFilter], () => {
-    // Aqui poderia implementar lógica adicional se necessário
-    searchEmployees()
 
-}, { debounce: 300 });
 
 /**
  * Observa mudanças no CEP para buscar o endereço automaticamente.
@@ -986,7 +888,7 @@ debouncedWatch(
             <!-- Barra de progresso para uploads e outras operações -->
             <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
             <!-- Diálogo para carregar dados do cache -->
-            <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" />
+            <EmployeeCachedDialog v-if="cacheDialog" @continue="handleContinueForm()" @destroy="handleDestroyCacheForm()"/>
 
             <!-- Cabeçalho do módulo, visível apenas na listagem -->
             <header v-if="!showEmployeeForm" class="text-black mb-6 p-6 rounded-lg shadow">
@@ -1007,7 +909,7 @@ debouncedWatch(
                 <div class="flex items-center gap-3">
                     <!-- Botão para adicionar novo funcionário -->
                     <button
-                        @click="newEmployee = true;loadLocalCacheFormDialog(); showEmployeeForm = true; resetForm();"
+                        @click="newEmployeeButtonClick()"
                         class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>
@@ -1015,175 +917,15 @@ debouncedWatch(
                     </button>
                 </div>
             </header>
+            <Cards v-if="!showEmployeeForm"
+                   :all-employees="employees"
+            />
             <!-- Seção de listagem de funcionários -->
-            <div v-if="!showEmployeeForm">
-                <!-- Controles de busca e filtro -->
-                <div class="mb-6">
-                    <div class="flex flex-col md:flex-row md:items-center mb-4 gap-4">
-                        <!-- Campo de busca -->
-                        <div class="flex-grow">
-                            <div class="relative flex flex-inline items-center">
-                                <input
-                                    v-model="searchQuery"
-                                    type="text"
-                                    placeholder="Buscar funcionário por nome ou CPF"
-                                    class="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                                <SearchIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2" v-if="isLoading">
-                                    <small class="text-sm animate-pulse">Carregando</small>
-                                    <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-secondary" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                                    </svg>
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Filtros e ações -->
-                        <div class="flex flex-col md:flex-row gap-2">
-                            <!-- Filtro de status -->
-                            <div class="relative">
-                                <select
-                                    v-model="statusFilter"
-                                    class="pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 appearance-none"
-                                >
-                                    <option value="all">Todos os status</option>
-                                    <option value="active">Ativos</option>
-                                    <option value="inactive">Inativos</option>
-                                    <option value="vacation">Em férias</option>
-                                    <option value="leave">Afastados</option>
-                                    <option value="terminated">Desligados</option>
-                                </select>
-                                <FilterIcon class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"/>
-                            </div>
-                            <!-- Botão para exportar dados -->
-                            <button
-                                @click="exportData"
-                                class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                            >
-                                <DownloadIcon class="w-5 h-5 mr-2" />
-                                Exportar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabela de funcionários -->
-                <div class="overflow-x-auto bg-white rounded-lg shadow">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Departamento
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data
-                                de Admissão
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Ações
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Linha da tabela para cada funcionário -->
-                        <tr v-for="employee in employees" :key="employee.cpf" class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <!-- Avatar com iniciais ou foto -->
-                                        <div v-if="!employee.photo"
-                                             class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold">
-                                            {{ getInitials(employee.name) }}
-                                        </div>
-                                        <img v-else :src="employee.photo" alt="" class="h-10 w-10 rounded-full object-cover">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
-                                        <div class="text-sm text-gray-500">{{ employee.email }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.role }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.department }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ formatDate(employee.admission_date) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <!-- Status do funcionário com cor -->
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" :class="getStatusColor(employee.status)">
-                                    {{ getStatusText(employee.status) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <!-- Menu de ações para cada funcionário -->
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <button class="cursor-pointer text-gray-600 hover:text-gray-900 hover:bg-gray-300 hover:rounded-lg mr-3">
-                                            <BookUser class="w-5 h-5"/>
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                                        :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
-                                        align="end"
-                                        :side-offset="4"
-                                    >
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem :as-child="true">
-                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
-                                                    <EditIcon class="mr-2 h-4 w-4" />
-                                                    Editar
-                                                </div>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem :as-child="true">
-                                                <div class="block w-full" @click="showEmployeeByCPF(employee.cpf.replace(/\D/g, ''))" as="button">
-                                                    <ShieldBan class="mr-2 h-4 w-4" />
-                                                    Desativar
-                                                </div>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </td>
-                        </tr>
-                        <!-- Mensagem exibida quando não há funcionários -->
-                        <tr v-if="employees.length === 0">
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                Nenhum funcionário encontrado
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginação da tabela -->
-                <div class="flex items-center justify-between mt-4">
-                    <div class="text-sm text-gray-700">
-                        Mostrando <span class="font-medium">1</span> a <span class="font-medium">{{
-                            employees.length
-                        }}</span> de <span class="font-medium">{{ employees.length }}</span> resultados
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Anterior</button>
-                        <button class="px-3 py-1 border rounded-md bg-gray-50 text-gray-600 font-medium">1</button>
-                        <button class="px-3 py-1 border rounded-md hover:bg-gray-50">Próxima</button>
-                    </div>
-                </div>
-            </div>
+            <EmployeeManager v-if="!showEmployeeForm"
+                             :listEmployees="employees"
+                             @showEmployee="showEmployeeByCPF"
+                             @deactivateEmployee="deactivateEmployee"
+            />
 
             <!-- Formulário de funcionário, visível ao criar ou editar -->
             <div v-else>
@@ -1207,7 +949,7 @@ debouncedWatch(
 
                 <!-- Abas de navegação do formulário -->
                 <div>
-                    <div class="flex overflow-x-auto mb-6">
+                    <div class="flex flex-wrap overflow-x-auto gap-2 mb-6">
                         <button
                             v-for="tab in tabs"
                             :key="tab.id"
@@ -1229,230 +971,303 @@ debouncedWatch(
                 <div class="p-4 bg-white">
                     <!-- Aba 1: Dados Pessoais -->
                     <div v-if="activeTab === 'personal'" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- Campo: Nome completo -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
-                                <input
-                                    v-model="formData.name"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                        <!-- IDENTIFICAÇÃO -->
+                        <details class="group border rounded-md mb-4" open>
+                            <summary
+                                class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700"
+                            >
+                                <span>Identificação</span>
+                                <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            </summary>
 
-                            <!-- Campo: Data de nascimento -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
-                                <input
-                                    v-model="formData.birth_date"
-                                    type="date"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Nome completo -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
+                                        <input
+                                            v-model="formData.name"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Sexo/gênero -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
-                                <select
-                                    v-model="formData.gender"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="">Selecione</option>
-                                    <option value="Masculino">Masculino</option>
-                                    <option value="Feminino">Feminino</option>
-                                    <option value="Outro">Outro</option>
-                                </select>
-                            </div>
+                                    <!-- Data de nascimento -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                        <input
+                                            v-model="formData.birth_date"
+                                            type="date"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Estado civil -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
-                                <select
-                                    v-model="formData.civil_state"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="">Selecione</option>
-                                    <option value="solteiro">Solteiro(a)</option>
-                                    <option value="casado">Casado(a)</option>
-                                    <option value="divorciado">Divorciado(a)</option>
-                                    <option value="viuvo">Viúvo(a)</option>
-                                    <option value="uniao">União Estável</option>
-                                </select>
-                            </div>
+                                    <!-- Sexo/gênero -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
+                                        <select
+                                            v-model="formData.gender"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Feminino">Feminino</option>
+                                            <option value="Outro">Outro</option>
+                                        </select>
+                                    </div>
 
-                            <!-- Campo: Nacionalidade -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
-                                <input
-                                    v-model="formData.nationality"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- Estado civil -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
+                                        <select
+                                            v-model="formData.civil_state"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option value="solteiro">Solteiro(a)</option>
+                                            <option value="casado">Casado(a)</option>
+                                            <option value="divorciado">Divorciado(a)</option>
+                                            <option value="viuvo">Viúvo(a)</option>
+                                            <option value="uniao">União Estável</option>
+                                        </select>
+                                    </div>
 
-                            <!-- Campo: Naturalidade -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
-                                <input
-                                    v-model="formData.birthplace"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- Nacionalidade -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
+                                        <input
+                                            v-model="formData.nationality"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: CNPJ -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CNPJ</label>
-                                <input
-                                    v-model="formData.cnpj"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
+                                    <!-- Naturalidade -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
+                                        <input
+                                            v-model="formData.birthplace"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
+                                </div>
                             </div>
+                        </details>
 
-                            <!-- Campo: CPF -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CPF *</label>
-                                <input
-                                    v-model="formData.cpf"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                    @input="formatCPF"
-                                />
-                            </div>
+                        <!-- DOCUMENTOS -->
+                        <details class="group border rounded-md mb-4">
+                            <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700">
+                                <span>Documentos</span>
+                                <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            </summary>
 
-                            <!-- Campo: RG -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">RG *</label>
-                                <input
-                                    v-model="formData.rg"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- CNPJ -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">CNPJ</label>
+                                        <input
+                                            v-model="formData.cnpj"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
 
-                            <!-- Campo: Órgão emissor -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
-                                <input
-                                    v-model="formData.issuing_agency"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- CPF -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                        <input
+                                            v-model="formData.cpf"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                            @input="formatCPF"
+                                        />
+                                    </div>
 
-                            <!-- Campo: Data de emissão -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
-                                <input
-                                    v-model="formData.issue_date"
-                                    type="date"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- RG -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">RG *</label>
+                                        <input
+                                            v-model="formData.rg"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Título de eleitor -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
-                                <input
-                                    v-model="formData.voter_registration"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
+                                    <!-- Órgão emissor -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
+                                        <input
+                                            v-model="formData.issuing_agency"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Certidão de reservista -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
-                                <input
-                                    v-model="formData.military_certificate"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                                <p class="text-xs text-gray-500">Opcional para homens</p>
-                            </div>
+                                    <!-- Data de emissão -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
+                                        <input
+                                            v-model="formData.issue_date"
+                                            type="date"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Nome da mãe -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
-                                <input
-                                    v-model="formData.mother_name"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                            </div>
+                                    <!-- Título de eleitor -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
+                                        <input
+                                            v-model="formData.voter_registration"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
 
-                            <!-- Campo: Nome do pai -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
-                                <input
-                                    v-model="formData.father_name"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
+                                    <!-- Certidão de reservista -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
+                                        <input
+                                            v-model="formData.military_certificate"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                        <p class="text-xs text-gray-500">Opcional para homens</p>
+                                    </div>
+                                </div>
                             </div>
+                        </details>
 
-                            <!-- Campo: Status -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Status *</label>
-                                <select
-                                    v-model="formData.status"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="ativo">Ativo</option>
-                                    <option value="inativo">Inativo</option>
-                                    <option value="ferias">Em Férias</option>
-                                    <option value="afastado">Afastado</option>
-                                    <option value="desligado">Desligado</option>
-                                </select>
-                            </div>
+                        <!-- INFORMAÇÕES PESSOAIS -->
+                        <details class="group border rounded-md mb-4">
+                            <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700">
+                                <span>Informações Pessoais</span>
+                                <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            </summary>
 
-                            <!-- Campo: Grau de escolaridade -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
-                                <select
-                                    v-model="formData.escolarity"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                >
-                                    <option value="">Selecione</option>
-                                    <option value="fundamental">Ensino Fundamental</option>
-                                    <option value="medio">Ensino Médio</option>
-                                    <option value="tecnico">Ensino Técnico</option>
-                                    <option value="superior">Ensino Superior</option>
-                                    <option value="posGraduacao">Pós-graduação</option>
-                                    <option value="mestrado">Mestrado</option>
-                                    <option value="doutorado">Doutorado</option>
-                                </select>
-                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Nome da mãe -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
+                                        <input
+                                            v-model="formData.mother_name"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
 
-                            <!-- Campo: Tipo sanguíneo -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
-                                <select
-                                    v-model="formData.blood_type"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                >
-                                    <option value="">Selecione</option>
-                                    <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
-                                </select>
+                                    <!-- Nome do pai -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
+                                        <input
+                                            v-model="formData.father_name"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
+
+                                    <!-- Grau de escolaridade -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
+                                        <select
+                                            v-model="formData.escolarity"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option value="fundamental">Ensino Fundamental</option>
+                                            <option value="medio">Ensino Médio</option>
+                                            <option value="tecnico">Ensino Técnico</option>
+                                            <option value="superior">Ensino Superior</option>
+                                            <option value="posGraduacao">Pós-graduação</option>
+                                            <option value="mestrado">Mestrado</option>
+                                            <option value="doutorado">Doutorado</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tipo sanguíneo -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
+                                        <select
+                                            v-model="formData.blood_type"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        >
+                                            <option value="">Selecione</option>
+                                            <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Telefone -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Telefone *</label>
+                                        <input
+                                            v-model="formData.phone"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                            @input="formatPhone"
+                                        />
+                                    </div>
+
+                                    <!-- Celular -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Celular</label>
+                                        <input
+                                            v-model="formData.mobile"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            @input="formatMobile"
+                                        />
+                                    </div>
+
+                                    <!-- E-mail -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">E-mail *</label>
+                                        <input
+                                            v-model="formData.email"
+                                            type="email"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            required
+                                        />
+                                    </div>
+
+                                    <!-- Contato de emergência -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
+                                        <input
+                                            v-model="formData.emergency_contact"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        />
+                                    </div>
+
+                                    <!-- Telefone de emergência -->
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
+                                        <input
+                                            v-model="formData.emergency_phone"
+                                            type="text"
+                                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                            @input="formatEmergencyPhone"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </details>
                     </div>
-
                     <!-- Aba 2: Documentos Trabalhistas -->
                     <div v-if="activeTab === 'documents'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1559,12 +1374,12 @@ debouncedWatch(
                         </div>
                     </div>
 
-                    <!-- Aba 3: Endereço e Contato -->
+                    <!-- Aba 3: Endereço -->
                     <div v-if="activeTab === 'contact'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Campo: CEP -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CEP * <span class="text-xs font-medium text-gray-700">(Preenchimento automático)</span></label>
+                                <label class="block text-sm font-medium text-gray-700"> CEP * <span class="text-xs font-medium text-primary">(Preenchimento automático)</span></label>
                                 <input
                                     v-model="formData.postal_code"
                                     type="text"
@@ -1640,61 +1455,6 @@ debouncedWatch(
                                     <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
                                 </select>
                             </div>
-
-                            <!-- Campo: Telefone -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Telefone *</label>
-                                <input
-                                    v-model="formData.phone"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                    @input="formatPhone"
-                                />
-                            </div>
-
-                            <!-- Campo: Celular -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Celular</label>
-                                <input
-                                    v-model="formData.mobile"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    @input="formatMobile"
-                                />
-                            </div>
-
-                            <!-- Campo: E-mail -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">E-mail *</label>
-                                <input
-                                    v-model="formData.email"
-                                    type="email"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    required
-                                />
-                            </div>
-
-                            <!-- Campo: Contato de emergência -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
-                                <input
-                                    v-model="formData.emergency_contact"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                />
-                            </div>
-
-                            <!-- Campo: Telefone de emergência -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
-                                <input
-                                    v-model="formData.emergency_phone"
-                                    type="text"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                    @input="formatEmergencyPhone"
-                                />
-                            </div>
                         </div>
                     </div>
 
@@ -1769,6 +1529,22 @@ debouncedWatch(
                     <!-- Aba 5: Informações Contratuais -->
                     <div v-if="activeTab === 'contract'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Status -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Status *</label>
+                                <select
+                                    v-model="formData.status"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    required
+                                >
+                                    <option value="ativo">Ativo</option>
+                                    <option value="inativo">Inativo</option>
+                                    <option value="ferias">Em Férias</option>
+                                    <option value="afastado">Afastado</option>
+                                    <option value="desligado">Desligado</option>
+                                </select>
+                            </div>
+
                             <!-- Campo: Cargo/função -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
@@ -1866,7 +1642,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="valeTransporte"
+                                            value="Vale Transporte"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
@@ -1884,7 +1660,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="planoSaude"
+                                            value="Plano de Saúde"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
@@ -1893,7 +1669,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="planoOdontologico"
+                                            value="Plano Odontológico"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
@@ -1902,7 +1678,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="seguroVida"
+                                            value="Seguro de Vida"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
@@ -1911,7 +1687,7 @@ debouncedWatch(
                                         <input
                                             v-model="formData.benefits"
                                             type="checkbox"
-                                            value="previdenciaPrivada"
+                                            value="Previdência Privada"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
@@ -2157,94 +1933,54 @@ debouncedWatch(
                             </div>
                         </div>
 
-                        <!-- Mensagem exibida quando não há anexos -->
-                        <div v-if="formData.attachments.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                            Nenhum anexo cadastrado
-                        </div>
-
                         <!-- Tabela de anexos -->
-                        <div v-else class="border rounded-md overflow-hidden">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamanho</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                <!-- Linha da tabela para cada anexo -->
-                                <tr v-for="attachment in formData.attachments" :key="attachment.id" class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
-                                                <!-- Ícone do tipo de arquivo -->
-                                                <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">
-                                                    <a class="hover:underline" :href="attachment.path" title="Visualizar" target="_blank">{{ attachment.name }}</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ attachment.type }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ attachment.size }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ formatDate(attachment.created_at) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">
-                                        <!-- Ações para cada anexo -->
-                                        <div class="flex items-center">
-                                            <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />
-                                        </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Prévia de imagens -->
-                        <div v-if="formData.attachments.some(a => a.type.includes('image'))" class="mt-6">
-                            <h4 class="text-md font-medium mb-3">Prévia de Imagens</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <div
-                                    v-for="attachment in formData.attachments.filter(a => a.type.includes('image'))"
-                                    :key="`preview-${attachment.id}`"
-                                    class="relative group"
-                                >
-                                    <img
-                                        :src="attachment.path"
-                                        :alt="attachment.name"
-                                        class="h-40 w-full object-cover rounded-md border"
-                                    />
-                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <a
-                                            :href="attachment.path"
-                                            target="_blank"
-                                            class="p-2 bg-white rounded-full mx-1"
-                                            title="Visualizar"
-                                        >
-                                            <EyeIcon class="w-5 h-5 text-gray-700" />
-                                        </a>
-                                        <button
-                                            @click="removeAttachment(attachment.id)"
-                                            class="p-2 bg-white rounded-full mx-1"
-                                            title="Excluir"
-                                        >
-                                            <TrashIcon class="w-5 h-5 text-red-600" />
-                                        </button>
-                                    </div>
-                                    <div class="mt-1 text-sm truncate">{{ attachment.name }}</div>
-                                </div>
-                            </div>
-                        </div>
+                        <AttachmentsDisplay :allAttachments="formData.attachments"/>
+<!--                        <div v-else class="border rounded-md overflow-x-auto">-->
+<!--                            <table class="min-w-full divide-y divide-gray-200">-->
+<!--                                <thead class="bg-gray-50">-->
+<!--                                <tr>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamanho</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>-->
+<!--                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>-->
+<!--                                </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody class="bg-white divide-y divide-gray-200">-->
+<!--                                &lt;!&ndash; Linha da tabela para cada anexo &ndash;&gt;-->
+<!--                                <tr v-for="attachment in formData.attachments" :key="attachment.id" class="hover:bg-gray-50">-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap">-->
+<!--                                        <div class="flex items-center">-->
+<!--                                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">-->
+<!--                                                &lt;!&ndash; Ícone do tipo de arquivo &ndash;&gt;-->
+<!--                                                <component :is="getFileIcon(attachment.type)" class="h-6 w-6 text-gray-500" />-->
+<!--                                            </div>-->
+<!--                                            <div class="ml-4">-->
+<!--                                                <div class="text-sm font-medium text-gray-900">-->
+<!--                                                    <a class="hover:underline" :href="attachment.path" title="Visualizar" target="_blank">{{ attachment.name }}</a>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                        {{ attachment.type }}-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                        {{ attachment.size }}-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
+<!--                                        {{ formatDate(attachment.created_at) }}-->
+<!--                                    </td>-->
+<!--                                    <td class="px-6 py-4 whitespace-nowrap text-right items-center text-sm font-medium">-->
+<!--                                        &lt;!&ndash; Ações para cada anexo &ndash;&gt;-->
+<!--                                        <div class="flex items-center">-->
+<!--                                            <AttachmentDialog :attachment="attachment" @remove="removeAttachment" />-->
+<!--                                        </div>-->
+<!--                                    </td>-->
+<!--                                </tr>-->
+<!--                                </tbody>-->
+<!--                            </table>-->
+<!--                        </div>-->
                 </div>
                 </div>
                 <!-- Modal de confirmação de exclusão -->
@@ -2275,7 +2011,7 @@ debouncedWatch(
                     <button
                         type="button"
                         @click="closeEmployeeForm()"
-                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        class="btn-neutral"
                     >
                         Cancelar
                     </button>
@@ -2284,7 +2020,7 @@ debouncedWatch(
                         v-if="!newEmployee"
                         type="button"
                         @click="saveEmployee"
-                        class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700"
+                        class="btn-primary"
                     >
                         Salvar
                     </button>

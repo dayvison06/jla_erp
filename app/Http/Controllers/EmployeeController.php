@@ -8,6 +8,7 @@ use App\Services\EmployeeServices;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -48,38 +49,48 @@ class EmployeeController extends Controller
 
     public function store (EmployeeRequest $request) : RedirectResponse
     {
+
         $payload = $request->except('attachments');
         Log::info('Recebendo dados para cadastro de funcionário', ['payload' => $payload,]);
+        $data = array_filter($payload, fn($value) => !is_array($value));
 
-        $employee = Employee::create($payload);
-        Log::info('Funcionário criado com sucesso: ' . $employee->id);
+        try {
+            DB::transaction(function () use ($data, $request, &$employee) {
+                $employee = Employee::create($data);
+                app(EmployeeServices::class)->processDependents($employee, $request->dependents ?? []);
+                app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
+            });
 
-        if ($request->attachments) {
-            foreach ($request->file('attachments') as $file) {
-                $file = $file['file'];
-                $path = $file->store('employees', 'public');
-                $employee->attachments()->create([
-                    'employee_id' => $employee->id,
-                    'name' => $file->getClientOriginalName(),
-                    'type' => $file->getMimeType(),
-                    'path' => $path,
-                    'size' => $file->getSize(),
-                    'uploaded_by' => auth()->id(),
-                ]);
+            Log::info('Funcionário criado com sucesso: ' . $employee->id);
+
+            if ($request->attachments) {
+                foreach ($request->file('attachments') as $file) {
+                    $file = $file['file'];
+                    $path = $file->store('employees', 'public');
+                    $employee->attachments()->create([
+                        'employee_id' => $employee->id,
+                        'name' => $file->getClientOriginalName(),
+                        'type' => $file->getMimeType(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'uploaded_by' => auth()->id(),
+                    ]);
+                }
             }
-        }
 
-        if ($request->has('dependents')) {
-            foreach ($request->dependents as $dependent) {
-                $employee->dependents()->create($dependent);
-            }
+            return redirect()->route('employees.index')->with('notify', [
+                'type' => 'success',
+                'title' => 'Funcionário Adicionado',
+                'message' => 'O funcionário ' . $employee->name . ' foi adicionado com sucesso.',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao criar funcionário: ' . $e->getMessage());
+            return redirect()->back()->with('notify', [
+                'type' => 'error',
+                'title' => 'Erro',
+                'message' => 'Não foi possível criar o funcionário.',
+            ])->withInput();
         }
-
-        return redirect()->route('employees.index')->with('notify', [
-            'type' => 'success',
-            'title' => 'Funcionário Adicionado',
-            'message' => 'O funcionário ' . $employee->name . ' foi adicionado com sucesso.',
-        ]);
     }
 
     public function show ($cpf, Employee $employee) : Response
@@ -141,6 +152,26 @@ class EmployeeController extends Controller
             'type' => 'success',
             'title' => 'Arquivos Enviados',
             'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
+        ]);
+    }
+
+    public function deactivate(Request $request, Employee $employee) : Response
+    {
+        try {
+            $findEmployee = $employee->where('cpf', $request['cpf'])
+                ->first();
+            $findEmployee->status = 'inactive';
+            $findEmployee->save();
+
+            return Inertia::render('Employees', ['employee' => $findEmployee]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao desativar funcionário: ' . $e->getMessage());
+        }
+
+        return Inertia::render('Employees')->with('notify', [
+            'type' => 'error',
+            'title' => 'Erro',
+            'message' => 'Não foi possível desativar o funcionário.',
         ]);
     }
 }

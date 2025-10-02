@@ -18,7 +18,7 @@ export interface Employee {
     mother_name: string;
     father_name: string;
     photo: string | null;
-    status: 'active' | 'inactive' | 'vacation' | 'leave' | 'terminated';
+    status: 'ativo' | 'inativo' | 'ferias' | 'afastado' | 'demitido';
 
     ctps_number: string;
     ctps_series: string;
@@ -83,6 +83,7 @@ interface Dependent {
 }
 
 interface Attachment {
+    id: number,
     employee_id: number;
     name: string;
     type: string;

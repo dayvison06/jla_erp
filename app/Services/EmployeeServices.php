@@ -2,17 +2,22 @@
 
 namespace App\Services;
 
+use App\Models\Employee\Benefit;
 use App\Models\Employee\Employee;
 
 class EmployeeServices
 {
 
-    public function processBenefits(array $benefits): array
+    public function processBenefits(Employee $employee, array $benefits): void
     {
-        // Example processing: filter out invalid benefits
-        return array_filter($benefits, function ($benefit) {
-            return isset($benefit['name']) && !empty($benefit['name']);
-        });
+      $benefitsFromDB = Benefit::all()->keyBy('name');
+      $benefitsToEmployee = [];
+      foreach ($benefits as $benefit) {
+          if (isset($benefitsFromDB[$benefit])) {
+              $benefitsToEmployee[] = $benefitsFromDB[$benefit]->id;
+          }
+      }
+        $employee->benefits()->sync($benefitsToEmployee);
     }
 
     public function processDependents(Employee $employee, array $dependents): void
