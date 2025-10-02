@@ -40,13 +40,17 @@ class EmployeeController extends Controller
 
         $employees = $query->orderBy('name', 'ASC')->paginate(25);
 
-        return Inertia::render('Employees', [
+        return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,
             // outros dados
         ]);
 
     }
 
+    public function create()
+    {
+        return Inertia::render('modules/employees/CreateEmployee');
+    }
     public function store (EmployeeRequest $request) : RedirectResponse
     {
 
