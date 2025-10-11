@@ -16,10 +16,11 @@ class Employee extends Model
         'nationality',
         'birthplace',
         'cpf',
-        'cnpj',
         'rg',
+        'cnpj',
         'issuing_agency',
         'issue_date',
+        'education_level',
         'voter_registration',
         'military_certificate',
         'mother_name',
@@ -51,27 +52,20 @@ class Employee extends Model
         'agency',
         'account',
         'account_type',
+        'pix_key_type',
         'pix_key',
-        'role',
-        'department',
         'contract_type',
         'admission_date',
         'termination_date',
         'salary',
-        'work_schedule',
         'last_exam_date',
         'next_exam_date',
         'aso_result',
         'allergies',
         'blood_type',
         'accident_history',
-        'escolarity',
-        'courses',
-        'certifications',
-        'experience',
-        'benefits',
-        'dependents',
-        'attachments',
+        'additional_info',
+        'deleted_at',
     ];
 
     protected $casts = [
@@ -95,17 +89,17 @@ class Employee extends Model
 
     public function benefits() : BelongsToMany
     {
-        return $this->belongsToMany(Benefit::class, 'employee_has_benefits', 'employee_id', 'benefit_id');
+        return $this->belongsToMany(Benefit::class, 'employee_benefit', 'employee_id', 'benefit_id');
     }
 
     public function attachments() : HasMany
     {
-        return $this->hasMany(Attachment::class);
+        return $this->hasMany(Attachment::class, 'employee_id', 'id');
     }
 
-    public function roles() : BelongsToMany
+    public function job_roles() : BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'employee_has_roles', 'employee_id', 'role_id')
+        return $this->belongsToMany(Role::class, 'employee_job_role', 'employee_id', 'role_id')
             ->withPivot('start_date', 'end_date')->withTimestamps();
     }
 }

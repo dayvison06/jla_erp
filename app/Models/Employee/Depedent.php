@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Depedent extends Model
 {
-    protected $table = 'employee_dependents';
+    protected $table = 'dependents';
 
     protected $fillable = [
         'employee_id',

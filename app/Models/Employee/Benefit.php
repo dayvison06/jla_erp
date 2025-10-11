@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Benefit extends Model
 {
-    protected $table = 'employee_benefits';
+    protected $table = 'benefits';
 
     protected $fillable = [
         'name',
@@ -17,6 +17,6 @@ class Benefit extends Model
 
    public function employees() : BelongsToMany
    {
-       return $this->belongsToMany(Employee::class, 'employee_has_benefits', 'benefit_id', 'employee_id');
+       return $this->belongsToMany(Employee::class, 'employee_benefit', 'benefit_id', 'employee_id');
    }
 }
