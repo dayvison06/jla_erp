@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from "@/layouts/AppLayout.vue";
 import CreateEmployee from '@/pages/modules/employees/CreateEmployee.vue';
-import Cards from '@/components/employees/Cards.vue';
+import Cards from '@/pages/modules/employees/Cards.vue';
 import ListEmployees from '@/pages/modules/employees/ListEmployees.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useToast } from '@/composables/useToast';
@@ -29,7 +29,6 @@ import {
 import type { BreadcrumbItem } from "@/types";
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
-import EmployeeManager from '@/components/employees/EmployeeManager.vue';
 import { toast } from 'vue-sonner';
 
 // Composables e serviços
@@ -62,7 +61,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // Estados reativos para controle da UI
 const newEmployee = ref(false) // Indica se o formulário é para um novo funcionário
-const showEmployeeForm = ref(false) // Controla a exibição do formulário de funcionário
 const showDeleteModal = ref(false) // Controla a exibição do modal de exclusão
 const employeeToDelete = ref<Employee | null>(null) // Funcionário a ser excluído
 const isDragging = ref(false) // Indica se um arquivo está sendo arrastado sobre a área de drop
@@ -174,16 +172,11 @@ function loadEmployees() {
                     </button>
                 </div>
             </header>
-            <Cards v-if="!showEmployeeForm"
-                   :all-employees="employees"
+            <Cards :all-employees="employees"
             />
             <!-- Seção de listagem de funcionários -->
-            <ListEmployees v-if="!showEmployeeForm"
-                             :listEmployees="employees"
+            <ListEmployees :listEmployees="employees"
             />
-
-            <!-- Formulário de funcionário, visível ao criar ou editar -->
-            <CreateEmployee v-else/>
 
         </main>
     </AppLayout>

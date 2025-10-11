@@ -102,7 +102,7 @@ class EmployeeController extends Controller
         $findEmployee = $employee->where('cpf', $cpf)
             ->with('attachments')
             ->first();
-        return Inertia::render('Employees', ['employee' => $findEmployee]);
+        return Inertia::render('modules/employees/ShowEmployee', ['employee' => $findEmployee]);
     }
 
     public function update(FormRequest $request, $cpf): Response
@@ -118,7 +118,7 @@ class EmployeeController extends Controller
             $this->employeeServices->processDependents($employee, $payload['dependents'] ?? []);
             $employee->benefits()->update($payload['benefits']);
             // Atualizar outros relacionamentos conforme necessário
-            return Inertia::render('Employees', ['employee' => $employee])->with('notify', [
+            return Inertia::render('modules/employees/ShowEmployee', ['employee' => $employee])->with('notify', [
                 'type' => 'success',
                 'title' => 'Funcionário Atualizado',
                 'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
@@ -126,7 +126,7 @@ class EmployeeController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('Erro ao atualizar funcionário: ' . $e->getMessage());
-            return Inertia::render('Employees', ['employee' => $employee])->with('notify', [
+            return Inertia::render('modules/employees/ShowEmployee', ['employee' => $employee])->with('notify', [
                 'type' => 'error',
                 'title' => 'Erro',
                 'message' => 'Não foi possível atualizar o funcionário.',

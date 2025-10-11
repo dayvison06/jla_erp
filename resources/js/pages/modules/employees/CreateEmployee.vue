@@ -19,7 +19,7 @@ import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive } from 'vue';
 import { debouncedWatch} from '@vueuse/core';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 
 // Objeto reativo para os dados do formulário do funcionário

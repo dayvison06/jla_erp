@@ -5,7 +5,7 @@ import type { Employee } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { debouncedWatch} from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
-import {FileSpreadsheet, Filter, Search} from 'lucide-vue-next'
+import { FileSpreadsheet, Filter, Search, ChevronDown, LayoutGrid, List } from 'lucide-vue-next';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,6 +18,7 @@ const props = defineProps<{
     listEmployees: Employee[]
 }>()
 
+const viewMode = ref<'list' | 'grid'>('list');
 const emit = defineEmits(['showEmployee', 'deactivateEmployee']);
 const employees = ref<Employee[]>(props.listEmployees)
 const { showToast } = useToast();
@@ -221,6 +222,7 @@ const formatDate = (dateString: string) => {
  * @returns {Promise<void>}
  */
 async function showEmployeeByCPF(cpf: string) {
+    cpf = cpf.replace(/\D/g, ''); // Remove formatação do CPF
     router.get(`/funcionarios/${cpf}`, {
     }, {
         preserveState: true,
@@ -366,35 +368,74 @@ debouncedWatch([searchQuery], () => {
                         v-model="searchQuery"
                         type="text"
                         placeholder="Buscar por nome ou CPF..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>
-
-            <div class="flex gap-4 items-end">
+            <div class="flex gap-4">
                 <button class="btn-primary flex items-center gap-2" @click="showAdvancedFilters = !showAdvancedFilters">
                     <Filter class="w-4 h-4" />
                     Filtrar
                 </button>
                 <button
                     @click="exportSelected"
-                    class="bg-gray-100 text-gray-700  px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="bg-gray-100 text-gray-700  px-4 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="selectedEmployees.length === 0"
                 >
                     <div class="flex items-center gap-2">
-                        <FileSpreadsheet class="w-5 h-5" />
+                        <FileSpreadsheet class="w-4 h-4" />
                         Exportar
                     </div>
                 </button>
             </div>
+            <div class="flex items-center gap-2 justify-end md:col-span-2">
+                <div class="border rounded-md p-0.5 mr-2 flex gap-1">
+                  <button
+                    data-slot="button"
+                    :class="[
+                      'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
+                      viewMode === 'list' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
+                    ]"
+                    @click="viewMode = 'list'"
+                  >
+                    <List class="h-4 w-4" />
+                  </button>
+                  <button
+                    data-slot="button"
+                    :class="[
+                      'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
+                      viewMode === 'grid' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
+                    ]"
+                    @click="viewMode = 'grid'"
+                  >
+                    <LayoutGrid class="h-4 w-4" />
+                  </button>
+                </div>
+                <label
+                    data-slot="label"
+                    class="font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-xs text-muted-foreground"
+                >
+                    Por página:
+                </label>
+                <button
+                    type="button"
+                    role="combobox"
+                    aria-controls="radix-:rm:"
+                    aria-expanded="false"
+                    aria-autocomplete="none"
+                    dir="ltr"
+                    data-state="closed"
+                    class="flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
+                >
+                    <span style="pointer-events: none;">10</span>
+                    <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
+                </button>
+            </div>
         </div>
-    </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-
         <!-- Filtros Avançados (Expansível) -->
         <div
             v-show="showAdvancedFilters"
-            class="mb-6 p-4 rounded-lg shadown-md transition-all duration-300"
+            class="rounded-lg border border-gray-300 p-4 shadown-md transition-all duration-300"
         >
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Filtro por Departamento -->
@@ -463,9 +504,10 @@ debouncedWatch([searchQuery], () => {
                 </button>
             </div>
         </div>
-
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <!-- Tabela de Funcionários -->
-        <div class="overflow-x-auto">
+        <div v-if="viewMode === 'list'" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                 <tr>
@@ -586,6 +628,51 @@ debouncedWatch([searchQuery], () => {
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+                v-for="employee in paginatedEmployees"
+                :key="employee.id"
+                class="bg-white rounded-lg shadow p-6 flex flex-col group hover:shadow-lg transition-shadow"
+            >
+                <div class="flex items-center mb-4">
+                    <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
+          <span class="text-lg font-bold text-gray-800">
+            {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
+          </span>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-base font-semibold text-gray-900">{{ employee.name }}</div>
+                        <div class="text-sm text-gray-500">{{ employee.cpf }}</div>
+                    </div>
+                </div>
+                <div class="mb-2 text-sm text-gray-700">
+                    <span class="font-medium">Função:</span> {{ employee.role }}
+                </div>
+                <div class="mb-2 text-sm text-gray-700">
+                    <span class="font-medium">Departamento:</span> {{ employee.department }}
+                </div>
+                <div class="mb-2 text-sm text-gray-700">
+                    <span class="font-medium">Admissão:</span> {{ formatDate(employee.admission_date) }}
+                </div>
+                <div class="mb-2">
+        <span
+            class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+            :class="getStatusColor(employee.status)"
+        >
+          {{ getStatusText(employee.status) }}
+        </span>
+                </div>
+                <div class="flex gap-2 mt-4">
+                    <button @click="showEmployeeByCPF(employee.cpf)" class="btn-primary flex items-center gap-1">
+                        <EditIcon class="h-4 w-4" /> Editar
+                    </button>
+                    <button @click="emit('deactivateEmployee', employee.cpf.replace(/\D/g, ''))" class="btn-secondary flex items-center gap-1">
+                        <ShieldBan class="h-4 w-4" /> Desativar
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Paginação -->

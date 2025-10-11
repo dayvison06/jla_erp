@@ -189,11 +189,11 @@
 /*Botões customizados*/
 
 .btn-primary {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer rounded-lg py-2 px-4 transition-colors duration-200;
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer rounded-lg py-1.5 px-3 transition-colors duration-200;
 }
 
 .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 cursor-pointer rounded-lg py-2 px-4 font-semibold transition-colors duration-200;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 cursor-pointer rounded-lg py-1.5 px-3 font-semibold transition-colors duration-200;
 }
 
 .text-primary {
