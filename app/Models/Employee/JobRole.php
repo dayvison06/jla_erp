@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
-    protected $table = 'employee_roles';
+    protected $table = 'job_roles';
 
     protected $fillable = [
         'name',
