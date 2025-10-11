@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EmployeeRequest;
+use App\Models\Employee\Departament;
 use App\Models\Employee\Employee;
+use App\Models\Employee\JobRole;
 use App\Services\EmployeeServices;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +27,8 @@ class EmployeeController extends Controller
     public function index(Request $request) : Response
     {
         $query = Employee::query();
+        $jobRoles = JobRole::all();
+        $departments = Departament::all();
 
         if ($request->filled('search')) {
             if (is_numeric(preg_replace('/\D/', '', $request->search))) {
@@ -38,10 +42,24 @@ class EmployeeController extends Controller
             $query->where('status', $request->status);
         }
 
-        $employees = $query->orderBy('name', 'ASC')->paginate(25);
+        if ($request->filled('department') && $request->department !== 'all') {
+            $query->where('department', $request->department);
+        }
+
+        if($request->filled('per_page') && is_numeric($request->per_page)) {
+            $perPage = (int) $request->per_page;
+        } else {
+            $perPage = 10; // valor padrão
+        }
+
+        $employees = $query->select(['name', 'email', 'cpf', 'department', 'status', 'admission_date'],)
+            ->orderBy('name', 'ASC')
+            ->paginate($perPage);
 
         return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,
+            'job_roles' => $jobRoles,
+            'departments' => $departments,
             // outros dados
         ]);
 
