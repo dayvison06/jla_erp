@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('cnpj', 14)->nullable();
             $table->string('issuing_agency', 20)->nullable();
             $table->date('issue_date')->nullable();
-            $table->enum('escolarity', ['Ensino Fundamental', 'Ensino Médio', 'Ensino Superior Incompleto', 'Ensino Superior Completo', 'Pós-Graduação (Especialização/MBA)', 'Mestrado', 'Doutorado'])->nullable();
+            $table->enum('education_level', ['Ensino Fundamental', 'Ensino Médio', 'Ensino Superior Incompleto', 'Ensino Superior Completo', 'Pós-Graduação (Especialização/MBA)', 'Mestrado', 'Doutorado'])->nullable();
             $table->string('voter_registration', 20)->nullable();
             $table->string('military_certificate', 20)->nullable();
             $table->string('mother_name', 100)->nullable();
@@ -62,16 +62,14 @@ return new class extends Migration
             $table->string('agency')->nullable();
             $table->string('account')->nullable();
             $table->string('account_type')->nullable();
+            $table->enum('pix_key_type', ['cpf', 'cnpj', 'email', 'phone', 'random'])->nullable();
             $table->string('pix_key')->nullable();
 
             // Dados contratuais
-            $table->string('role')->nullable();
-            $table->string('department')->nullable();
             $table->string('contract_type')->nullable();
             $table->date('admission_date')->nullable();
             $table->date('termination_date')->nullable();
             $table->decimal('salary', 10, 2)->nullable();
-            $table->string('work_schedule')->nullable();
 
             // Health and Safety
             $table->date('last_exam_date')->nullable();
@@ -80,50 +78,24 @@ return new class extends Migration
             $table->text('allergies')->nullable();
             $table->string('blood_type', 5)->nullable();
             $table->text('accident_history')->nullable();
+            $table->text('additional_info')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
         });
 
-        Schema::create('employee_benefits', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->boolean('active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('employee_roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->decimal('base_salary', 10, 2);
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('employee_has_roles', function (Blueprint $table) {
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->foreignId('role_id')->constrained('employee_roles')->onDelete('cascade');
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('employee_has_benefits', function (Blueprint $table) {
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->foreignId('benefit_id')->constrained('employee_benefits')->onDelete('cascade');
-            $table->timestamps();
-        });
-
-        Schema::create('employee_departaments', function (Blueprint $table) {
+        Schema::create('attachments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->string('name');
-            $table->text('description')->nullable();
+            $table->string('type');
+            $table->text('path');
+            $table->bigInteger('size');
+            $table->unsignedBigInteger('uploaded_by')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('employee_dependents', function (Blueprint $table) {
+        Schema::create('dependents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->string('name');
@@ -139,14 +111,48 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('employee_attachments', function (Blueprint $table) {
+        Schema::create('benefits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->string('name');
-            $table->string('type');
-            $table->text('path');
-            $table->bigInteger('size');
-            $table->unsignedBigInteger('uploaded_by')->nullable();
+            $table->text('description')->nullable();
+            $table->boolean('active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('employee_benefit', function (Blueprint $table) {
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
+            $table->foreignId('benefit_id')->constrained('benefits')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        Schema::create('job_roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->decimal('base_salary', 10, 2);
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('employee_job_role', function (Blueprint $table) {
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
+            $table->foreignId('role_id')->constrained('job_roles')->onDelete('cascade');
+            $table->primary(['employee_id', 'role_id']);
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('departments', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('employee_department', function (Blueprint $table) {
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
+            $table->foreignId('department_id')->constrained('departments')->onDelete('cascade');
+            $table->primary(['employee_id', 'department_id']);
             $table->timestamps();
         });
     }
@@ -156,13 +162,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_job_histories');
-        Schema::dropIfExists('employee_has_benefits');
-        Schema::dropIfExists('employee_roles');
-        Schema::dropIfExists('employee_attachments');
-        Schema::dropIfExists('employee_documents');
-        Schema::dropIfExists('employee_dependents');
-        Schema::dropIfExists('employee_benefits');
+        Schema::dropIfExists('employee_department');
+        Schema::dropIfExists('departments');
+        Schema::dropIfExists('employee_job_role');
+        Schema::dropIfExists('job_roles');
+        Schema::dropIfExists('employee_benefit');
+        Schema::dropIfExists('benefits');
+        Schema::dropIfExists('dependents');
+        Schema::dropIfExists('attachments');
         Schema::dropIfExists('employees');
     }
 };
