@@ -164,7 +164,7 @@ function loadEmployees() {
                 <div class="flex items-center gap-3">
                     <!-- Botão para adicionar novo funcionário -->
                     <button
-                        @click="newEmployeeButtonClick()"
+                        @click="router.get('/funcionarios/criar')"
                         class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
                     >
                         <PlusIcon class="w-5 h-5 mr-2"/>

@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { Employee } from '@/types/Employees'
+import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { debouncedWatch} from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
@@ -15,12 +15,11 @@ import {
 import { BookUser, EditIcon, ShieldBan } from 'lucide-vue-next'
 
 const props = defineProps<{
-    listEmployees: Employee[]
+    listEmployees: EmployeeList[]
 }>()
 
 const viewMode = ref<'list' | 'grid'>('list');
-const emit = defineEmits(['showEmployee', 'deactivateEmployee']);
-const employees = ref<Employee[]>(props.listEmployees)
+const employees = ref(props.listEmployees)
 const { showToast } = useToast();
 
 interface Filters {
@@ -286,6 +285,11 @@ const deleteEmployee = () => {
 function searchEmployees() {
     router.get('/funcionarios', {
         search: searchQuery.value,
+        department: filters.value.department,
+        position: filters.value.position,
+        status: filters.value.status,
+        admissionDate: filters.value.admissionDate,
+        per_page: itemsPerPage.value, // Adiciona filtro para quantidade por página
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -417,25 +421,28 @@ debouncedWatch([searchQuery], () => {
                 >
                     Por página:
                 </label>
-                <button
-                    type="button"
-                    role="combobox"
-                    aria-controls="radix-:rm:"
-                    aria-expanded="false"
-                    aria-autocomplete="none"
-                    dir="ltr"
-                    data-state="closed"
-                    class="flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
-                >
-                    <span style="pointer-events: none;">10</span>
-                    <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
-                </button>
+               <DropdownMenu>
+                   <DropdownMenuTrigger as-child>
+                       <button
+                           type="button"
+                           class="flex items-center justify-between rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
+                       >
+                           <span style="pointer-events: none;">{{ itemsPerPage }}</span>
+                           <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
+                       </button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent align="end" class="min-w-24">
+                       <DropdownMenuItem @click="itemsPerPage = 10; searchEmployees()">10</DropdownMenuItem>
+                       <DropdownMenuItem @click="itemsPerPage = 25; searchEmployees()">25</DropdownMenuItem>
+                       <DropdownMenuItem @click="itemsPerPage = 50; searchEmployees()">50</DropdownMenuItem>
+                   </DropdownMenuContent>
+               </DropdownMenu>
             </div>
         </div>
         <!-- Filtros Avançados (Expansível) -->
         <div
-            v-show="showAdvancedFilters"
-            class="rounded-lg border border-gray-300 p-4 shadown-md transition-all duration-300"
+            v-if="showAdvancedFilters"
+            class="rounded-lg p-4 shadown-md transition-all duration-300 mt-4"
         >
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Filtro por Departamento -->
@@ -505,7 +512,7 @@ debouncedWatch([searchQuery], () => {
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Tabela de Funcionários -->
         <div v-if="viewMode === 'list'" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -616,7 +623,7 @@ debouncedWatch([searchQuery], () => {
                                         </div>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem :as-child="true">
-                                        <div class="block w-full text-secondary cursor-pointer" @click="emit('deactivateEmployee', employee.cpf.replace(/\D/g, ''))" as="button">
+                                        <div class="block w-full text-secondary cursor-pointer" @click="" as="button">
                                             <ShieldBan class="mr-2 h-4 w-4 text-secondary" />
                                             Desativar
                                         </div>
@@ -638,9 +645,9 @@ debouncedWatch([searchQuery], () => {
             >
                 <div class="flex items-center mb-4">
                     <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-          <span class="text-lg font-bold text-gray-800">
-            {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
-          </span>
+                      <span class="text-lg font-bold text-gray-800">
+                        {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
+                      </span>
                     </div>
                     <div class="ml-4">
                         <div class="text-base font-semibold text-gray-900">{{ employee.name }}</div>
@@ -657,18 +664,18 @@ debouncedWatch([searchQuery], () => {
                     <span class="font-medium">Admissão:</span> {{ formatDate(employee.admission_date) }}
                 </div>
                 <div class="mb-2">
-        <span
-            class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-            :class="getStatusColor(employee.status)"
-        >
-          {{ getStatusText(employee.status) }}
-        </span>
+                    <span
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                        :class="getStatusColor(employee.status)"
+                    >
+                      {{ getStatusText(employee.status) }}
+                    </span>
                 </div>
                 <div class="flex gap-2 mt-4">
                     <button @click="showEmployeeByCPF(employee.cpf)" class="btn-primary flex items-center gap-1">
                         <EditIcon class="h-4 w-4" /> Editar
                     </button>
-                    <button @click="emit('deactivateEmployee', employee.cpf.replace(/\D/g, ''))" class="btn-secondary flex items-center gap-1">
+                    <button @click="" class="btn-secondary flex items-center gap-1">
                         <ShieldBan class="h-4 w-4" /> Desativar
                     </button>
                 </div>
@@ -676,7 +683,7 @@ debouncedWatch([searchQuery], () => {
         </div>
 
         <!-- Paginação -->
-        <div class="flex items-center justify-between mt-6">
+        <div class="flex items-center justify-between mt-6 p-4">
             <div class="text-sm text-gray-700">
                 Mostrando {{ startIndex + 1 }} a {{ Math.min(endIndex, filteredEmployees.length) }} de {{ filteredEmployees.length }} funcionários
             </div>

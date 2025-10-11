@@ -22,6 +22,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 
+const breadcrumbs = [
+    { title: 'Funcionários', href: '/funcionarios' },
+    { title: 'Criar', href: '/funcionarios/create' },
+];
+
 // Objeto reativo para os dados do formulário do funcionário
 const formData = reactive<Employee>({
     name: '',

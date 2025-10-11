@@ -1,6 +1,15 @@
 import { File } from 'lucide-vue-next';
 
+export interface EmployeeList {
+    id: number;
+    name: string;
+    role: string;
+    department: string;
+    status: 'ativo' | 'inativo' | 'ferias' | 'afastado' | 'demitido';
+    admission_date: string;
+}
 export interface Employee {
+    id: number;
     name: string;
     birth_date: string;
     gender: string;
