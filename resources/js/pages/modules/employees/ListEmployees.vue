@@ -54,15 +54,6 @@ const columns = [
     { key: 'status', label: 'Status' }
 ]
 
-// Computadas
-const departments = computed(() => {
-    return [...new Set(employees.value.map(emp => emp.department))].sort()
-})
-
-const positions = computed(() => {
-    return [...new Set(employees.value.map(emp => emp.position))].sort()
-})
-
 const filteredEmployees = computed(() => {
     let filtered = employees.value
 

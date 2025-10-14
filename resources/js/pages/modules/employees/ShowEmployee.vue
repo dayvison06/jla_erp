@@ -582,9 +582,7 @@ const saveEmployee = () => {
  * @returns {void}
  */
 function closeEmployeeForm() {
-    showEmployeeForm.value = false;
-    resetForm();
-    router.get('/funcionarios', {  }, { preserveState: true, preserveScroll: true });
+    router.get('/funcionarios');
 }
 
 
