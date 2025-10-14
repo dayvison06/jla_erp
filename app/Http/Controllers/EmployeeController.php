@@ -52,9 +52,10 @@ class EmployeeController extends Controller
             $perPage = 10; // valor padrão
         }
 
-        $employees = $query->select(['name', 'email', 'cpf', 'department', 'status', 'admission_date'],)
-            ->orderBy('name', 'ASC')
-            ->paginate($perPage);
+      $employees = $query->with('department')
+          ->select(['name', 'email', 'cpf', 'status', 'admission_date'])
+          ->orderBy('name', 'ASC')
+          ->paginate($perPage);
 
         return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,

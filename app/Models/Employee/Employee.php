@@ -102,4 +102,9 @@ class Employee extends Model
         return $this->belongsToMany(Role::class, 'employee_job_role', 'employee_id', 'role_id')
             ->withPivot('start_date', 'end_date')->withTimestamps();
     }
+
+    public function department() : BelongsToMany
+    {
+        return $this->belongsToMany(Departament::class, 'employee_department', 'employee_id', 'department_id');
+    }
 }
