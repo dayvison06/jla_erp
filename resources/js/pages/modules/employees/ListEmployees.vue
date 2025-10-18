@@ -5,14 +5,13 @@ import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { debouncedWatch} from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
-import { FileSpreadsheet, Filter, Search, ChevronDown, LayoutGrid, List } from 'lucide-vue-next';
+import { FileSpreadsheet, Filter, Search, ChevronDown, LayoutGrid, List,  EditIcon, ShieldBan } from 'lucide-vue-next';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuGroup, DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { BookUser, EditIcon, ShieldBan } from 'lucide-vue-next'
 
 const props = defineProps<{
     listEmployees: EmployeeList[]
@@ -269,6 +268,8 @@ const deleteEmployee = () => {
 }
 
 
+console.log('Employees List:', employees.value);
+
 /**
  * Busca funcionários com base nos filtros de busca e status.
  * @returns {void}
@@ -351,10 +352,9 @@ debouncedWatch([searchQuery], () => {
 }, { debounce: 300 });
 </script>
 
-
 <template>
     <!-- Filters and Search -->
-    <div class="rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <section class="rounded-t-lg p-2 mb-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <div class="relative">
@@ -374,7 +374,7 @@ debouncedWatch([searchQuery], () => {
                 </button>
                 <button
                     @click="exportSelected"
-                    class="bg-gray-100 text-gray-700  px-4 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="bg-gray-100 text-gray-700  px-4 py-1 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="selectedEmployees.length === 0"
                 >
                     <div class="flex items-center gap-2">
@@ -385,26 +385,26 @@ debouncedWatch([searchQuery], () => {
             </div>
             <div class="flex items-center gap-2 justify-end md:col-span-2">
                 <div class="border rounded-md p-0.5 mr-2 flex gap-1">
-                  <button
-                    data-slot="button"
-                    :class="[
+                    <button
+                        data-slot="button"
+                        :class="[
                       'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
                       viewMode === 'list' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
                     ]"
-                    @click="viewMode = 'list'"
-                  >
-                    <List class="h-4 w-4" />
-                  </button>
-                  <button
-                    data-slot="button"
-                    :class="[
+                        @click="viewMode = 'list'"
+                    >
+                        <List class="h-4 w-4" />
+                    </button>
+                    <button
+                        data-slot="button"
+                        :class="[
                       'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
                       viewMode === 'grid' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
                     ]"
-                    @click="viewMode = 'grid'"
-                  >
-                    <LayoutGrid class="h-4 w-4" />
-                  </button>
+                        @click="viewMode = 'grid'"
+                    >
+                        <LayoutGrid class="h-4 w-4" />
+                    </button>
                 </div>
                 <label
                     data-slot="label"
@@ -412,22 +412,22 @@ debouncedWatch([searchQuery], () => {
                 >
                     Por página:
                 </label>
-               <DropdownMenu>
-                   <DropdownMenuTrigger as-child>
-                       <button
-                           type="button"
-                           class="flex items-center justify-between rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
-                       >
-                           <span style="pointer-events: none;">{{ itemsPerPage }}</span>
-                           <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
-                       </button>
-                   </DropdownMenuTrigger>
-                   <DropdownMenuContent align="end" class="min-w-24">
-                       <DropdownMenuItem @click="itemsPerPage = 10; searchEmployees()">10</DropdownMenuItem>
-                       <DropdownMenuItem @click="itemsPerPage = 25; searchEmployees()">25</DropdownMenuItem>
-                       <DropdownMenuItem @click="itemsPerPage = 50; searchEmployees()">50</DropdownMenuItem>
-                   </DropdownMenuContent>
-               </DropdownMenu>
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <button
+                            type="button"
+                            class="flex items-center justify-between rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
+                        >
+                            <span style="pointer-events: none;">{{ itemsPerPage }}</span>
+                            <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="min-w-24">
+                        <DropdownMenuItem @click="itemsPerPage = 10; searchEmployees()">10</DropdownMenuItem>
+                        <DropdownMenuItem @click="itemsPerPage = 25; searchEmployees()">25</DropdownMenuItem>
+                        <DropdownMenuItem @click="itemsPerPage = 50; searchEmployees()">50</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
         <!-- Filtros Avançados (Expansível) -->
@@ -441,7 +441,7 @@ debouncedWatch([searchQuery], () => {
                     <label class="block text-sm font-medium text-gray-700 mb-2">Departamento</label>
                     <select
                         v-model="filters.department"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="">Todos os departamentos</option>
                         <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
@@ -453,7 +453,7 @@ debouncedWatch([searchQuery], () => {
                     <label class="block text-sm font-medium text-gray-700 mb-2">Cargo</label>
                     <select
                         v-model="filters.position"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="">Todos os cargos</option>
                         <option v-for="pos in positions" :key="pos" :value="pos">{{ pos }}</option>
@@ -465,7 +465,7 @@ debouncedWatch([searchQuery], () => {
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select
                         v-model="filters.status"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="">Todos os status</option>
                         <option value="ativo">Ativo</option>
@@ -481,7 +481,7 @@ debouncedWatch([searchQuery], () => {
                     <input
                         v-model="filters.admissionDate"
                         type="date"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>
@@ -490,38 +490,39 @@ debouncedWatch([searchQuery], () => {
             <div class="flex gap-3 mt-4 pt-4 border-t border-gray-200">
                 <button
                     @click="clearFilters"
-                    class="px-2 py-1.5 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    class="px-2 py-1 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                     Limpar Filtros
                 </button>
                 <button
                     @click="applyFilters"
-                    class="px-2 py-1.5 btn-primary transition-colors"
+                    class="px-2 py-1 btn-primary transition-colors"
                 >
                     Aplicar Filtros
                 </button>
             </div>
         </div>
-    </div>
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    </section>
+
+    <section>
         <!-- Tabela de Funcionários -->
-        <div v-if="viewMode === 'list'" class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div v-if="viewMode === 'list'" class="relative overflow-x-auto shadow sm:rounded-lg">
+            <table class="table-auto w-full border-collapse text-left">
+                <thead class="bg-primary text-white uppercase  sticky top-0">
                 <tr>
-                    <th class="px-6 py-3 text-left">
+                    <th class="px-6 py-3">
                         <input
                             type="checkbox"
                             :checked="isAllSelected"
                             @change="toggleSelectAll"
-                            class="rounded border-gray-300 accent-primary focus:ring-primary"
+                            class="rounded border-gray-300 accent-red-100 focus:ring-primary"
                         />
                     </th>
                     <th
                         v-for="column in columns"
                         :key="column.key"
                         @click="sortBy(column.key)"
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        class="px-6 py-3 text-xs font-medium tracking-wider cursor-pointer transition-colors"
                     >
                         <div class="flex items-center gap-2">
                             {{ column.label }}
@@ -537,8 +538,7 @@ debouncedWatch([searchQuery], () => {
                             </svg>
                         </div>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ações
+                    <th class="px-3 py-3 text-xs font-medium tracking-wider">
                     </th>
                 </tr>
                 </thead>
@@ -546,7 +546,7 @@ debouncedWatch([searchQuery], () => {
                 <tr
                     v-for="employee in paginatedEmployees"
                     :key="employee.id"
-                    class="group hover:bg-gray-50 transition-colors"
+                    class="group bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
                     @mouseenter="setOpenDropdown(null)"
                 >
                     <td class="px-6 py-4">
@@ -583,21 +583,21 @@ debouncedWatch([searchQuery], () => {
                         {{ formatDate(employee.admission_date) }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-              <span
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                  :class="getStatusColor(employee.status)"
-              >
-                {{ getStatusText(employee.status) }}
-              </span>
+                      <span
+                          class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                          :class="getStatusColor(employee.status)"
+                      >
+                        {{ getStatusText(employee.status) }}
+                      </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <!--                         Menu de ações para cada funcionário-->
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
                                 <button @click="setOpenDropdown(employee.id)"
-                                        class="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-900 mr-3"
+                                        class="shadow-md border border-gray-200 rounded-md p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-900 mr-3"
                                         :class="openDropdown === employee.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
-                                    <BookUser class="w-5 h-5"/>
+                                    <List class="w-5 h-5"/>
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -628,11 +628,11 @@ debouncedWatch([searchQuery], () => {
             </table>
         </div>
 
-        <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div
                 v-for="employee in paginatedEmployees"
                 :key="employee.id"
-                class="bg-white rounded-lg shadow p-6 flex flex-col group hover:shadow-lg transition-shadow"
+                class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow"
             >
                 <div class="flex items-center mb-4">
                     <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -649,7 +649,7 @@ debouncedWatch([searchQuery], () => {
                     <span class="font-medium">Função:</span> {{ employee.role }}
                 </div>
                 <div class="mb-2 text-sm text-gray-700">
-                    <span class="font-medium">Departamento:</span> {{ employee.department }}
+                    <span class="font-medium">Departamento:</span> {{ employee.department[0] }}
                 </div>
                 <div class="mb-2 text-sm text-gray-700">
                     <span class="font-medium">Admissão:</span> {{ formatDate(employee.admission_date) }}
@@ -672,39 +672,38 @@ debouncedWatch([searchQuery], () => {
                 </div>
             </div>
         </div>
-
-        <!-- Paginação -->
-        <div class="flex items-center justify-between mt-6 p-4">
-            <div class="text-sm text-gray-700">
-                Mostrando {{ startIndex + 1 }} a {{ Math.min(endIndex, filteredEmployees.length) }} de {{ filteredEmployees.length }} funcionários
-            </div>
-            <div class="flex gap-2">
-                <button
-                    @click="previousPage"
-                    :disabled="currentPage === 1"
-                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                    Anterior
-                </button>
-                <span
-                    v-for="page in totalPages"
-                    :key="page"
-                    @click="currentPage = page"
-                    :class="[
+    </section>
+    <!-- Paginação -->
+    <div class="flex items-center justify-between default-box mt-6 p-4">
+        <div class="text-sm text-gray-700">
+            Mostrando {{ startIndex + 1 }} a {{ Math.min(endIndex, filteredEmployees.length) }} de {{ filteredEmployees.length }} funcionários
+        </div>
+        <div class="flex gap-2">
+            <button
+                @click="previousPage"
+                :disabled="currentPage === 1"
+                class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Anterior
+            </button>
+            <span
+                v-for="page in totalPages"
+                :key="page"
+                @click="currentPage = page"
+                :class="[
                         'px-3 py-2 text-sm rounded-lg cursor-pointer',
                         currentPage === page ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     ]"
-                >
+            >
                     {{ page }}
                 </span>
-                <button
-                    @click="nextPage"
-                    :disabled="currentPage === totalPages"
-                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                    Próxima
-                </button>
-            </div>
+            <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+                class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Próxima
+            </button>
         </div>
     </div>
 </template>
