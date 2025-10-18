@@ -8,7 +8,7 @@ import { ref, } from 'vue'
 import type { Employee } from '@/types/Employees';
 
 import {
-    PlusIcon,
+    HardHat,
     Users,
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
@@ -31,39 +31,35 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title='Funcionários'/>
     <!-- Layout principal da aplicação com breadcrumbs -->
     <AppLayout :breadcrumbs="breadcrumbs">
-        <main class="container mx-auto px-4 py-8">
+        <main class="mx-auto w-full py-8">
             <!-- Barra de progresso para uploads e outras operações -->
             <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
 
             <!-- Cabeçalho do módulo, visível apenas na listagem -->
-            <header v-if="!showEmployeeForm" class="text-black mb-6 p-6 rounded-lg shadow">
-                <div class="mx-auto flex items-start mb-4">
-                    <!-- Título e descrição do módulo -->
-                    <div class="flex flex-col flex-1 gap-4">
-                        <div class="flex items-center gap-2">
-                            <Users class="w-6 h-6"/>
-                            <h1 class="text-2xl font-bold mb-2">Funcionários</h1>
+            <header class="default-box mb-8">
+                <div class="p-8">
+                    <div class="flex items-start gap-6 mb-6">
+                        <!-- Ícone com destaque -->
+                        <div class="flex-shrink-0 w-12 h-12 bg-primary rounded-lg flex items-center justify-center shadow-md">
+                            <HardHat class="w-6 h-6 text-white"/>
                         </div>
-                        <p class="text-gray-600 text-sm">
-                            O módulo de funcionários permite cadastrar, editar e controlar colaboradores da empresa em um só lugar,
-                            facilitando a gestão de dados, permissões e status de cada funcionário.
-                        </p>
+
+                        <!-- Título e descrição do módulo -->
+                        <div class="flex-1 min-w-0">
+                            <h1 class="text-2xl font-semibold text-gray-900 mb-2 tracking-tight">
+                                Funcionários
+                            </h1>
+                            <p class="text-gray-600 text-base leading-relaxed">
+                                Gerencie o cadastro completo de colaboradores, controle permissões e acompanhe o status de cada funcionário em uma plataforma centralizada e eficiente.
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <!-- Ações do módulo -->
-                <div class="flex items-center gap-3">
-                    <!-- Botão para adicionar novo funcionário -->
-                    <button
-                        @click="router.get('/funcionarios/criar')"
-                        class="flex items-center px-3 py-1.5 btn-primary text-white rounded-md "
-                    >
-                        <PlusIcon class="w-5 h-5 mr-2"/>
-                        Novo Funcionário
-                    </button>
+                    <!-- Separador sutil -->
+                    <div class="border-t border-gray-100 mb-2"></div>
+
+                    <Cards :all-employees="employees" />
                 </div>
             </header>
-            <Cards :all-employees="employees"
-            />
             <!-- Seção de listagem de funcionários -->
             <ListEmployees :listEmployees="employees"
             />
