@@ -19,41 +19,22 @@ const inactiveEmployees = computed(() => employees.value.filter(emp => emp.statu
 <template>
     <div>
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Total de Funcionários</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ totalEmployees }}</p>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <Users class="w-6 h-6 text-blue-600" />
-                    </div>
-                </div>
+        <div class="flex gap-2">
+            <div class="flex gap-2 items-center p-2">
+                <Users class="w-5 h-5 text-gray-600" />
+                <p class="text-sm font-medium text-gray-600">Funcionários </p>
+                <span class="text-xl font-semibold text-gray-600">{{ totalEmployees }}</span>
+            </div>
+            <div class="flex gap-2 items-center p-2">
+                <UserCheck class="w-5 h-5 text-gray-600" />
+                <p class="text-sm font-medium text-gray-600">Ativos</p>
+                <span class="text-xl font-semibold text-gray-600">{{ activeEmployees }}</span>
             </div>
 
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Ativos</p>
-                        <p class="text-2xl font-bold text-green-600">{{ activeEmployees }}</p>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <UserCheck class="w-6 h-6 text-green-600" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Inativos</p>
-                        <p class="text-2xl font-bold text-red-600">{{ inactiveEmployees }}</p>
-                    </div>
-                    <div class="bg-red-100 p-3 rounded-full">
-                        <UserX class="w-6 h-6 text-red-600" />
-                    </div>
-                </div>
+            <div class="flex gap-2 items-center p-2">
+                <UserX class="w-5 h-5 text-gray-600" />
+                <p class="text-sm font-medium text-gray-600">Inativos</p>
+                <span class="text-xl font-semibold text-gray-600">{{ inactiveEmployees }}</span>
             </div>
         </div>
     </div>
