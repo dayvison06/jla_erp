@@ -88,11 +88,6 @@ const filteredEmployees = computed(() => {
     return filtered
 })
 
-const setOpenDropdown = (id: number | null) => {
-    openDropdown.value = id;
-};
-
-
 const totalPages = computed(() => {
     return Math.ceil(filteredEmployees.value.length / itemsPerPage.value)
 })
@@ -116,13 +111,14 @@ const isAllSelected = computed(() => {
 
 // Métodos
 const toggleEmployee = (id: number) => {
-    const index = selectedEmployees.value.indexOf(id)
-    if (index > -1) {
-        selectedEmployees.value.splice(index, 1)
+    const idx = selectedEmployees.value.indexOf(id);
+    if (idx === -1) {
+        selectedEmployees.value.push(id);
     } else {
-        selectedEmployees.value.push(id)
+        selectedEmployees.value.splice(idx, 1);
     }
-}
+    console.log('Selected Employees:', selectedEmployees.value);
+};
 
 const toggleSelectAll = () => {
     if (isAllSelected.value) {
@@ -546,13 +542,14 @@ debouncedWatch([searchQuery], () => {
                 <tr
                     v-for="employee in paginatedEmployees"
                     :key="employee.id"
-                    class="group bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    @mouseenter="setOpenDropdown(null)"
+                    class="group bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
+                    @click="showEmployeeByCPF(employee.cpf)"
                 >
                     <td class="px-6 py-4">
                         <input
                             type="checkbox"
                             :checked="selectedEmployees.includes(employee.id)"
+                            @click.stop
                             @change="toggleEmployee(employee.id)"
                             class="rounded border-gray-300 accent-primary focus:ring-primary"
                         />
@@ -590,39 +587,6 @@ debouncedWatch([searchQuery], () => {
                         {{ getStatusText(employee.status) }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <!--                         Menu de ações para cada funcionário-->
-                        <DropdownMenu>
-                            <DropdownMenuTrigger as-child>
-                                <button @click="setOpenDropdown(employee.id)"
-                                        class="shadow-md border border-gray-200 rounded-md p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-900 mr-3"
-                                        :class="openDropdown === employee.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
-                                    <List class="w-5 h-5"/>
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                                :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
-                                align="end"
-                                :side-offset="4"
-                            >
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem :as-child="true">
-                                        <div class="block w-full cursor-pointer" @click="showEmployeeByCPF(employee.cpf)" as="button">
-                                            <EditIcon class="mr-2 h-4 w-4" />
-                                            Editar
-                                        </div>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem :as-child="true">
-                                        <div class="block w-full text-secondary cursor-pointer" @click="" as="button">
-                                            <ShieldBan class="mr-2 h-4 w-4 text-secondary" />
-                                            Desativar
-                                        </div>
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -632,7 +596,8 @@ debouncedWatch([searchQuery], () => {
             <div
                 v-for="employee in paginatedEmployees"
                 :key="employee.id"
-                class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow"
+                class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow cursor-pointer"
+                @click="showEmployeeByCPF(employee.cpf)"
             >
                 <div class="flex items-center mb-4">
                     <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -661,14 +626,6 @@ debouncedWatch([searchQuery], () => {
                     >
                       {{ getStatusText(employee.status) }}
                     </span>
-                </div>
-                <div class="flex gap-2 mt-4">
-                    <button @click="showEmployeeByCPF(employee.cpf)" class="btn-primary flex items-center gap-1">
-                        <EditIcon class="h-4 w-4" /> Editar
-                    </button>
-                    <button @click="" class="btn-secondary flex items-center gap-1">
-                        <ShieldBan class="h-4 w-4" /> Desativar
-                    </button>
                 </div>
             </div>
         </div>

@@ -21,7 +21,7 @@ export interface Employee {
     rg: string;
     issuing_agency: string;
     issue_date: string;
-    escolarity: 'Ensino Fundamental' | 'Ensino Médio' | 'Ensino Superior Incompleto' | 'Ensino Superior Completo' | 'Pós-Graduação (Especialização/MBA)' | 'Mestrado' | 'Doutorado';
+    education_level: 'Ensino Fundamental' | 'Ensino Médio' | 'Ensino Superior Incompleto' | 'Ensino Superior Completo' | 'Pós-Graduação (Especialização/MBA)' | 'Mestrado' | 'Doutorado';
     voter_registration: string;
     military_certificate: string;
     mother_name: string;
@@ -57,6 +57,7 @@ export interface Employee {
     account: string;
     account_type: string;
     pix_key: string;
+    pix_key_type: string;
 
     role: string;
     department: string;
@@ -66,7 +67,6 @@ export interface Employee {
     salary: string;
     work_schedule: string;
     benefits: string[];
-    role_history: RoleHistory[];
 
     last_exam_date: string;
     next_exam_date: string;
@@ -74,6 +74,7 @@ export interface Employee {
     allergies: string;
     blood_type: string;
     accident_history: string;
+    additional_info: string;
 
     dependents: Dependent[];
     attachments: Attachment[];

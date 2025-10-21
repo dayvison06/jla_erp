@@ -5,7 +5,6 @@ import {
     TrashIcon,
     UploadCloudIcon,
     UploadIcon,
-    XIcon,
     UserIcon,
     BriefcaseBusiness,
     MapPinHouse,
@@ -22,6 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import EmployeeCachedDialog from "@/components/EmployeeCachedDialog.vue";
+import { Employee, Attachment } from '@/types/Employees';
+import { toast } from 'vue-sonner'
 
 onMounted(
     () => {
@@ -51,7 +52,7 @@ const formData = reactive<Employee>({
     rg: '',
     issuing_agency: '',
     issue_date: '',
-    escolarity: '',
+    education_level: '',
     voter_registration: '',
     military_certificate: '',
     mother_name: '',
@@ -449,6 +450,7 @@ const formatCEP = (e: Event) => {
     }
 
     formData.postal_code = value;
+    searchZipCode();
 }
 
 /**
@@ -534,7 +536,6 @@ const formatSalary = (e: Event) => {
  */
 const searchZipCode = async () => {
     const cep = formData.postal_code.replace(/\D/g, '');
-
     if (cep.length !== 8) return;
 
     toast.promise(
@@ -639,21 +640,6 @@ const getUpdatedTextFields = (original: Employee, updated: Employee) => {
 function closeEmployeeForm() {
     router.get('/funcionarios');
 }
-
-
-/**
- * Observa mudanças no CEP para buscar o endereço automaticamente.
- */
-debouncedWatch(
-    () => formData.postal_code,
-    (cep) => {
-        if (cep && cep.replace(/\D/g, '').length === 8) {
-
-            searchZipCode();
-        }
-    },
-    { debounce: 500 }
-);
 
 </script>
 
@@ -1236,6 +1222,22 @@ debouncedWatch(
                         </select>
                     </div>
 
+                    <!-- Campo: Tipo Chave PIX -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Tipo de Chave PIX</label>
+                        <select
+                            v-model="formData.pix_key_type"
+                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                        >
+                            <option value="">Selecione</option>
+                            <option value="cpf">CPF</option>
+                            <option value="email">E-mail</option>
+                            <option value="phone">Telefone</option>
+                            <option value="random">Chave Aleatória</option>
+                        </select>
+                        <p class="text-xs text-gray-500">CPF, e-mail, telefone ou chave aleatória</p>
+                    </div>
+
                     <!-- Campo: Chave PIX -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
@@ -1487,7 +1489,7 @@ debouncedWatch(
                     <button
                         @click="addDependent"
                         type="button"
-                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        class="btn-primary flex items-center"
                     >
                         <PlusIcon class="h-4 w-4 mr-1"/>
                         Adicionar
@@ -1502,8 +1504,7 @@ debouncedWatch(
                 <!-- Formulário para cada dependente -->
                 <div v-for="(dependent, index) in formData.dependents" :key="dependent.id"
                      class="border p-4 rounded-md mb-4 bg-white shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="font-medium">Dependente #{{ index + 1 }}</h4>
+                    <div class="flex justify-end items-center mb-4">
                         <!-- Botão para remover dependente -->
                         <button
                             @click="removeDependent(index)"

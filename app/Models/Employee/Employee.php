@@ -99,7 +99,8 @@ class Employee extends Model
 
     public function job_roles() : BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'employee_job_role', 'employee_id', 'role_id')
+        return $this->belongsToMany(JobRole::class, 'employee_job_role', 'employee_id', 'role_id')
+            ->wherePivotNull('end_date')
             ->withPivot('start_date', 'end_date')->withTimestamps();
     }
 

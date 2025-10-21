@@ -9,9 +9,16 @@ import type { Employee } from '@/types/Employees';
 
 import {
     HardHat,
-    Users,
+    PlusCircle,
+    Import
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 // Composables e serviços
 const page = usePage()
@@ -57,7 +64,35 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <!-- Separador sutil -->
                     <div class="border-t border-gray-100 mb-2"></div>
 
-                    <Cards :all-employees="employees" />
+                    <div class="flex justify-between items-center">
+                        <Cards :all-employees="employees" />
+                        <div class="flex gap-4">
+
+
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <button class="btn btn-primary flex items-center">
+                                            <Import class="w-4 h-4 mr-2"/>
+                                            Importar
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p class="tooltip-balon">Importa em massa usuários para o sistema através de planilha</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <button
+                                @click="router.get('/funcionarios/create')"
+                                class="btn btn-primary flex items-center"
+                            >
+                                <PlusCircle class="w-4 h-4 mr-2"/>
+                                Novo Funcionário
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
             </header>
             <!-- Seção de listagem de funcionários -->
