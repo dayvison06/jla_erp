@@ -5,19 +5,21 @@ import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { debouncedWatch} from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
-import { FileSpreadsheet, Filter, Search, ChevronDown, LayoutGrid, List,  EditIcon, ShieldBan } from 'lucide-vue-next';
+import { FileSpreadsheet, Search, Filter, ChevronDown, LayoutGrid, List,  EditIcon, ShieldBan } from 'lucide-vue-next';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuGroup, DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import FilterSidebar from '@/components/FilterSidebar.vue'
 
 const props = defineProps<{
     listEmployees: EmployeeList[]
 }>()
 
 const viewMode = ref<'list' | 'grid'>('list');
+const filterMode = ref(false)
 const employees = ref(props.listEmployees)
 const { showToast } = useToast();
 
@@ -364,10 +366,16 @@ debouncedWatch([searchQuery], () => {
                 </div>
             </div>
             <div class="flex gap-4">
-                <button class="btn-primary flex items-center gap-2" @click="showAdvancedFilters = !showAdvancedFilters">
+                <button class="btn-primary flex items-center gap-2" @click="filterMode = !filterMode">
                     <Filter class="w-4 h-4" />
-                    Filtrar
                 </button>
+                <FilterSidebar
+                    v-if="filterMode"
+                    @close="filterMode = false"
+                    @update="updateTask"
+                    @delete="deleteTask"
+                    @duplicate="duplicateTask"
+                />
                 <button
                     @click="exportSelected"
                     class="bg-gray-100 text-gray-700  px-4 py-1 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
