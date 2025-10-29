@@ -21,6 +21,7 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
     Route::post('/deactivate', [EmployeeController::class, 'deactivate']);
     Route::put('/{cpf}', [EmployeeController::class, 'update']);
     Route::post('/upload/{cpf}', [EmployeeController::class, 'uploadFiles'])->name('upload');
+    Route::post('/importar-csv', [EmployeeController::class, 'importCSV'])->name('import_csv');
 
 });
 

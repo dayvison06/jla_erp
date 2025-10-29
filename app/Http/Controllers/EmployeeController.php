@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EmployeeRequest;
+use App\Imports\EmployeesImport;
 use App\Models\Employee\Departament;
 use App\Models\Employee\Employee;
 use App\Models\Employee\JobRole;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeController extends Controller
 {
@@ -196,5 +198,59 @@ class EmployeeController extends Controller
             'title' => 'Erro',
             'message' => 'Não foi possível desativar o funcionário.',
         ]);
+    }
+
+    public function importCSV(Request $request, Employee $employee) : Response
+    {
+        $file = $request->file()['importFile'];
+        Excel::import(new EmployeesImport(), $file);
+        dd('opa');
+        try {
+            $file = $request->file()['importFile'];
+            $path = $file->getRealPath();
+
+            // Usando PhpSpreadsheet para ler arquivos XLSX/XLS
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+            $rows = $spreadsheet->getActiveSheet()->toArray();
+
+// Cabeçalho (primeira linha) e resto dos dados
+            $header = array_shift($rows);
+            $data = $rows;
+
+            $data = array_map('str_getcsv', file($path));
+            $header = array_shift($data);
+
+
+
+            foreach ($data as $row) {
+                $rowData = array_combine($header, $row);
+                dd($rowData);
+                // Processar cada linha e criar/atualizar funcionários
+//                Employee::updateOrCreate(
+//                    ['cpf' => $this->employeeServices->cleanCpf($rowData['cpf'])],
+//                    [
+//                        'name' => $rowData['name'],
+//                        'email' => $rowData['email'],
+//                        'department' => $rowData['department'],
+//                        'job_role' => $rowData['job_role'],
+//                        'status' => $rowData['status'],
+//                        // Outros campos conforme necessário
+//                    ]
+//                );
+            }
+
+            return Inertia::render('modules/employees/Employees')->with('notify', [
+                'type' => 'success',
+                'title' => 'Importação Concluída',
+                'message' => 'Os funcionários foram importados com sucesso.',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao importar CSV de funcionários: ' . $e->getMessage());
+            return Inertia::render('modules/employees/Employees')->with('notify', [
+                'type' => 'error',
+                'title' => 'Erro',
+                'message' => 'Não foi possível importar o arquivo CSV.',
+            ]);
+        }
     }
 }
