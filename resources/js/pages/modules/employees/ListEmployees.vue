@@ -208,9 +208,8 @@ const formatDate = (dateString: string) => {
  * @param {string} cpf - O CPF do funcionário.
  * @returns {Promise<void>}
  */
-async function showEmployeeByCPF(cpf: string) {
-    cpf = cpf.replace(/\D/g, ''); // Remove formatação do CPF
-    router.get(`/funcionarios/${cpf}`, {
+async function showEmployee(id: number) {
+    router.get(`/funcionarios/${id}`, {
     }, {
         preserveState: true,
         preserveScroll: true,
@@ -251,7 +250,7 @@ async function deactivateEmployee (cpf: string) {
 const deleteEmployee = () => {
     if (!employeeToDelete.value) return;
 
-    router.delete(`/funcionarios/${employeeToDelete.value.cpf.replace(/\D/g, '')}`, {
+    router.delete(`/funcionarios/${form}`, {
         preserveState: true,
         preserveScroll: true,
         onSuccess: () => {
@@ -551,7 +550,7 @@ debouncedWatch([searchQuery], () => {
                     v-for="employee in paginatedEmployees"
                     :key="employee.id"
                     class="group bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
-                    @click="showEmployeeByCPF(employee.cpf)"
+                    @click="showEmployee(employee.id)"
                 >
                     <td class="px-6 py-4">
                         <input
@@ -605,7 +604,7 @@ debouncedWatch([searchQuery], () => {
                 v-for="employee in paginatedEmployees"
                 :key="employee.id"
                 class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow cursor-pointer"
-                @click="showEmployeeByCPF(employee.cpf)"
+                @click="showEmployee(employee.id)"
             >
                 <div class="flex items-center mb-4">
                     <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">

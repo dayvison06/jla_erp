@@ -26,6 +26,7 @@ import { toast } from 'vue-sonner'
 const page = usePage();
 const employee: Employee = page.props.employee;
 const progressbar = ref(0);
+const isDragging = ref(true);
 const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
     { title: 'Visualizar', href: `/funcionarios/${employee?.cpf}` }
@@ -33,6 +34,7 @@ const breadcrumbs = [
 
 // Objeto reativo para os dados do formulário do funcionário
 const formData = reactive<Employee>({
+    id: '',
     name: '',
     birth_date: '',
     gender: '',
@@ -273,6 +275,7 @@ const handleFileUpload = (event: Event) => {
  * @returns {void}
  */
 const handleFileDrop = (event: DragEvent) => {
+    console.log('File drop event:', event);
     isDragging.value = false;
     if (!event.dataTransfer?.files) return;
     Array.from(event.dataTransfer.files).forEach(addFile);
@@ -284,7 +287,7 @@ const handleFileDrop = (event: DragEvent) => {
  */
 function uploadAttachments() {
 
-    router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
+    router.post(`/funcionarios/upload/${formData.id}`, formData, {
         forceFormData: true,
         onProgress: (event) => {
             if (event?.lengthComputable) {
@@ -536,7 +539,7 @@ const removeAttachment = (id: number) => {
  * @returns {void}
  */
 const saveEmployee = () => {
-    router.put(`/funcionarios/${formData.cpf.replace(/\D/g, '')}`, formData, {
+    router.put(`/funcionarios/${formData.id}`, formData, {
         preserveState: true,
         preserveScroll: true,
         onProgress: (event) => {

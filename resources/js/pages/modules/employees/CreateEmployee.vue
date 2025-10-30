@@ -33,7 +33,7 @@ onMounted(
 )
 
 const cacheDialog = ref(false);
-
+const isDragging = ref(true);
 const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
     { title: 'Criar', href: '/funcionarios/create' },
@@ -41,6 +41,7 @@ const breadcrumbs = [
 
 // Objeto reativo para os dados do formulário do funcionário
 const formData = reactive<Employee>({
+    id: '',
     name: '',
     birth_date: '',
     gender: '',
@@ -368,7 +369,7 @@ function uploadAttachments() {
     console.log('Uploading attachments...', newEmployee.value);
     if (newEmployee.value) return;
 
-    router.post(`/funcionarios/upload/${formData.cpf}`, formData, {
+    router.post(`/funcionarios/upload/${formData.id}`, formData, {
         forceFormData: true,
         onProgress: (event) => {
             if (event?.lengthComputable) {

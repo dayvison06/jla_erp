@@ -17,11 +17,12 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
     Route::get('/', [EmployeeController::class, 'index'])->name('index');
     Route::get('/criar', [EmployeeController::class, 'create'])->name('create');
     Route::post('/', [EmployeeController::class, 'store']);
-    Route::get('/{cpf}', [EmployeeController::class, 'show']);
+    Route::get('/{id}', [EmployeeController::class, 'show']);
     Route::post('/deactivate', [EmployeeController::class, 'deactivate']);
-    Route::put('/{cpf}', [EmployeeController::class, 'update']);
-    Route::post('/upload/{cpf}', [EmployeeController::class, 'uploadFiles'])->name('upload');
+    Route::put('/{id}', [EmployeeController::class, 'update']);
+    Route::post('/upload/{id}', [EmployeeController::class, 'uploadFiles'])->name('upload');
     Route::post('/importar-csv', [EmployeeController::class, 'importCSV'])->name('import_csv');
+    Route::get('/download/template', [EmployeeController::class, 'downloadTemplate']);
 
 });
 

@@ -118,22 +118,22 @@ class EmployeeController extends Controller
         }
     }
 
-    public function show ($cpf, Employee $employee) : Response
+    public function show ($id, Employee $employee) : Response
     {
-        $findEmployee = $employee->where('cpf', $cpf)
+        $findEmployee = $employee->where('id', $id)
             ->with('attachments')
             ->first();
         return Inertia::render('modules/employees/ShowEmployee', ['employee' => $findEmployee]);
     }
 
-    public function update(FormRequest $request, $cpf): Response
+    public function update(FormRequest $request, int $id): Response
     {
         $payload = $request->all();
         $data = array_filter($payload, fn($value) => !is_array($value));
 
         Log::info('Recebendo dados para atualização de funcionário', ['data' => $data,]);
-        $cpf = $this->employeeServices->cleanCpf($cpf);
-        $employee = Employee::where('cpf', $cpf)->firstOrFail();
+
+        $employee = Employee::where('id', $id)->firstOrFail();
         try {
             $employee->update($data);
             $this->employeeServices->processDependents($employee, $payload['dependents'] ?? []);
@@ -155,10 +155,9 @@ class EmployeeController extends Controller
         }
     }
 
-    public function uploadFiles(Request $request, $cpf) : RedirectResponse
+    public function uploadFiles(Request $request, int $id) : RedirectResponse
     {
-        $cpf = $this->employeeServices->cleanCpf($cpf);
-        $employee = Employee::where('cpf', $cpf)->firstOrFail();
+        $employee = Employee::where('id', $id)->firstOrFail();
 
         foreach ($request->file('attachments') as $file) {
             $file = $file['file'];
@@ -200,11 +199,17 @@ class EmployeeController extends Controller
         ]);
     }
 
+    public function downloadTemplate()
+    {
+        return response()->download(storage_path('app/templates/template_import_funcionarios.xlsx'), 'template_import_funcionarios.xlsx');
+        // ou: return Storage::download('templates/template.csv');
+    }
+
     public function importCSV(Request $request, Employee $employee) : Response
     {
         $file = $request->file()['importFile'];
         Excel::import(new EmployeesImport(), $file);
-        dd('opa');
+
         try {
             $file = $request->file()['importFile'];
             $path = $file->getRealPath();
