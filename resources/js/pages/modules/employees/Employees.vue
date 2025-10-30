@@ -20,7 +20,8 @@ import { Button } from '@/components/ui/button';
 import {
     HardHat,
     PlusCircle,
-    Import, UploadIcon
+    Import, UploadIcon,
+    TableProperties
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
 import {
@@ -29,6 +30,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Input } from '@/components/ui/input';
 
 // Composables e serviços
 const page = usePage()
@@ -76,20 +78,22 @@ const importFileUpload = (event: Event) => {
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="font-medium">Template de importação</p>
-                                <p class="text-sm text-gray-600">Formato CSV com colunas esperadas pelo sistema.</p>
+                                <p class="text-sm text-gray-600">Formato XLSX (Excel) com colunas esperadas pelo sistema.</p>
+                                <a href="/funcionarios/download/template" target="_blank" rel="noopener" download class="flex text-sm items-center text-secondary font-medium mt-2">
+                                    <Import class="w-4 h-4 mr-2" />
+                                    Baixar template
+                                </a>
                             </div>
-                            <a href="/funcionarios/template.csv" class="btn btn-outline flex items-center" download>
-                                <Import class="w-4 h-4 mr-2" />
-                                Baixar template
-                            </a>
                         </div>
 
                         <!-- Área de upload -->
-                        <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white btn-primary hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer">
-                            <UploadIcon class="h-4 w-4 mr-1" />
-                            Selecionar arquivos
-                            <input type="file" class="hidden" @change="importFileUpload" />
-                        </label>
+                        <div class="grid w-full max-w-sm items-center gap-1.5 mt-6">
+                            <div class="flex gap-2 items-center">
+                                <TableProperties class="w-4 h-4"/>
+                                <Label for="xlsx" class="text-sm">Planilha</Label>
+                            </div>
+                            <Input type="file" class=" " @change="importFileUpload" />
+                        </div>
                     </div>
 
                     <DialogFooter>
