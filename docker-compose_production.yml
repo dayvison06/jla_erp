@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    container_name: jla_erp_app
+    networks:
+      - jla_erp_net
+    volumes:
+  #      - ./app:/var/www/app
+      - ./docker/nginx/sites.conf:/etc/nginx/sites-enabled/default.conf
+    ports:
+      - "80:80"
+      - "443:443"
+networks:
+  jla_erp_net:
+    driver: bridge

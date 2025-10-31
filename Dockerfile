@@ -1,5 +1,17 @@
-ARG PHP_VERSION
+# Estágio 1: Builder de Assets (Frontend)
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
 FROM php:8.3.6-fpm-bullseye
+
+
+# Copia os assets compilados do estágio de build
+COPY --from=frontend-builder /app/public/build ./public/build
 
   ## Diretório da aplicação
 ARG APP_DIR=/var/www/app
