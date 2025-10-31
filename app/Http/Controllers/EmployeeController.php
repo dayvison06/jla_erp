@@ -63,6 +63,13 @@ class EmployeeController extends Controller
             'employees' => $employees,
             'job_roles' => $jobRoles,
             'departments' => $departments,
+            'status' => [
+                'active' => 'Ativo',
+                'inactive' => 'Inativo',
+                'vacation' => 'Em Férias',
+                'on_leave' => 'Licença Médica',
+                'terminated' => 'Desligado',
+            ],
             // outros dados
         ]);
 

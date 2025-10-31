@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, defineEmits } from 'vue'
 import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { debouncedWatch} from '@vueuse/core';
@@ -9,17 +9,19 @@ import { FileSpreadsheet, Search, Filter, ChevronDown, LayoutGrid, List,  EditIc
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup, DropdownMenuItem,
+    DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import FilterSidebar from '@/components/FilterSidebar.vue'
 
 const props = defineProps<{
-    listEmployees: EmployeeList[]
+    listEmployees: EmployeeList[],
+    viewMode: 'list' | 'grid'
 }>()
 
-const viewMode = ref<'list' | 'grid'>('list');
-const filterMode = ref(false)
+const emit = defineEmits<{
+    selectedEmployees: []
+}>()
+
 const employees = ref(props.listEmployees)
 const { showToast } = useToast();
 
@@ -31,7 +33,6 @@ interface Filters {
 }
 
 // Estado reativo
-const searchQuery = ref('')
 const showAdvancedFilters = ref(false)
 const selectedEmployees = ref<number[]>([])
 const openDropdown = ref<number | null>(null)
@@ -119,6 +120,7 @@ const toggleEmployee = (id: number) => {
     } else {
         selectedEmployees.value.splice(idx, 1);
     }
+    emit('selectedEmployees', selectedEmployees.value);
     console.log('Selected Employees:', selectedEmployees.value);
 };
 
@@ -169,32 +171,6 @@ const nextPage = () => {
     if (currentPage.value < totalPages.value) {
         currentPage.value++
     }
-}
-
-const exportSelected = () => {
-    const selectedData = employees.value.filter(emp => selectedEmployees.value.includes(emp.id))
-
-    const csvContent = [
-        ['Nome', 'CPF', 'Cargo', 'Departamento', 'Data de Admissão', 'Status'],
-        ...selectedData.map(emp => [
-            emp.name,
-            emp.cpf,
-            emp.position,
-            emp.department,
-            formatDate(emp.admissionDate),
-            getStatusLabel(emp.status)
-        ])
-    ].map(row => row.join(',')).join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', 'funcionarios_selecionados.csv')
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
 }
 
 const formatDate = (dateString: string) => {
@@ -268,32 +244,6 @@ const deleteEmployee = () => {
 console.log('Employees List:', employees.value);
 
 /**
- * Busca funcionários com base nos filtros de busca e status.
- * @returns {void}
- */
-function searchEmployees() {
-    router.get('/funcionarios', {
-        search: searchQuery.value,
-        department: filters.value.department,
-        position: filters.value.position,
-        status: filters.value.status,
-        admissionDate: filters.value.admissionDate,
-        per_page: itemsPerPage.value, // Adiciona filtro para quantidade por página
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        only: ['employees'],
-        onSuccess: (page) => {
-            employees.value = page.props.employees.data;
-            if (employees.value.length === 0) {
-                showToast('Nenhum funcionário encontrado', 'warning', 'A busca não retornou resultados.');
-            }
-        }
-
-    });
-}
-
-/**
  * Retorna a cor do status do funcionário.
  *
  * @param {string} status - O status do funcionário.
@@ -338,175 +288,9 @@ const getStatusText = (status: string) => {
             return 'Desconhecido';
     }
 }
-
-/**
- * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
- */
-debouncedWatch([searchQuery], () => {
-    // Aqui poderia implementar lógica adicional se necessário
-    searchEmployees()
-
-}, { debounce: 300 });
 </script>
 
 <template>
-    <!-- Filters and Search -->
-    <section class="rounded-t-lg p-2 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <div class="relative">
-                    <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary w-4 h-4" />
-                    <input
-                        v-model="searchQuery"
-                        type="text"
-                        placeholder="Buscar por nome ou CPF..."
-                        class="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                </div>
-            </div>
-            <div class="flex gap-4">
-                <button class="btn-primary flex items-center gap-2" @click="filterMode = !filterMode">
-                    <Filter class="w-4 h-4" />
-                </button>
-                <FilterSidebar
-                    v-if="filterMode"
-                    @close="filterMode = false"
-                    @update="updateTask"
-                    @delete="deleteTask"
-                    @duplicate="duplicateTask"
-                />
-                <button
-                    @click="exportSelected"
-                    class="bg-gray-100 text-gray-700  px-4 py-1 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    :disabled="selectedEmployees.length === 0"
-                >
-                    <div class="flex items-center gap-2">
-                        <FileSpreadsheet class="w-4 h-4" />
-                        Exportar
-                    </div>
-                </button>
-            </div>
-            <div class="flex items-center gap-2 justify-end md:col-span-2">
-                <div class="border rounded-md p-0.5 mr-2 flex gap-1">
-                    <button
-                        data-slot="button"
-                        :class="[
-                      'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
-                      viewMode === 'list' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
-                    ]"
-                        @click="viewMode = 'list'"
-                    >
-                        <List class="h-4 w-4" />
-                    </button>
-                    <button
-                        data-slot="button"
-                        :class="[
-                      'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
-                      viewMode === 'grid' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
-                    ]"
-                        @click="viewMode = 'grid'"
-                    >
-                        <LayoutGrid class="h-4 w-4" />
-                    </button>
-                </div>
-                <label
-                    data-slot="label"
-                    class="font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-xs text-muted-foreground"
-                >
-                    Por página:
-                </label>
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                        <button
-                            type="button"
-                            class="flex items-center justify-between rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
-                        >
-                            <span style="pointer-events: none;">{{ itemsPerPage }}</span>
-                            <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
-                        </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" class="min-w-24">
-                        <DropdownMenuItem @click="itemsPerPage = 10; searchEmployees()">10</DropdownMenuItem>
-                        <DropdownMenuItem @click="itemsPerPage = 25; searchEmployees()">25</DropdownMenuItem>
-                        <DropdownMenuItem @click="itemsPerPage = 50; searchEmployees()">50</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </div>
-        <!-- Filtros Avançados (Expansível) -->
-        <div
-            v-if="showAdvancedFilters"
-            class="rounded-lg p-4 shadown-md transition-all duration-300 mt-4"
-        >
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Filtro por Departamento -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Departamento</label>
-                    <select
-                        v-model="filters.department"
-                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="">Todos os departamentos</option>
-                        <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
-                    </select>
-                </div>
-
-                <!-- Filtro por Cargo -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Cargo</label>
-                    <select
-                        v-model="filters.position"
-                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="">Todos os cargos</option>
-                        <option v-for="pos in positions" :key="pos" :value="pos">{{ pos }}</option>
-                    </select>
-                </div>
-
-                <!-- Filtro por Status -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select
-                        v-model="filters.status"
-                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="">Todos os status</option>
-                        <option value="ativo">Ativo</option>
-                        <option value="inativo">Inativo</option>
-                        <option value="ferias">Férias</option>
-                        <option value="licenca">Licença</option>
-                    </select>
-                </div>
-
-                <!-- Filtro por Data de Admissão -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Data de Admissão</label>
-                    <input
-                        v-model="filters.admissionDate"
-                        type="date"
-                        class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                </div>
-            </div>
-
-            <!-- Botões de Ação dos Filtros -->
-            <div class="flex gap-3 mt-4 pt-4 border-t border-gray-200">
-                <button
-                    @click="clearFilters"
-                    class="px-2 py-1 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                    Limpar Filtros
-                </button>
-                <button
-                    @click="applyFilters"
-                    class="px-2 py-1 btn-primary transition-colors"
-                >
-                    Aplicar Filtros
-                </button>
-            </div>
-        </div>
-    </section>
-
     <section>
         <!-- Tabela de Funcionários -->
         <div v-if="viewMode === 'list'" class="relative overflow-x-auto shadow sm:rounded-lg">
@@ -555,7 +339,6 @@ debouncedWatch([searchQuery], () => {
                     <td class="px-6 py-4">
                         <input
                             type="checkbox"
-                            :checked="selectedEmployees.includes(employee.id)"
                             @click.stop
                             @change="toggleEmployee(employee.id)"
                             class="rounded border-gray-300 accent-primary focus:ring-primary"
