@@ -220,6 +220,10 @@
     @apply bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer rounded-md py-1 px-3 transition-colors duration-200;
 }
 
+.btn-primary-outline {
+    @apply rounded-md bg-white border border-primary text-primary px-2 py-1 flex items-center gap-2 hover:bg-gray-200 hover:text-primary transition-colors cursor-pointer duration-200;
+}
+
 .btn-secondary {
     @apply bg-secondary text-white hover:bg-secondary/90 cursor-pointer rounded-lg py-1 px-2 font-medium transition-colors duration-200;
 }
