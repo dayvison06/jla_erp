@@ -1,17 +1,9 @@
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineEmits } from 'vue'
+import { ref, computed, defineEmits } from 'vue'
 import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
-import { debouncedWatch} from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
-import { FileSpreadsheet, Search, Filter, ChevronDown, LayoutGrid, List,  EditIcon, ShieldBan } from 'lucide-vue-next';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 
 const props = defineProps<{
     listEmployees: EmployeeList[],
@@ -22,31 +14,14 @@ const emit = defineEmits<{
     selectedEmployees: []
 }>()
 
-const employees = ref(props.listEmployees)
+const paginatedEmployees = ref(props.listEmployees)
+console.log('Employees in ListEmployees.vue:', paginatedEmployees.value)
 const { showToast } = useToast();
 
-interface Filters {
-    department: string
-    position: string
-    status: string
-    admissionDate: string
-}
-
 // Estado reativo
-const showAdvancedFilters = ref(false)
 const selectedEmployees = ref<number[]>([])
-const openDropdown = ref<number | null>(null)
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
 const sortColumn = ref<string>('name')
 const sortDirection = ref<'asc' | 'desc'>('asc')
-
-const filters = ref<Filters>({
-    department: '',
-    position: '',
-    status: '',
-    admissionDate: ''
-})
 
 const columns = [
     { key: 'name', label: 'Nome' },
@@ -56,60 +31,9 @@ const columns = [
     { key: 'status', label: 'Status' }
 ]
 
-const filteredEmployees = computed(() => {
-    let filtered = employees.value
-
-    // Filtros avançados
-    if (filters.value.department) {
-        filtered = filtered.filter(emp => emp.department === filters.value.department)
-    }
-
-    if (filters.value.position) {
-        filtered = filtered.filter(emp => emp.position === filters.value.position)
-    }
-
-    if (filters.value.status) {
-        filtered = filtered.filter(emp => emp.status === filters.value.status)
-    }
-
-    if (filters.value.admissionDate) {
-        filtered = filtered.filter(emp => emp.admissionDate === filters.value.admissionDate)
-    }
-
-    // Ordenação
-    filtered.sort((a, b) => {
-        const aValue = a[sortColumn.value as keyof Employee]
-        const bValue = b[sortColumn.value as keyof Employee]
-
-        if (sortDirection.value === 'asc') {
-            return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
-        } else {
-            return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-        }
-    })
-
-    return filtered
-})
-
-const totalPages = computed(() => {
-    return Math.ceil(filteredEmployees.value.length / itemsPerPage.value)
-})
-
-const startIndex = computed(() => {
-    return (currentPage.value - 1) * itemsPerPage.value
-})
-
-const endIndex = computed(() => {
-    return startIndex.value + itemsPerPage.value
-})
-
-const paginatedEmployees = computed(() => {
-    return filteredEmployees.value.slice(startIndex.value, endIndex.value)
-})
-
 const isAllSelected = computed(() => {
-    return paginatedEmployees.value.length > 0 &&
-        paginatedEmployees.value.every(emp => selectedEmployees.value.includes(emp.id))
+    return paginatedEmployees.value.data.length > 0 &&
+        paginatedEmployees.value.data.every(emp => selectedEmployees.value.includes(emp.id))
 })
 
 // Métodos
@@ -120,22 +44,23 @@ const toggleEmployee = (id: number) => {
     } else {
         selectedEmployees.value.splice(idx, 1);
     }
-    emit('selectedEmployees', selectedEmployees.value);
+    emit('update:selectedEmployees', selectedEmployees.value);
     console.log('Selected Employees:', selectedEmployees.value);
 };
 
 const toggleSelectAll = () => {
     if (isAllSelected.value) {
         selectedEmployees.value = selectedEmployees.value.filter(id =>
-            !paginatedEmployees.value.some(emp => emp.id === id)
+            !paginatedEmployees.value.data.some(emp => emp.id === id)
         )
     } else {
-        paginatedEmployees.value.forEach(emp => {
+        paginatedEmployees.value.data.forEach(emp => {
             if (!selectedEmployees.value.includes(emp.id)) {
                 selectedEmployees.value.push(emp.id)
             }
         })
     }
+    emit('update:selectedEmployees', selectedEmployees.value);
 }
 
 const sortBy = (column: string) => {
@@ -146,21 +71,6 @@ const sortBy = (column: string) => {
         sortDirection.value = 'asc'
     }
 }
-
-const clearFilters = () => {
-    filters.value = {
-        department: '',
-        position: '',
-        status: '',
-        admissionDate: ''
-    }
-    searchQuery.value = ''
-}
-
-const applyFilters = () => {
-    currentPage.value = 1
-}
-
 const previousPage = () => {
     if (currentPage.value > 1) {
         currentPage.value--
@@ -179,9 +89,8 @@ const formatDate = (dateString: string) => {
 
 
 /**
- * Busca e exibe um funcionário pelo CPF.
- *
- * @param {string} cpf - O CPF do funcionário.
+ * Busca e exibe um funcionário
+ * @param {number} id - ID do funcionário a ser exibido.
  * @returns {Promise<void>}
  */
 async function showEmployee(id: number) {
@@ -189,7 +98,7 @@ async function showEmployee(id: number) {
     }, {
         preserveState: true,
         preserveScroll: true,
-        onSuccess: (page) => {
+        onSuccess: () => {
             // Check if the employee was found
         },
         onError: () => {
@@ -239,9 +148,6 @@ const deleteEmployee = () => {
         }
     });
 }
-
-
-console.log('Employees List:', employees.value);
 
 /**
  * Retorna a cor do status do funcionário.
@@ -295,15 +201,22 @@ const getStatusText = (status: string) => {
         <!-- Tabela de Funcionários -->
         <div v-if="viewMode === 'list'" class="relative overflow-x-auto shadow sm:rounded-lg">
             <table class="table-auto w-full border-collapse text-left">
-                <thead class="bg-primary text-white uppercase  sticky top-0">
+                <thead class="bg-gray-100 text-gray-800 uppercase sticky top-0 shadow-md">
                 <tr>
                     <th class="px-6 py-3">
-                        <input
-                            type="checkbox"
-                            :checked="isAllSelected"
-                            @change="toggleSelectAll"
-                            class="rounded border-gray-300 accent-red-100 focus:ring-primary"
-                        />
+<!--                     Checkbox customizado-->
+                        <div class="inline-flex items-center">
+                            <label class="flex items-center cursor-pointer relative">
+                                <input :checked="isAllSelected"
+                                       @change="toggleSelectAll"
+                                       type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full bg-slate-100 shadow hover:shadow-md border border-slate-300 checked:bg-secondary checked:bg-secondary" />
+                                <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    </span>
+                            </label>
+                        </div>
                     </th>
                     <th
                         v-for="column in columns"
@@ -331,18 +244,25 @@ const getStatusText = (status: string) => {
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                 <tr
-                    v-for="employee in paginatedEmployees"
+                    v-for="employee in paginatedEmployees.data"
                     :key="employee.id"
                     class="group bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
                     @click="showEmployee(employee.id)"
                 >
                     <td class="px-6 py-4">
-                        <input
-                            type="checkbox"
-                            @click.stop
-                            @change="toggleEmployee(employee.id)"
-                            class="rounded border-gray-300 accent-primary focus:ring-primary"
-                        />
+                        <div class="inline-flex items-center" @click.stop>
+                            <label class="flex items-center cursor-pointer relative">
+                                <input
+                                    @change="toggleEmployee(employee.id)"
+                                    :checked="selectedEmployees.includes(employee.id)"
+                                    type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full bg-slate-100 shadow hover:shadow-md border border-slate-300 checked:bg-secondary checked:bg-secondary" />
+                                <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </span>
+                            </label>
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
@@ -384,7 +304,7 @@ const getStatusText = (status: string) => {
 
         <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div
-                v-for="employee in paginatedEmployees"
+                v-for="employee in paginatedEmployees.data"
                 :key="employee.id"
                 class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow cursor-pointer"
                 @click="showEmployee(employee.id)"
@@ -423,7 +343,8 @@ const getStatusText = (status: string) => {
     <!-- Paginação -->
     <div class="flex items-center justify-between default-box mt-6 p-4">
         <div class="text-sm text-gray-700">
-            Mostrando {{ startIndex + 1 }} a {{ Math.min(endIndex, filteredEmployees.length) }} de {{ filteredEmployees.length }} funcionários
+            <p v-if="paginatedEmployees.to === paginatedEmployees.total"> Mostrando {{ paginatedEmployees.from }} de {{ paginatedEmployees.total }} funcionário</p>
+            <p v-else>Mostrando {{ paginatedEmployees.from }} a {{ paginatedEmployees.to }} de {{ paginatedEmployees.total }} funcionários</p>
         </div>
         <div class="flex gap-2">
             <button

@@ -8,7 +8,8 @@ import {
 } from 'lucide-vue-next'
 
 const props = defineProps<{ allEmployees: any[] }>()
-const employees = ref(props.allEmployees || [])
+const employees = ref(props.allEmployees.data || [])
+console.log('Employees in Cards.vue:', employees.value)
 
 // Computed properties para estatísticas
 const totalEmployees = computed(() => employees.value.length)

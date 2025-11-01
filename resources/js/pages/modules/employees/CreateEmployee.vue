@@ -218,8 +218,7 @@ const createEmployee = () => {
             progressbar.value = 0;
             resetForm();
             // localStorage.removeItem('cachedEmployee');
-            showEmployeeForm.value = false;
-            loadEmployees();
+
         },
         onError: (error) => {
             const msgError = []
