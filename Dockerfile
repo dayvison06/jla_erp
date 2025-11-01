@@ -9,7 +9,6 @@ RUN npm run build
 
 FROM php:8.3.6-fpm-bullseye
 
-
 # Copia os assets compilados do estágio de build
 COPY --from=frontend-builder /app/public/build ./public/build
 

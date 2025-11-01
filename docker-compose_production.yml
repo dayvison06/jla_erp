@@ -5,13 +5,13 @@ services:
         dockerfile: Dockerfile
     container_name: jla_erp_app
     networks:
-      - jla_erp_net
+      - jla_erp_sail
     volumes:
-  #      - ./app:/var/www/app
+      - .:/var/www/app
       - ./docker/nginx/sites.conf:/etc/nginx/sites-enabled/default.conf
     ports:
       - "80:80"
       - "443:443"
 networks:
-  jla_erp_net:
+  jla_erp_sail:
     driver: bridge
