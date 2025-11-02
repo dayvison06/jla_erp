@@ -273,7 +273,7 @@ const getStatusText = (status: string) => {
                             </div>
                             <div class="ml-4">
                                 <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
-                                <div class="text-sm text-gray-500">{{ employee.cpf }}</div>
+                                <div class="text-sm text-gray-500">{{ employee.email }}</div>
                             </div>
                         </div>
                     </td>

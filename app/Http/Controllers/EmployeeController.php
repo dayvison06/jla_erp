@@ -55,7 +55,7 @@ class EmployeeController extends Controller
         }
 
       $employees = $query->with('job_roles', 'department')
-          ->select(['id', 'name', 'email', 'cpf', 'civil_state', 'status', 'admission_date'])
+          ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date'])
           ->orderBy('name', 'ASC')
           ->paginate($perPage);
 
