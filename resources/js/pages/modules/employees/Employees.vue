@@ -173,17 +173,17 @@ debouncedWatch([searchQuery], () => {
                     <div class="flex justify-between items-center">
                         <Cards :all-employees="employees" />
                         <div class="flex gap-4">
-                           <button @click="dialogImport = !dialogImport" class="btn-primary-outline">
+                           <Button @click="dialogImport = !dialogImport" class="btn-primary-v2">
                                <Import class="w-4 h-4" />
                                Importar
-                           </button>
-                            <button
+                           </Button>
+                            <Button
                                 @click="router.get('/funcionarios/criar')"
                                 class="btn btn-primary flex items-center"
                             >
                                 <PlusCircle class="w-4 h-4 mr-2"/>
                                 Novo Funcionário
-                            </button>
+                            </Button>
                         </div>
 
                     </div>
@@ -204,9 +204,9 @@ debouncedWatch([searchQuery], () => {
                         </div>
                     </div>
                     <div class="flex gap-4">
-                        <button class="btn-primary flex items-center gap-2" @click="filterMode = !filterMode">
+                        <Button class="btn-primary flex items-center gap-2" @click="filterMode = !filterMode">
                             <Filter class="w-4 h-4" />
-                        </button>
+                        </Button>
                         <FilterSidebar
                             v-if="filterMode"
                             @close="filterMode = false"
@@ -214,7 +214,7 @@ debouncedWatch([searchQuery], () => {
                             @delete="deleteTask"
                             @duplicate="duplicateTask"
                         />
-                        <button
+                        <Button
                             @click="exportSelected"
                             class="bg-gray-100 text-gray-700  px-4 py-1 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             :disabled="selectedEmployees.length === 0"
@@ -223,11 +223,11 @@ debouncedWatch([searchQuery], () => {
                                 <FileSpreadsheet class="w-4 h-4" />
                                 Exportar
                             </div>
-                        </button>
+                        </Button>
                     </div>
                     <div class="flex items-center gap-2 justify-end md:col-span-2">
                         <div class="border rounded-md p-0.5 mr-2 flex gap-1">
-                            <button
+                            <Button
                                 data-slot="button"
                                 :class="[
                       'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
@@ -236,8 +236,8 @@ debouncedWatch([searchQuery], () => {
                                 @click="viewMode = 'list'"
                             >
                                 <List class="h-4 w-4" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 data-slot="button"
                                 :class="[
                       'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
@@ -246,7 +246,7 @@ debouncedWatch([searchQuery], () => {
                                 @click="viewMode = 'grid'"
                             >
                                 <LayoutGrid class="h-4 w-4" />
-                            </button>
+                            </Button>
                         </div>
                         <label
                             data-slot="label"
@@ -256,13 +256,13 @@ debouncedWatch([searchQuery], () => {
                         </label>
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
-                                <button
+                                <Button
                                     type="button"
                                     class="flex items-center justify-between rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
                                 >
                                     <span style="pointer-events: none;">{{ itemsPerPage }}</span>
                                     <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
-                                </button>
+                                </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="min-w-24">
                                 <DropdownMenuItem @click="itemsPerPage = 10; searchEmployees()">10</DropdownMenuItem>

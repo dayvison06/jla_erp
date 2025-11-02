@@ -15,7 +15,9 @@ import {
     Banknote,
     CornerDownLeft,
     Eye,
-    EditIcon
+    EditIcon,
+    UserSearch,
+    UserRoundPen
 } from 'lucide-vue-next';
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive, onMounted } from 'vue';
@@ -26,9 +28,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
 const page = usePage();
 const employee: Employee = page.props.employee;
+console.log('EMPLOYEE', employee);
 const progressbar = ref(0);
 const isDragging = ref(true);
 const isReadonly = ref(true);
@@ -112,6 +114,7 @@ onMounted(() => {
     if (employee) {
         Object.assign(formData, employee);
     }
+    console.log('FORM DATA ON MOUNT', formData);
 });
 
 console.log('ATTACHMENTS', formData.attachments);
@@ -553,9 +556,9 @@ const saveEmployee = () => {
             }
         },
         onSuccess: (page) => {
-
             progressbar.value = 0;
             employee.value = page.props.employee;
+            isReadonly.value = true;
         },
         onError: () => {
             progressbar.value = 0;
@@ -580,16 +583,20 @@ function returnPageEmployees() {
     <Head title='Editar'/>
     <AppLayout :breadcrumbs="breadcrumbs">
         <main class="container mx-auto px-4 py-8">
-            <header class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                    <h1 class="text-2xl font-bold flex items-center">
-                        <UserIcon class="w-6 h-6 mr-2"/>
-                        Detalhes do Funcionário
-                    </h1>
-                     <span class="inline-flex px-2 py-1 text-xs font-semibold text-white rounded" :class=" isReadonly ? 'bg-secondary' : 'bg-primary' ">
-                        <Eye class="w-4 h-4 mr-1"/>
+            <div class="text-center">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold text-white rounded" :class="isReadonly ? 'bg-gray-400' : 'bg-primary'" :title="isReadonly ? 'Modo leitura' : 'Modo edição'" role="status" :aria-label="isReadonly ? 'Modo leitura' : 'Modo edição'">
+                         <Eye v-if="isReadonly" class="w-4 h-4 mr-1" aria-hidden="true"/>
+                         <EditIcon v-else class="w-4 h-4 mr-1" aria-hidden="true"/>
                          {{ isReadonly ? 'Modo leitura' : 'Modo edição' }}
-                    </span>
+             </span>
+            </div>
+            <header class="flex items-center justify-between mb-4">
+                <div class="">
+                    <h1 class="text-2xl font-bold flex items-center">
+                        <UserSearch v-if="isReadonly" class="w-6 h-6 mr-2"/>
+                        <UserRoundPen v-else class="w-6 h-6 mr-2"/>
+                        {{ formData.name }}
+                    </h1>
                 </div>
                 <div class="flex items-center gap-2">
                     <Button
@@ -599,13 +606,13 @@ function returnPageEmployees() {
                         class="btn-primary"
                     >
                         <EditIcon class="w-4 h-4 mr-2"/>
-                        Habilitar Edição
+                        Alterar Dados
                     </Button>
                     <!-- Botão para cancelar a operação -->
                     <Button
                         type="button"
                         @click="returnPageEmployees()"
-                        class="btn-primary-outline"
+                        class="btn-primary-v2"
                     >
                         <CornerDownLeft class="w-4 h-4 mr-2"/>
                         Voltar
@@ -720,11 +727,11 @@ function returnPageEmployees() {
                                         :disabled="isReadonly"
                                     >
                                         <option value="">Selecione</option>
-                                        <option value="solteiro">Solteiro(a)</option>
-                                        <option value="casado">Casado(a)</option>
-                                        <option value="divorciado">Divorciado(a)</option>
-                                        <option value="viuvo">Viúvo(a)</option>
-                                        <option value="uniao">União Estável</option>
+                                        <option value="Solteiro(a)">Solteiro(a)</option>
+                                        <option value="Casado(a)">Casado(a)</option>
+                                        <option value="Divorciado(a)">Divorciado(a)</option>
+                                        <option value="Viúvo(a)">Viúvo(a)</option>
+                                        <option value="União Estável">União Estável</option>
                                     </select>
                                 </div>
 
@@ -1510,14 +1517,14 @@ function returnPageEmployees() {
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium">Dependentes</h3>
                         <!-- Botão para adicionar novo dependente -->
-                        <button
+                        <Button
                             @click="addDependent"
                             type="button"
                             class="btn-primary flex items-center"
                         >
                             <PlusIcon class="h-4 w-4 mr-1"/>
                             Adicionar
-                        </button>
+                        </Button>
                     </div>
 
                     <!-- Mensagem exibida quando não há dependentes -->
@@ -1530,13 +1537,13 @@ function returnPageEmployees() {
                          class="border p-4 rounded-md mb-4 bg-white shadow-sm">
                         <div class="flex justify-end items-center mb-4">
                             <!-- Botão para remover dependente -->
-                            <button
+                            <Button
                                 @click="removeDependent(index)"
                                 type="button"
                                 class="text-red-600 hover:text-red-800"
                             >
                                 <TrashIcon class="h-5 w-5"/>
-                            </button>
+                            </Button>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1687,14 +1694,23 @@ function returnPageEmployees() {
             </Tabs>
             <!-- Botões de ação do formulário -->
             <div class="flex justify-end space-x-4 mt-8 pt-4">
+                <Button
+                    v-if="!isReadonly"
+                    type="button"
+                    @click="isReadonly = true"
+                    class="btn-primary-v2"
+                >
+                    Cancelar
+                </Button>
                 <!-- Botão para salvar funcionário existente -->
-                <button
+                <Button
+                    v-if="!isReadonly"
                     type="button"
                     @click="saveEmployee"
                     class="btn-primary"
                 >
                     Salvar
-                </button>
+                </Button>
             </div>
         </main>
     </AppLayout>

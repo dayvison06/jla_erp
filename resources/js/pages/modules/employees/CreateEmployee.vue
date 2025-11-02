@@ -12,7 +12,7 @@ import {
     Paperclip,
     Users,
     Cross,
-    Banknote,
+    Banknote, EditIcon, CornerDownLeft, Eye,
 } from 'lucide-vue-next';
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive, onMounted } from 'vue';
@@ -23,11 +23,13 @@ import EmployeeCachedDialog from '@/components/EmployeeCachedDialog.vue';
 import { Employee, Attachment } from '@/types/Employees';
 import { toast } from 'vue-sonner';
 import { useToast } from '@/composables/useToast';
+import {Button} from "@/components/ui/button";
 
 onMounted(() => {
     loadLocalCacheFormDialog();
     formData.benefits = ['Vale Transporte', 'valeRefeicao', 'planoSaude', 'Plano Odontológico', 'Seguro de Vida', 'previdenciaPrivada'];
-    formData.status = 'ativo';
+    formData.status = 'active';
+    formData.admission_date = new Date().toISOString().split('T')[0];
 });
 
 const cacheDialog = ref(false);
@@ -227,6 +229,7 @@ function handleDestroyCacheForm() {
  */
 const progressbar = ref(0);
 const createEmployee = () => {
+    formData.salary = formData.salary.replace(/\D/g, '');
     setLocalCacheForm();
 
     router.post('/funcionarios', formData, {
@@ -349,7 +352,6 @@ const addFile = (file: File) => {
     };
 
     formData.attachments.push(newAttachment);
-    uploadAttachments();
 };
 
 /**
@@ -377,30 +379,6 @@ const handleFileDrop = (event: DragEvent) => {
     if (!event.dataTransfer?.files) return;
     Array.from(event.dataTransfer.files).forEach(addFile);
 };
-
-/**
- * Envia os anexos para o servidor.
- * @returns {void}
- */
-function uploadAttachments() {
-    console.log('Uploading attachments...', newEmployee.value);
-    if (newEmployee.value) return;
-
-    router.post(`/funcionarios/upload/${formData.id}`, formData, {
-        forceFormData: true,
-        onProgress: (event) => {
-            if (event?.lengthComputable) {
-                progressbar.value = Math.round((event.loaded / event.total) * 100);
-            }
-        },
-        onSuccess: () => {
-            progressbar.value = 0;
-        },
-        onError: () => {
-            progressbar.value = 0;
-        },
-    });
-}
 
 /**
  * Formata uma string de data para o formato dd/mm/aaaa.
@@ -666,6 +644,19 @@ function closeEmployeeForm() {
         <main class="container mx-auto px-4 py-8">
             <!-- Diálogo para carregar dados do cache -->
             <EmployeeCachedDialog v-if="cacheDialog" :cachedEmployeeData="cachedEmployeeData" @continue="handleContinueForm()" @destroy="handleDestroyCacheForm()" />
+            <header class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-2xl font-bold flex items-center">
+                        <UserIcon class="w-6 h-6 mr-2"/>
+                        <p v-if="formData.name">
+                            Cadastrando - <span class="text-gray-500">{{ formData.name }}</span>
+                        </p>
+                        <p v-else>
+                            Cadastro de Funcionário
+                        </p>
+                    </h1>
+                </div>
+            </header>
             <Tabs default-value="personal">
                 <TabsList class="mb-6 flex h-10 gap-2">
                     <TabsTrigger value="personal">
@@ -768,11 +759,11 @@ function closeEmployeeForm() {
                                         required
                                     >
                                         <option value="">Selecione</option>
-                                        <option value="solteiro">Solteiro(a)</option>
+                                        <option value="Solteiro(a)">Solteiro(a)</option>
                                         <option value="casado">Casado(a)</option>
-                                        <option value="divorciado">Divorciado(a)</option>
-                                        <option value="viuvo">Viúvo(a)</option>
-                                        <option value="uniao">União Estável</option>
+                                        <option value="Casado(a)">Divorciado(a)</option>
+                                        <option value="Viúvo(a)">Viúvo(a)</option>
+                                        <option value="União Estável">União Estável</option>
                                     </select>
                                 </div>
 
@@ -1274,11 +1265,11 @@ function closeEmployeeForm() {
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                                 required
                             >
-                                <option value="ativo">Ativo</option>
-                                <option value="inativo">Inativo</option>
-                                <option value="ferias">Em Férias</option>
-                                <option value="afastado">Afastado</option>
-                                <option value="desligado">Desligado</option>
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="on_vacation">Em Férias</option>
+                                <option value="on_leave">Afastado</option>
+                                <option value="terminated">Desligado</option>
                             </select>
                         </div>
 
@@ -1497,10 +1488,10 @@ function closeEmployeeForm() {
                     <div class="mb-4 flex items-center justify-between">
                         <h3 class="text-lg font-medium">Dependentes</h3>
                         <!-- Botão para adicionar novo dependente -->
-                        <button @click="addDependent" type="button" class="btn-primary flex items-center">
+                        <Button @click="addDependent" type="button" class="btn-primary flex items-center">
                             <PlusIcon class="mr-1 h-4 w-4" />
                             Adicionar
-                        </button>
+                        </Button>
                     </div>
 
                     <!-- Mensagem exibida quando não há dependentes -->
@@ -1512,9 +1503,9 @@ function closeEmployeeForm() {
                     <div v-for="(dependent, index) in formData.dependents" :key="dependent.id" class="mb-4 rounded-md border bg-white p-4 shadow-sm">
                         <div class="mb-4 flex items-center justify-end">
                             <!-- Botão para remover dependente -->
-                            <button @click="removeDependent(index)" type="button" class="text-red-600 hover:text-red-800">
+                            <Button @click="removeDependent(index)" type="button" class="text-red-600 hover:text-red-800">
                                 <TrashIcon class="h-5 w-5" />
-                            </button>
+                            </Button>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -1657,9 +1648,9 @@ function closeEmployeeForm() {
             <!-- Botões de ação do formulário -->
             <div class="mt-8 flex justify-end space-x-4 pt-4">
                 <!-- Botão para cancelar a operação -->
-                <button type="button" @click="closeEmployeeForm()" class="btn-neutral">Cancelar</button>
+                <Button type="button" @click="closeEmployeeForm()" class="btn-primary-v2">Cancelar</Button>
                 <!-- Botão para criar novo funcionário -->
-                <button type="button" @click="createEmployee" class="rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-700">Criar</button>
+                <Button type="button" @click="createEmployee" class="rounded-md bg-gray-900 px-4 py-2 text-white hover:bg-gray-700">Criar</Button>
             </div>
         </main>
     </AppLayout>
