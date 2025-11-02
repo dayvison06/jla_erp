@@ -6,6 +6,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class EmployeeRequest extends FormRequest
 {
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'cpf' => preg_replace('/\D/', '', $this->cpf),
+        ]);
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -24,7 +32,7 @@ class EmployeeRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
 //            'email' => 'required|email|max:255',
-            'cpf' => 'required|size:14|unique:employees,cpf',
+            'cpf' => ['required', 'size:11', 'unique:employees,cpf'],
 //            'rg' => 'required|string|max:20',
         ];
     }
