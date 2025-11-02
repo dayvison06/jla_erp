@@ -13,20 +13,25 @@ import {
     Users,
     Cross,
     Banknote,
+    CornerDownLeft,
+    Eye,
+    EditIcon
 } from 'lucide-vue-next';
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive, onMounted } from 'vue';
-import { debouncedWatch} from '@vueuse/core';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Head, usePage, router } from '@inertiajs/vue3';
 import type { Employee } from '@/types/Employees';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { toast } from 'vue-sonner'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const page = usePage();
 const employee: Employee = page.props.employee;
 const progressbar = ref(0);
 const isDragging = ref(true);
+const isReadonly = ref(true);
 const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
     { title: 'Visualizar', href: `/funcionarios/${employee?.cpf}` }
@@ -565,16 +570,48 @@ const saveEmployee = () => {
  * Fecha o formulário de funcionário e reseta o estado.
  * @returns {void}
  */
-function closeEmployeeForm() {
+function returnPageEmployees() {
     router.get('/funcionarios');
 }
 
 </script>
 
 <template>
-    <Head title='Criar'/>
+    <Head title='Editar'/>
     <AppLayout :breadcrumbs="breadcrumbs">
         <main class="container mx-auto px-4 py-8">
+            <header class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-2xl font-bold flex items-center">
+                        <UserIcon class="w-6 h-6 mr-2"/>
+                        Detalhes do Funcionário
+                    </h1>
+                     <span class="inline-flex px-2 py-1 text-xs font-semibold text-white rounded" :class=" isReadonly ? 'bg-secondary' : 'bg-primary' ">
+                        <Eye class="w-4 h-4 mr-1"/>
+                         {{ isReadonly ? 'Modo leitura' : 'Modo edição' }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Button
+                        v-if="isReadonly"
+                        type="button"
+                        @click="isReadonly = !isReadonly"
+                        class="btn-primary"
+                    >
+                        <EditIcon class="w-4 h-4 mr-2"/>
+                        Habilitar Edição
+                    </Button>
+                    <!-- Botão para cancelar a operação -->
+                    <Button
+                        type="button"
+                        @click="returnPageEmployees()"
+                        class="btn-primary-outline"
+                    >
+                        <CornerDownLeft class="w-4 h-4 mr-2"/>
+                        Voltar
+                    </Button>
+                </div>
+            </header>
             <Tabs default-value="personal">
                 <TabsList class="flex gap-2 h-10 mb-6">
                     <TabsTrigger value="personal">
@@ -625,33 +662,35 @@ function closeEmployeeForm() {
                                 <!-- Nome completo -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.name"
                                         type="text"
-                                        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- E-mail -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">E-mail *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.email"
                                         type="email"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Data de nascimento -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.birth_date"
                                         type="date"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
@@ -662,6 +701,7 @@ function closeEmployeeForm() {
                                         v-model="formData.gender"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :disabled="isReadonly"
                                     >
                                         <option value="">Selecione</option>
                                         <option value="Masculino">Masculino</option>
@@ -677,6 +717,7 @@ function closeEmployeeForm() {
                                         v-model="formData.civil_state"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :disabled="isReadonly"
                                     >
                                         <option value="">Selecione</option>
                                         <option value="solteiro">Solteiro(a)</option>
@@ -690,22 +731,24 @@ function closeEmployeeForm() {
                                 <!-- Nacionalidade -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.nationality"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Naturalidade -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.birthplace"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
                             </div>
@@ -724,76 +767,83 @@ function closeEmployeeForm() {
                                 <!-- CNPJ -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">CNPJ</label>
-                                    <input
+                                    <Input
                                         v-model="formData.cnpj"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- CPF -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">CPF *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.cpf"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
                                         @input="formatCPF"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- RG -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">RG *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.rg"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Órgão emissor -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.issuing_agency"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Data de emissão -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.issue_date"
                                         type="date"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Título de eleitor -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.voter_registration"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Certidão de reservista -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
-                                    <input
+                                    <Input
                                         v-model="formData.military_certificate"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        :readonly="isReadonly"
                                     />
                                     <p class="text-xs text-gray-500">Opcional para homens</p>
                                 </div>
@@ -813,20 +863,22 @@ function closeEmployeeForm() {
                                 <!-- Nome da mãe -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
-                                    <input
+                                    <Input
                                         v-model="formData.mother_name"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Nome do pai -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
-                                    <input
+                                    <Input
                                         v-model="formData.father_name"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
@@ -837,6 +889,7 @@ function closeEmployeeForm() {
                                         v-model="formData.escolarity"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
+                                        :disabled="isReadonly"
                                     >
                                         <option value="">Selecione</option>
                                         <option value="fundamental">Ensino Fundamental</option>
@@ -855,6 +908,7 @@ function closeEmployeeForm() {
                                     <select
                                         v-model="formData.blood_type"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        :disabled="isReadonly"
                                     >
                                         <option value="">Selecione</option>
                                         <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
@@ -864,44 +918,48 @@ function closeEmployeeForm() {
                                 <!-- Telefone -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Telefone *</label>
-                                    <input
+                                    <Input
                                         v-model="formData.phone"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         required
                                         @input="formatPhone"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Celular -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Celular</label>
-                                    <input
+                                    <Input
                                         v-model="formData.mobile"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         @input="formatMobile"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Contato de emergência -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
-                                    <input
+                                    <Input
                                         v-model="formData.emergency_contact"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
 
                                 <!-- Telefone de emergência -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
-                                    <input
+                                    <Input
                                         v-model="formData.emergency_phone"
                                         type="text"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                         @input="formatEmergencyPhone"
+                                        :readonly="isReadonly"
                                     />
                                 </div>
                             </div>
@@ -914,22 +972,24 @@ function closeEmployeeForm() {
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho
                                 *</label>
-                            <input
+                            <Input
                                 v-model="formData.ctps_number"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Série CTPS -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
-                            <input
+                            <Input
                                 v-model="formData.ctps_series"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -940,6 +1000,7 @@ function closeEmployeeForm() {
                                 v-model="formData.ctps_state"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
@@ -949,21 +1010,23 @@ function closeEmployeeForm() {
                         <!-- Campo: PIS/PASEP -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
-                            <input
+                            <Input
                                 v-model="formData.pis_pasep"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Número do NIT -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Número do NIT</label>
-                            <input
+                            <Input
                                 v-model="formData.nit"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :readonly="isReadonly"
                             />
                             <p class="text-xs text-gray-500">Para autônomos ou contribuintes individuais</p>
                         </div>
@@ -971,10 +1034,11 @@ function closeEmployeeForm() {
                         <!-- Campo: CNH -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">CNH</label>
-                            <input
+                            <Input
                                 v-model="formData.cnh"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -984,6 +1048,7 @@ function closeEmployeeForm() {
                             <select
                                 v-model="formData.cnh_category"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option v-for="cat in cnhCategories" :key="cat" :value="cat">{{ cat }}</option>
@@ -993,20 +1058,22 @@ function closeEmployeeForm() {
                         <!-- Campo: Validade CNH -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
-                            <input
+                            <Input
                                 v-model="formData.cnh_expiry"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Registro profissional -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
-                            <input
+                            <Input
                                 v-model="formData.professional_registration"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :readonly="isReadonly"
                             />
                             <p class="text-xs text-gray-500">Ex: CREA, CRM, OAB, etc.</p>
                         </div>
@@ -1017,66 +1084,72 @@ function closeEmployeeForm() {
                         <!-- Campo: CEP -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700"> CEP * <span class="text-xs font-medium text-primary">(Preenchimento automático)</span></label>
-                            <input
+                            <Input
                                 v-model="formData.postal_code"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
                                 @input="formatCEP"
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Logradouro -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
-                            <input
+                            <Input
                                 v-model="formData.street"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Número -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Número *</label>
-                            <input
+                            <Input
                                 v-model="formData.number"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Complemento -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Complemento</label>
-                            <input
+                            <Input
                                 v-model="formData.complement"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Bairro -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Bairro *</label>
-                            <input
+                            <Input
                                 v-model="formData.district"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Cidade -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Cidade *</label>
-                            <input
+                            <Input
                                 v-model="formData.city"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -1087,6 +1160,7 @@ function closeEmployeeForm() {
                                 v-model="formData.state"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
@@ -1103,6 +1177,7 @@ function closeEmployeeForm() {
                                 v-model="formData.bank"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option v-for="bank in banks" :key="bank.codigo" :value="bank.codigo">
@@ -1114,22 +1189,24 @@ function closeEmployeeForm() {
                         <!-- Campo: Agência -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Agência *</label>
-                            <input
+                            <Input
                                 v-model="formData.agency"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Conta -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Conta *</label>
-                            <input
+                            <Input
                                 v-model="formData.account"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -1140,6 +1217,7 @@ function closeEmployeeForm() {
                                 v-model="formData.account_type"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option value="corrente">Conta Corrente</option>
@@ -1154,6 +1232,7 @@ function closeEmployeeForm() {
                             <select
                                 v-model="formData.pix_key_type"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :disabled="isReadonly"
                             >
                                 <option disabled value="">Selecione</option>
                                 <option value="cpf">CPF</option>
@@ -1167,10 +1246,11 @@ function closeEmployeeForm() {
                         <!-- Campo: Chave PIX -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
-                            <input
+                            <Input
                                 v-model="formData.pix_key"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                :readonly="isReadonly"
                             />
                             <p class="text-xs text-gray-500">CPF, e-mail, telefone ou chave aleatória</p>
                         </div>
@@ -1185,6 +1265,7 @@ function closeEmployeeForm() {
                                 v-model="formData.status"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="ativo">Ativo</option>
                                 <option value="inativo">Inativo</option>
@@ -1197,11 +1278,12 @@ function closeEmployeeForm() {
                         <!-- Campo: Cargo/função -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
-                            <input
+                            <Input
                                 v-model="formData.role"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -1212,6 +1294,7 @@ function closeEmployeeForm() {
                                 v-model="formData.department"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
@@ -1226,6 +1309,7 @@ function closeEmployeeForm() {
                                 v-model="formData.contract_type"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option value="clt">CLT</option>
@@ -1239,22 +1323,23 @@ function closeEmployeeForm() {
                         <!-- Campo: Data de admissão -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
-                            <input
+                            <Input
                                 v-model="formData.admission_date"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Data de desligamento -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
-                            <input
+                            <Input
                                 v-model="formData.termination_date"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                :disabled="formData.status !== 'desligado'"
+                                :disabled="formData.status !== 'desligado' || isReadonly"
                             />
                             <p class="text-xs text-gray-500">Aplicável apenas para funcionários desligados</p>
                         </div>
@@ -1262,24 +1347,26 @@ function closeEmployeeForm() {
                         <!-- Campo: Salário -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Salário *</label>
-                            <input
+                            <Input
                                 v-model="formData.salary"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
                                 @input="formatSalary"
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Jornada de trabalho -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
-                            <input
+                            <Input
                                 v-model="formData.work_schedule"
                                 type="text"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
                                 placeholder="Ex: 44 horas semanais"
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -1288,56 +1375,62 @@ function closeEmployeeForm() {
                             <label class="block text-sm font-medium text-gray-700">Benefícios</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div class="flex items-center">
-                                    <input
+                                    <Input
                                         v-model="formData.benefits"
                                         type="checkbox"
                                         value="Vale Transporte"
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        :disabled="isReadonly"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input
+                                    <Input
                                         v-model="formData.benefits"
                                         type="checkbox"
                                         value="valeRefeicao"
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        :disabled="isReadonly"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">Vale Refeição</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input
+                                    <Input
                                         v-model="formData.benefits"
                                         type="checkbox"
                                         value="Plano de Saúde"
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        :disabled="isReadonly"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input
+                                    <Input
                                         v-model="formData.benefits"
                                         type="checkbox"
                                         value="Plano Odontológico"
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        :disabled="isReadonly"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input
+                                    <Input
                                         v-model="formData.benefits"
                                         type="checkbox"
                                         value="Seguro de Vida"
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        :disabled="isReadonly"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input
+                                    <Input
                                         v-model="formData.benefits"
                                         type="checkbox"
                                         value="Previdência Privada"
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                        :disabled="isReadonly"
                                     />
                                     <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
                                 </div>
@@ -1351,22 +1444,24 @@ function closeEmployeeForm() {
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Data do último exame
                                 admissional/periódico *</label>
-                            <input
+                            <Input
                                 v-model="formData.last_exam_date"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
                         <!-- Campo: Data do próximo exame -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
-                            <input
+                            <Input
                                 v-model="formData.next_exam_date"
                                 type="date"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :readonly="isReadonly"
                             />
                         </div>
 
@@ -1377,6 +1472,7 @@ function closeEmployeeForm() {
                                 v-model="formData.aso_result"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                 required
+                                :disabled="isReadonly"
                             >
                                 <option value="">Selecione</option>
                                 <option value="apto">Apto</option>
@@ -1393,6 +1489,7 @@ function closeEmployeeForm() {
                                 v-model="formData.allergies"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 min-h-[100px]"
                                 placeholder="Descreva alergias ou restrições médicas, se houver"
+                                :readonly="isReadonly"
                             ></textarea>
                         </div>
 
@@ -1404,6 +1501,7 @@ function closeEmployeeForm() {
                                 v-model="formData.accident_history"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 min-h-[100px]"
                                 placeholder="Descreva o histórico, se houver"
+                                :readonly="isReadonly"
                             ></textarea>
                         </div>
                     </div>
@@ -1445,32 +1543,35 @@ function closeEmployeeForm() {
                             <!-- Campos do formulário do dependente -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
-                                <input
+                                <Input
                                     v-model="dependent.name"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
+                                    :readonly="isReadonly"
                                 />
                             </div>
 
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
-                                <input
+                                <Input
                                     v-model="dependent.birth_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
+                                    :readonly="isReadonly"
                                 />
                             </div>
 
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">CPF *</label>
-                                <input
+                                <Input
                                     v-model="dependent.cpf"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
                                     @input="(e) => formatDependentCPF(e, index)"
+                                    :readonly="isReadonly"
                                 />
                             </div>
 
@@ -1480,6 +1581,7 @@ function closeEmployeeForm() {
                                     v-model="dependent.relationship"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
+                                    :disabled="isReadonly"
                                 >
                                     <option value="">Selecione</option>
                                     <option value="filho">Filho(a)</option>
@@ -1492,21 +1594,23 @@ function closeEmployeeForm() {
 
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Orgão Emissor *</label>
-                                <input
+                                <Input
                                     v-model="dependent.issuing_agency"
                                     type="text"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
+                                    :readonly="isReadonly"
                                 />
                             </div>
 
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">Data de Emissão *</label>
-                                <input
+                                <Input
                                     v-model="dependent.issue_date"
                                     type="date"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
                                     required
+                                    :readonly="isReadonly"
                                 />
                             </div>
 
@@ -1514,29 +1618,32 @@ function closeEmployeeForm() {
                                 <label class="block text-sm font-medium text-gray-700">Finalidade *</label>
                                 <div class="space-y-2">
                                     <div class="flex items-center">
-                                        <input
+                                        <Input
                                             v-model="dependent.purposes"
                                             type="checkbox"
                                             value="income_tax"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                            :disabled="isReadonly"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Imposto de Renda</label>
                                     </div>
                                     <div class="flex items-center">
-                                        <input
+                                        <Input
                                             v-model="dependent.purposes"
                                             type="checkbox"
                                             value="health_plan"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                            :disabled="isReadonly"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
                                     </div>
                                     <div class="flex items-center">
-                                        <input
+                                        <Input
                                             v-model="dependent.purposes"
                                             type="checkbox"
                                             value="dental_plan"
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                                            :disabled="isReadonly"
                                         />
                                         <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
                                     </div>
@@ -1569,7 +1676,7 @@ function closeEmployeeForm() {
                             <label class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white btn-primary hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer">
                                 <UploadIcon class="h-4 w-4 mr-1" />
                                 Selecionar arquivos
-                                <input type="file" class="hidden" @change="handleFileUpload" multiple />
+                                <Input type="file" class="hidden" @change="handleFileUpload" multiple />
                             </label>
                         </div>
                     </div>
@@ -1580,14 +1687,6 @@ function closeEmployeeForm() {
             </Tabs>
             <!-- Botões de ação do formulário -->
             <div class="flex justify-end space-x-4 mt-8 pt-4">
-                <!-- Botão para cancelar a operação -->
-                <button
-                    type="button"
-                    @click="closeEmployeeForm()"
-                    class="btn-neutral"
-                >
-                    Cancelar
-                </button>
                 <!-- Botão para salvar funcionário existente -->
                 <button
                     type="button"

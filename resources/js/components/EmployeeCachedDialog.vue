@@ -1,4 +1,4 @@
-1<script setup lang="ts">
+<script setup lang="ts">
 
 import {
     Dialog,
@@ -13,6 +13,11 @@ import { EditIcon, Trash } from 'lucide-vue-next';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ref } from 'vue';
+import { Employee } from '@/types/Employees';
+
+const props = defineProps<{
+    cachedEmployeeData: Employee
+}>();
 
 const emit = defineEmits<{
     (e: 'continue'): void
@@ -26,8 +31,9 @@ const emit = defineEmits<{
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
                 <DialogTitle>Cadastro de funcionário em andamento</DialogTitle>
+                <span class="text-base text-primary">{{props.cachedEmployeeData.name}}</span>
                 <DialogDescription>
-                    Você possui um cadastro de funcionário em andamento. Deseja continuar editando?
+                    Deseja continuar a edição ou iniciar um novo cadastro?
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
