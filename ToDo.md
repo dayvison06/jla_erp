@@ -81,6 +81,12 @@
 - [ ] Exibir logs de auditoria/histórico de alterações.
 - [ ] Integrar notificações para avisos de exames, vencimentos, etc.
 
+### 11. Implementação de atribuição de Cargos
+- [ ] Adicionar funcionalidade para atribuir múltiplos cargos a um funcionário.
+- [ ] Permitir definir datas de início e término para cada cargo atribuído.
+- [ ] Validar que não haja sobreposição de datas entre cargos atribuídos ao mesmo funcionário.
+- [ ] Exibir lista de cargos atribuídos na visualização do funcionário, com opções para editar ou remover cada cargo.
+
 ---
 
 ## Observações

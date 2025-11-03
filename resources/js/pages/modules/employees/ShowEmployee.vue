@@ -621,35 +621,35 @@ function returnPageEmployees() {
             </header>
             <Tabs default-value="personal">
                 <TabsList class="flex gap-2 h-10 mb-6">
-                    <TabsTrigger value="personal">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="personal">
                         <UserIcon/>
                         Dados Pessoais
                     </TabsTrigger>
-                    <TabsTrigger value="documents">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="documents">
                         <BriefcaseBusiness/>
                         Documentos Trabalhistas
                     </TabsTrigger>
-                    <TabsTrigger value="address">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="address">
                         <MapPinHouse/>
                         Endereço
                     </TabsTrigger>
-                    <TabsTrigger value="bank">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="bank">
                         <Banknote/>
                         Dados Bancários
                     </TabsTrigger>
-                    <TabsTrigger value="contract">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="contract">
                         <FilePenLine/>
                         Informações Contratuais
                     </TabsTrigger>
-                    <TabsTrigger value="health">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="health">
                         <Cross/>
                         Saúde e Segurança
                     </TabsTrigger>
-                    <TabsTrigger value="dependents">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="dependents">
                         <Users/>
                         Dependentes
                     </TabsTrigger>
-                    <TabsTrigger value="attachments">
+                    <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="attachments">
                         <Paperclip/>
                         Anexos
                     </TabsTrigger>
@@ -1274,11 +1274,11 @@ function returnPageEmployees() {
                                 required
                                 :disabled="isReadonly"
                             >
-                                <option value="ativo">Ativo</option>
-                                <option value="inativo">Inativo</option>
-                                <option value="ferias">Em Férias</option>
-                                <option value="afastado">Afastado</option>
-                                <option value="desligado">Desligado</option>
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="on_vacation">Em Férias</option>
+                                <option value="on_leave">Afastado</option>
+                                <option value="terminated">Desligado</option>
                             </select>
                         </div>
 

@@ -42,8 +42,16 @@ class EmployeeServices
         }
     }
 
-    public function cleanCpf(string $cpf): string
+    public function processJobRoles(Employee $employee, array $jobRoles): void
     {
-        return preg_replace("/\D/", '', $cpf);
+        $syncData = [];
+        foreach ($jobRoles as $jobRole) {
+            $roleId = $jobRole['role_id'];
+            $syncData[$roleId] = [
+                'start_date' => $jobRole['start_date'],
+                'end_date' => $jobRole['end_date'] ?? null,
+            ];
+        }
+        $employee->job_roles()->sync($syncData);
     }
 }

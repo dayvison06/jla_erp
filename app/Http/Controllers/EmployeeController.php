@@ -89,6 +89,7 @@ class EmployeeController extends Controller
         try {
             DB::transaction(function () use ($data, $request, &$employee) {
                 $employee = Employee::create($data);
+                app(EmployeeServices::class)->processJobRoles($employee, $request->job_roles ?? []);
                 app(EmployeeServices::class)->processDependents($employee, $request->dependents ?? []);
                 app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
             });
@@ -128,7 +129,7 @@ class EmployeeController extends Controller
     public function show ($id, Employee $employee) : Response
     {
         $findEmployee = $employee->where('id', $id)
-            ->with('attachments')
+            ->with('attachments', 'dependents', 'benefits', 'job_roles', 'department')
             ->first();
         return Inertia::render('modules/employees/ShowEmployee', ['employee' => $findEmployee]);
     }
