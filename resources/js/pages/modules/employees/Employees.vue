@@ -28,7 +28,9 @@ import {
     LayoutGrid,
     Filter,
     FileSpreadsheet,
-    List
+    List,
+    CircleEllipsis,
+    UserRoundX
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from "@/types";
 import { Input } from '@/components/ui/input';
@@ -84,9 +86,13 @@ function searchEmployees() {
             employees.value = page.props.employees.data;
             if (employees.value.length === 0) {
                 showToast('Nenhum funcionário encontrado', 'warning', 'A busca não retornou resultados.');
+                router.get('/funcionarios', {}, {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['employees'],
+                });
             }
         }
-
     });
 }
 
@@ -98,7 +104,7 @@ debouncedWatch([searchQuery], () => {
     // Aqui poderia implementar lógica adicional se necessário
     searchEmployees()
 
-}, { debounce: 300 });
+}, { debounce: 800 });
 </script>
 
 <template>
@@ -216,14 +222,34 @@ debouncedWatch([searchQuery], () => {
                         />
                         <Button
                             @click="exportSelected"
-                            class="bg-gray-100 text-gray-700  px-4 py-1 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="flex items-center gap-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
                             :disabled="selectedEmployees.length === 0"
                         >
-                            <div class="flex items-center gap-2">
-                                <FileSpreadsheet class="w-4 h-4" />
-                                Exportar
-                            </div>
+                            <FileSpreadsheet class="w-4 h-4" />
+                            Exportar
                         </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <Button
+                                    @click="exportSelected"
+                                    class="flex items-center gap-2 btn-primary"
+                                    :disabled="selectedEmployees.length === 0"
+                                >
+                                    <CircleEllipsis class="w-4 h-4" />
+                                    Ações
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" class="min-w-24">
+                                <DropdownMenuItem>
+                                    <HardHat class="w-4 h-4" />
+                                    Ficha de funcionário
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <UserRoundX class="w-4 h-4" />
+                                    Desligar funcionário
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                     <div class="flex items-center gap-2 justify-end md:col-span-2">
                         <div class="border rounded-md p-0.5 mr-2 flex gap-1">
@@ -258,10 +284,10 @@ debouncedWatch([searchQuery], () => {
                             <DropdownMenuTrigger as-child>
                                 <Button
                                     type="button"
-                                    class="flex items-center justify-between rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-16 h-8"
+                                    class="flex items-center justify-between rounded-md border bg-background"
                                 >
-                                    <span style="pointer-events: none;">{{ itemsPerPage }}</span>
-                                    <ChevronDown class="ml-2 h-4 w-4 opacity-50" />
+                                    <span class="text-primary">{{ itemsPerPage }}</span>
+                                    <ChevronDown class="ml-2 h-4 w-4 text-primary" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="min-w-24">

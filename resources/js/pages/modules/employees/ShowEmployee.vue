@@ -17,7 +17,9 @@ import {
     Eye,
     EditIcon,
     UserSearch,
-    UserRoundPen
+    UserRoundPen,
+    UserCog,
+    EllipsisIcon
 } from 'lucide-vue-next';
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive, onMounted } from 'vue';
@@ -591,12 +593,18 @@ function returnPageEmployees() {
              </span>
             </div>
             <header class="flex items-center justify-between mb-4">
-                <div class="">
+                <div class="flex items-center gap-4">
                     <h1 class="text-2xl font-bold flex items-center">
                         <UserSearch v-if="isReadonly" class="w-6 h-6 mr-2"/>
                         <UserRoundPen v-else class="w-6 h-6 mr-2"/>
                         {{ formData.name }}
                     </h1>
+                    <Button
+                        v-if="!isReadonly"
+                        class="btn-primary-v2"
+                    >
+                        <EllipsisIcon class="w-4 h-4"/>
+                    </Button>
                 </div>
                 <div class="flex items-center gap-2">
                     <Button
