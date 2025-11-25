@@ -1,17 +1,34 @@
 services:
-  web:
+  # 1. Serviço principal: App Laravel rodando FrankenPHP
+  app:
+    # O contexto e o dockerfile devem apontar para o seu Dockerfile modificado
     build:
-        context: .
-        dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile
+
     container_name: jla_erp_app
-    networks:
-      - jla_erp_sail
-    volumes:
-      - .:/var/www/app
-      - ./docker/nginx/sites.conf:/etc/nginx/sites-enabled/default.conf
+    restart: unless-stopped
+
+    # Exposição das portas diretamente para o Traefik (ou host)
     ports:
       - "80:80"
       - "443:443"
+
+    # Uso de volumes nomeados para dados persistentes (storage)
+    # Laravel precisa de permissão de escrita em 'storage' e 'bootstrap/cache' [12, 16].
+    volumes:
+      # Volume nomeado para persistir uploads, logs, etc.
+      - laravel-storage-production:/var/www/app/storage
+
+    # Redes (essencial para comunicação interna com outros serviços como DB e Redis)
+    networks:
+      - jla_erp_sail
+  # 2. Definição dos Volumes Nomeados para persistência
+volumes:
+  laravel-storage-production:
+    # O Docker Compose simplifica a criação e o gerenciamento de volumes nomeados [17, 18]
+    driver: local
+# 3. Definição da Rede
 networks:
   jla_erp_sail:
     driver: bridge

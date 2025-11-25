@@ -96,6 +96,28 @@ function searchEmployees() {
     });
 }
 
+async function generateEmployeeReport() {
+    console.log('Gerando ficha de funcionário para IDs:', selectedEmployees.value);
+    await axios('/funcionarios/ficha-relatorio', {
+        method: 'POST',
+        responseType: 'blob',
+        data: {
+            employee_ids: selectedEmployees.value,
+        },
+    }).then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'ficha_funcionarios.pdf');
+        document.body.appendChild(link);
+        link.click();
+        showToast('Relatório gerado com sucesso!', 'success', 'O relatório de funcionários foi baixado.');
+    }).catch((error) => {
+        console.error('Erro ao gerar o relatório:', error);
+        showToast('Erro ao gerar o relatório', 'error', 'Ocorreu um erro ao tentar gerar o relatório.');
+    });
+}
+
 /**
  * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
  */
@@ -240,7 +262,7 @@ debouncedWatch([searchQuery], () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" class="min-w-24">
-                                <DropdownMenuItem>
+                                <DropdownMenuItem @click="generateEmployeeReport">
                                     <HardHat class="w-4 h-4" />
                                     Ficha de funcionário
                                 </DropdownMenuItem>

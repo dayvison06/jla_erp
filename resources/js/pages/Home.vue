@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { PDFDownloadLink, PDFViewer } from '@ceereals/vue-pdf';
 import { ref } from 'vue';
 import { File, ChartBarIcon, CogIcon, PlusIcon } from 'lucide-vue-next';
 import { BreadcrumbItem, User } from '@/types';
+import FichaFuncionario from '@/components/pdf/FichaFuncionario.vue';
 
 const page = usePage()
 const user: User = page.props.auth.user
@@ -43,6 +45,12 @@ const breadcrumbs: BreadcrumbItem = [
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <main class="container mx-auto px-4 py-8">
+
+            <PDFDownloadLink document="Ficha Funcionario" fileName="ficha_funcionario.pdf">
+                <template #label> Baixar! </template>
+                <FichaFuncionario />
+            </PDFDownloadLink>
+
             <!-- Header com saudação personalizada -->
             <header class="mb-8">
                 <div class="flex items-center">

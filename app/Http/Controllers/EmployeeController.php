@@ -266,4 +266,16 @@ class EmployeeController extends Controller
             ]);
         }
     }
+
+    public function generatePDFReport(array $shop) : Response
+    {
+        dd('gerar PDF');
+        $employees = Employee::with('job_roles', 'department')
+            ->orderBy('name', 'ASC')
+            ->get();
+        dd($employees);
+        return Inertia::render('modules/employees/Employees', [
+            'employees_report' => $employees,
+        ]);
+    }
 }

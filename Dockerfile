@@ -7,7 +7,8 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM php:8.3.6-fpm-bullseye
+# Estágio 2: Produção (FrankenPHP)
+FROM dunglas/frankenphp:1.10.1-php8.3 as final
 
 # Copia os assets compilados do estágio de build
 COPY --from=frontend-builder /app/public/build ./public/build
@@ -23,7 +24,7 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
 apt-utils \
 supervisor
 
-  # dependências recomendadas de desenvolvido para ambiente linux
+  # dependências recomendadas de desenvolviment para ambiente linux
 RUN apt-get update && apt-get install -y \
 zlib1g-dev \
 libzip-dev \
@@ -47,9 +48,6 @@ COPY ./docker/supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.co
   ### Supervisor permite monitorar e controlar vários processos (LINUX)
   ### Bastante utilizado para manter processos em Daemon, ou seja, executando em segundo plano
 
-COPY ./docker/php/extra-php.ini "$PHP_INI_DIR/99_extra.ini"
-COPY ./docker/php/extra-php-fpm.conf /etc/php8/php-fpm.d/www.conf
-
 WORKDIR $APP_DIR
 RUN cd $APP_DIR
 RUN chown www-data:www-data $APP_DIR
@@ -58,12 +56,11 @@ COPY --chown=www-data:www-data  . .
 RUN rm -rf vendor
 RUN composer install --no-interaction --no-dev
 
-RUN apt-get install nginx -y
-RUN rm -rf /etc/nginx/sites-enabled/* && rm -rf /etc/nginx/sites-available/*
-COPY ./docker/nginx/sites.conf /etc/nginx/sites-enabled/default.conf
-COPY ./docker/nginx/error.html /var/www/html/error.html
-
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-  # RUN apt update -y && apt install nano git -y
+# RUN apt update -y && apt install nano git -y
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# O FrankenPHP escutará na porta 80 por padrão
+EXPOSE 80
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
