@@ -9,6 +9,7 @@ use App\Models\Employee\Employee;
 use App\Models\Employee\JobRole;
 use App\Services\EmployeeServices;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,32 +33,10 @@ class EmployeeController extends Controller
         $jobRoles = JobRole::all();
         $departments = Departament::all();
 
-        if ($request->filled('search')) {
-            if (is_numeric(preg_replace('/\D/', '', $request->search))) {
-                $query->where('cpf', 'like', '%' . preg_replace('/\D/', '', $request->search) . '%');
-            } else {
-                $query->whereRaw('LOWER(name) LIKE ?', [strtolower($request->search) . '%']);
-            }
-        }
-
-        if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('department') && $request->department !== 'all') {
-            $query->where('department', $request->department);
-        }
-
-        if($request->filled('per_page') && is_numeric($request->per_page)) {
-            $perPage = (int) $request->per_page;
-        } else {
-            $perPage = 10; // valor padrão
-        }
-
       $employees = $query->with('job_roles', 'department')
           ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date'])
           ->orderBy('name', 'ASC')
-          ->paginate($perPage);
+          ->paginate(10);
 
         return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,
@@ -73,6 +52,20 @@ class EmployeeController extends Controller
             // outros dados
         ]);
 
+    }
+
+    public function search(Request $request) : JsonResponse
+    {
+        $searchTerm = $request->input('query');
+
+        $employees = Employee::where('name', 'LIKE', '%' . $searchTerm . '%')
+            ->orWhere('cpf', 'LIKE', '%' . $searchTerm . '%')
+            ->orWhere('email', 'LIKE', '%' . $searchTerm . '%')
+            ->select(['id', 'name', 'email', 'cpf', 'status'])
+            ->orderBy('name', 'ASC')
+            ->paginate(10);
+
+        return response()->json($employees);
     }
 
     public function create()

@@ -16,6 +16,7 @@ Route::get('dashboard', function () {
 Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees.')->group(function () {
     Route::get('/', [EmployeeController::class, 'index'])->name('index');
     Route::get('/criar', [EmployeeController::class, 'create'])->name('create');
+    Route::get('/buscar', [EmployeeController::class, 'search'])->name('search');
     Route::post('/', [EmployeeController::class, 'store']);
     Route::get('/{id}', [EmployeeController::class, 'show']);
     Route::post('/deactivate', [EmployeeController::class, 'deactivate']);

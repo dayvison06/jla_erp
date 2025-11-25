@@ -1,24 +1,15 @@
 <script setup lang="ts">
-import AppLayout from "@/layouts/AppLayout.vue";
+import AppLayout from '@/layouts/AppLayout.vue';
 import Cards from '@/pages/modules/employees/Cards.vue';
 import ListEmployees from '@/pages/modules/employees/ListEmployees.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { debouncedWatch} from "@vueuse/core";
+import { debouncedWatch } from '@vueuse/core';
 import { useToast } from '@/composables/useToast';
-import ProgressBar from '@/components/ProgressBar.vue'
-import { ref, } from 'vue'
+import ProgressBar from '@/components/ProgressBar.vue';
+import { ref } from 'vue';
 import type { Employee } from '@/types/Employees';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-
 import {
     HardHat,
     PlusCircle,
@@ -30,36 +21,32 @@ import {
     FileSpreadsheet,
     List,
     CircleEllipsis,
-    UserRoundX
+    UserRoundX,
 } from 'lucide-vue-next';
-import type { BreadcrumbItem } from "@/types";
+import type { BreadcrumbItem } from '@/types';
 import { Input } from '@/components/ui/input';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import FilterSidebar from '@/components/FilterSidebar.vue';
+import axios from 'axios';
 
 // Composables e serviços
-const page = usePage()
+const page = usePage();
 const { showToast } = useToast();
 
 // Estado do componente
-const selectedEmployees = ref<number[]>([])
+const selectedEmployees = ref<number[]>([]);
 const employees = ref<Employee[]>(page.props.employees ?? []);
 const viewMode = ref<'list' | 'grid'>('list');
 const dialogImport = ref(false);
 const importFile = ref<File | null>(null);
 const searchQuery = ref('');
+const searchResults = ref(false);
+const listResults = ref(<Employee[]>[]);
 const filterMode = ref(false);
 const itemsPerPage = ref(10);
-console.log(employees.value)
+console.log(employees.value);
 // Breadcrumbs para navegação
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Funcionários', href: '/funcionarios' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Funcionários', href: '/funcionarios' }];
 
 const importFileUpload = (event: Event) => {
     const input = event.target as HTMLInputElement;
@@ -74,42 +61,56 @@ const importFileUpload = (event: Event) => {
  * Busca funcionários com base nos filtros de busca e status.
  * @returns {void}
  */
-function searchEmployees() {
-    router.get('/funcionarios', {
-        search: searchQuery.value,
-        per_page: itemsPerPage.value, // Adiciona filtro para quantidade por página
+async function searchEmployees() {
+    axios('/funcionarios/buscar', {
+        params: {
+            query: searchQuery.value,
+            per_page: itemsPerPage.value,
+        },
+    })
+        .then((response) => {
+            listResults.value = response.data;
+            searchResults.value = true;
+            console.log('Funcionários atualizados:', listResults.value);
+        })
+        .catch((error) => {
+            console.error('Erro ao buscar funcionários:', error);
+            showToast('Erro ao buscar funcionários.', 'error');
+        });
+}
+
+async function showEmployee(id: number) {
+    router.get(`/funcionarios/${id}`, {
     }, {
         preserveState: true,
         preserveScroll: true,
-        only: ['employees'],
-        onSuccess: (page) => {
-            employees.value = page.props.employees.data;
-            if (employees.value.length === 0) {
-                showToast('Nenhum funcionário encontrado', 'warning', 'A busca não retornou resultados.');
-                router.get('/funcionarios', {}, {
-                    preserveState: true,
-                    preserveScroll: true,
-                    only: ['employees'],
-                });
-            }
+        onSuccess: () => {
+            // Check if the employee was found
+        },
+        onError: () => {
+            alert('Error searching for employee. Check the CPF and try again.');
         }
     });
+
 }
 
 /**
  * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
  */
-debouncedWatch([searchQuery], () => {
-    console.log('Filtros alterados, buscando funcionários...');
-    // Aqui poderia implementar lógica adicional se necessário
-    searchEmployees()
-
-}, { debounce: 800 });
+debouncedWatch(
+    [searchQuery],
+    () => {
+        console.log('Filtros alterados, buscando funcionários...');
+        // Aqui poderia implementar lógica adicional se necessário
+        searchEmployees();
+    },
+    { debounce: 800 },
+);
 </script>
 
 <template>
     <!-- Define o título da página -->
-    <Head title='Funcionários'/>
+    <Head title="Funcionários" />
     <!-- Layout principal da aplicação com breadcrumbs -->
     <AppLayout :breadcrumbs="breadcrumbs">
         <main class="mx-auto w-full py-8">
@@ -130,17 +131,23 @@ debouncedWatch([searchQuery], () => {
                             <div>
                                 <p class="font-medium">Template de importação</p>
                                 <p class="text-sm text-gray-600">Formato XLSX (Excel) com colunas esperadas pelo sistema.</p>
-                                <a href="/funcionarios/download/template" target="_blank" rel="noopener" download class="flex text-sm items-center text-secondary font-medium mt-2">
-                                    <Import class="w-4 h-4 mr-2" />
+                                <a
+                                    href="/funcionarios/download/template"
+                                    target="_blank"
+                                    rel="noopener"
+                                    download
+                                    class="text-secondary mt-2 flex items-center text-sm font-medium"
+                                >
+                                    <Import class="mr-2 h-4 w-4" />
                                     Baixar template
                                 </a>
                             </div>
                         </div>
 
                         <!-- Área de upload -->
-                        <div class="grid w-full max-w-sm items-center gap-1.5 mt-6">
-                            <div class="flex gap-2 items-center">
-                                <TableProperties class="w-4 h-4"/>
+                        <div class="mt-6 grid w-full max-w-sm items-center gap-1.5">
+                            <div class="flex items-center gap-2">
+                                <TableProperties class="h-4 w-4" />
                                 <Label for="xlsx" class="text-sm">Planilha</Label>
                             </div>
                             <Input type="file" class=" " @change="importFileUpload" />
@@ -148,7 +155,10 @@ debouncedWatch([searchQuery], () => {
                     </div>
 
                     <DialogFooter>
-                        <Button @click="router.post('/funcionarios/importar-csv', { importFile}, {forceFormData: true})" class="btn btn-primary flex items-center">
+                        <Button
+                            @click="router.post('/funcionarios/importar-csv', { importFile }, { forceFormData: true })"
+                            class="btn btn-primary flex items-center"
+                        >
                             Enviar arquivo
                         </Button>
                     </DialogFooter>
@@ -157,61 +167,66 @@ debouncedWatch([searchQuery], () => {
             <!-- Cabeçalho do módulo, visível apenas na listagem -->
             <header class="default-box mb-8">
                 <div class="p-8">
-                    <div class="flex items-start gap-6 mb-6">
+                    <div class="mb-6 flex items-start gap-6">
                         <!-- Ícone com destaque -->
-                        <div class="flex-shrink-0 w-12 h-12 bg-primary rounded-lg flex items-center justify-center shadow-md">
-                            <HardHat class="w-6 h-6 text-white"/>
+                        <div class="bg-primary flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg shadow-md">
+                            <HardHat class="h-6 w-6 text-white" />
                         </div>
 
                         <!-- Título e descrição do módulo -->
-                        <div class="flex-1 min-w-0">
-                            <h1 class="text-2xl font-semibold text-gray-900 mb-2 tracking-tight">
-                                Funcionários
-                            </h1>
-                            <p class="text-gray-600 text-base leading-relaxed">
-                                Gerencie o cadastro completo de colaboradores, controle permissões e acompanhe o status de cada funcionário em uma plataforma centralizada e eficiente.
+                        <div class="min-w-0 flex-1">
+                            <h1 class="mb-2 text-2xl font-semibold tracking-tight text-gray-900">Funcionários</h1>
+                            <p class="text-base leading-relaxed text-gray-600">
+                                Gerencie o cadastro completo de colaboradores, controle permissões e acompanhe o status de cada funcionário em uma
+                                plataforma centralizada e eficiente.
                             </p>
                         </div>
                     </div>
                     <!-- Separador sutil -->
-                    <div class="border-t border-gray-100 mb-2"></div>
+                    <div class="mb-2 border-t border-gray-100"></div>
 
-                    <div class="flex justify-between items-center">
+                    <div class="flex items-center justify-between">
                         <Cards :all-employees="employees" />
                         <div class="flex gap-4">
-                           <Button @click="dialogImport = !dialogImport" class="btn-primary-v2">
-                               <Import class="w-4 h-4" />
-                               Importar
-                           </Button>
-                            <Button
-                                @click="router.get('/funcionarios/criar')"
-                                class="btn btn-primary flex items-center"
-                            >
-                                <PlusCircle class="w-4 h-4 mr-2"/>
+                            <Button @click="dialogImport = !dialogImport" class="btn-primary-v2">
+                                <Import class="h-4 w-4" />
+                                Importar
+                            </Button>
+                            <Button @click="router.get('/funcionarios/criar')" class="btn btn-primary flex items-center">
+                                <PlusCircle class="mr-2 h-4 w-4" />
                                 Novo Funcionário
                             </Button>
                         </div>
-
                     </div>
                 </div>
             </header>
             <!-- Filters and Search -->
-            <section class="rounded-t-lg p-2 mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <section class="mb-4 rounded-t-lg p-2">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div>
                         <div class="relative">
-                            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary w-4 h-4" />
-                            <input
-                                v-model="searchQuery"
-                                type="text"
-                                placeholder="Buscar por nome ou CPF..."
-                                class="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+                            <DropdownMenu v-model:open="searchResults">
+                                <DropdownMenuTrigger disabled>
+                                    <Search class="text-primary absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                                    <Input v-model="searchQuery" type="text" placeholder="Buscar por nome ou CPF..." class="" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent class="w-full max-w-sm" align="start">
+                                    <DropdownMenuLabel class="text-primary text-sm">Funcionários</DropdownMenuLabel>
+                                    <DropdownMenuItem
+                                        class="cursor-pointer"
+                                        v-for="item in listResults.data"
+                                        :key="item.id"
+                                        @click="showEmployee(item.id)"
+                                    >
+                                        {{ item.name }}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
                     <div class="flex gap-4">
                         <Button class="btn-primary flex items-center gap-2" @click="filterMode = !filterMode">
-                            <Filter class="w-4 h-4" />
+                            <Filter class="h-4 w-4" />
                         </Button>
                         <FilterSidebar
                             v-if="filterMode"
@@ -222,43 +237,45 @@ debouncedWatch([searchQuery], () => {
                         />
                         <Button
                             @click="exportSelected"
-                            class="flex items-center gap-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+                            class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                             :disabled="selectedEmployees.length === 0"
                         >
-                            <FileSpreadsheet class="w-4 h-4" />
+                            <FileSpreadsheet class="h-4 w-4" />
                             Exportar
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
                                 <Button
                                     @click="exportSelected"
-                                    class="flex items-center gap-2 btn-primary"
+                                    class="btn-primary flex items-center gap-2"
                                     :disabled="selectedEmployees.length === 0"
                                 >
-                                    <CircleEllipsis class="w-4 h-4" />
+                                    <CircleEllipsis class="h-4 w-4" />
                                     Ações
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" class="min-w-24">
                                 <DropdownMenuItem>
-                                    <HardHat class="w-4 h-4" />
+                                    <HardHat class="h-4 w-4" />
                                     Ficha de funcionário
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                    <UserRoundX class="w-4 h-4" />
+                                    <UserRoundX class="h-4 w-4" />
                                     Desligar funcionário
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-                    <div class="flex items-center gap-2 justify-end md:col-span-2">
-                        <div class="border rounded-md p-0.5 mr-2 flex gap-1">
+                    <div class="flex items-center justify-end gap-2 md:col-span-2">
+                        <div class="mr-2 flex gap-1 rounded-md border p-0.5">
                             <Button
                                 data-slot="button"
                                 :class="[
-                      'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
-                      viewMode === 'list' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
-                    ]"
+                                    'focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex h-7 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-2.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
+                                    viewMode === 'list'
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs'
+                                        : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700',
+                                ]"
                                 @click="viewMode = 'list'"
                             >
                                 <List class="h-4 w-4" />
@@ -266,9 +283,11 @@ debouncedWatch([searchQuery], () => {
                             <Button
                                 data-slot="button"
                                 :class="[
-                      'inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-md has-[>svg]:px-2.5 h-7 px-2',
-                      viewMode === 'grid' ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700'
-                    ]"
+                                    'focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex h-7 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-2.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
+                                    viewMode === 'grid'
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs'
+                                        : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700',
+                                ]"
                                 @click="viewMode = 'grid'"
                             >
                                 <LayoutGrid class="h-4 w-4" />
@@ -276,35 +295,46 @@ debouncedWatch([searchQuery], () => {
                         </div>
                         <label
                             data-slot="label"
-                            class="font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-xs text-muted-foreground"
+                            class="text-muted-foreground text-xs font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
                         >
                             Por página:
                         </label>
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
-                                <Button
-                                    type="button"
-                                    class="flex items-center justify-between rounded-md border bg-background"
-                                >
+                                <Button type="button" class="bg-background flex items-center justify-between rounded-md border">
                                     <span class="text-primary">{{ itemsPerPage }}</span>
-                                    <ChevronDown class="ml-2 h-4 w-4 text-primary" />
+                                    <ChevronDown class="text-primary ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="min-w-24">
-                                <DropdownMenuItem @click="itemsPerPage = 10; searchEmployees()">10</DropdownMenuItem>
-                                <DropdownMenuItem @click="itemsPerPage = 25; searchEmployees()">25</DropdownMenuItem>
-                                <DropdownMenuItem @click="itemsPerPage = 50; searchEmployees()">50</DropdownMenuItem>
+                                <DropdownMenuItem
+                                    @click="
+                                        itemsPerPage = 10;
+                                        searchEmployees();
+                                    "
+                                    >10</DropdownMenuItem
+                                >
+                                <DropdownMenuItem
+                                    @click="
+                                        itemsPerPage = 25;
+                                        searchEmployees();
+                                    "
+                                    >25</DropdownMenuItem
+                                >
+                                <DropdownMenuItem
+                                    @click="
+                                        itemsPerPage = 50;
+                                        searchEmployees();
+                                    "
+                                    >50</DropdownMenuItem
+                                >
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 </div>
             </section>
             <!-- Seção de listagem de funcionários -->
-            <ListEmployees :listEmployees="employees"
-                           :viewMode="viewMode"
-                           @update:selectedEmployees="selectedEmployees = $event"
-             />
-
+            <ListEmployees :listEmployees="employees" :viewMode="viewMode" @update:selectedEmployees="selectedEmployees = $event" />
         </main>
     </AppLayout>
 </template>
