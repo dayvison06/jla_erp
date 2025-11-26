@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Spatie\LaravelPdf\Facades\Pdf;
 
 class EmployeeController extends Controller
 {
@@ -216,7 +218,7 @@ class EmployeeController extends Controller
             $path = $file->getRealPath();
 
             // Usando PhpSpreadsheet para ler arquivos XLSX/XLS
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+            $spreadsheet = IOFactory::load($path);
             $rows = $spreadsheet->getActiveSheet()->toArray();
 
 // Cabeçalho (primeira linha) e resto dos dados
@@ -258,5 +260,11 @@ class EmployeeController extends Controller
                 'message' => 'Não foi possível importar o arquivo CSV.',
             ]);
         }
+    }
+
+    public function generateReport()
+    {
+       Pdf::view('ficha-funcionario')
+           ->save(storage_path('/app/public/employee_report.pdf'));
     }
 }
