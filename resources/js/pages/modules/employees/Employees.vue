@@ -94,6 +94,33 @@ async function showEmployee(id: number) {
 
 }
 
+async function generateEmployeeReports () {
+    if (selectedEmployees.value.length === 0) {
+        showToast('Nenhum funcionário selecionado para gerar relatórios.', 'warning');
+        return;
+    }
+
+    try {
+        const response = await axios.post('/funcionarios/ficha-funcionario', {
+            employee_ids: selectedEmployees.value,
+        }, {
+            responseType: 'blob', // Importante para arquivos
+        });
+
+        // Cria um link para download do arquivo gerado
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'relatorios_funcionarios.zip'); // Nome do arquivo
+        document.body.appendChild(link);
+        link.click();
+        showToast('Relatórios gerados com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao gerar relatórios:', error);
+        showToast('Erro ao gerar relatórios dos funcionários.', 'error');
+    }
+}
+
 /**
  * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
  */
@@ -255,7 +282,7 @@ debouncedWatch(
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" class="min-w-24">
-                                <DropdownMenuItem>
+                                <DropdownMenuItem @click="generateEmployeeReports">
                                     <HardHat class="h-4 w-4" />
                                     Ficha de funcionário
                                 </DropdownMenuItem>

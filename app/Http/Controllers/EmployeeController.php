@@ -262,9 +262,17 @@ class EmployeeController extends Controller
         }
     }
 
-    public function generateReport()
+    public function generateReport(Request $request)
     {
-       Pdf::view('ficha-funcionario')
-           ->save(storage_path('/app/public/employee_report.pdf'));
+        $validated = $request->validate([
+            'employee_ids' => 'required|array',
+        ]);
+
+        $employeeIds = $validated['employee_ids'];
+        $employees = Employee::whereIn('id', $employeeIds)
+            ->get();
+       Pdf::view('ficha-funcionario', [
+            'employees' => $employees,
+       ])->save(storage_path('/app/public/employee_report.pdf'));
     }
 }
