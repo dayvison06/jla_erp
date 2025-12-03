@@ -10,14 +10,12 @@ services:
     container_name: jla_erp_app
     restart: unless-stopped
 
-    env_file:
-      - .env
-
     # Uso de volumes nomeados para dados persistentes (storage)
     # Laravel precisa de permissão de escrita em 'storage' e 'bootstrap/cache' [12, 16].
     volumes:
       # Volume nomeado para persistir uploads, logs, etc.
       - laravel-storage-production:/var/www/app/storage
+      - ../../.env:/var/www/app/.env
 
     labels:
       - "traefik.enable=true"
