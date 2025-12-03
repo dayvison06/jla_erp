@@ -1,5 +1,5 @@
 # Usa FrankenPHP como base
-FROM dunglas/frankenphp:1.10.1-php8.2
+FROM dunglas/frankenphp:1.10.1-php8.3
 
 WORKDIR /app
 
