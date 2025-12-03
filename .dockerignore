@@ -1,0 +1,9 @@
+node_modules
+vendor
+public/hot
+public/build/hot
+storage
+.env
+.git
+.gitignore
+npm-debug.log
