@@ -4,9 +4,6 @@ services:
         container_name: erp_jlaengenhariaes
         volumes:
            - ./storage/app/public/:/var/www/app/storage/app/public/
-        ports:
-            - "80:80" #http
-            - "443:443" #https
         env_file:
             -   .env
         labels:
