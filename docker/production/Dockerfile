@@ -30,15 +30,17 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY . .
 
 # Instala dependências PHP e JS, e faz o build do frontend
-RUN composer install --no-interaction --no-dev \
-    && npm install \
-    && npm run build
+RUN composer install --no-interaction --no-dev
+RUN npm install
+RUN npm run build
 
 # Ajusta permissões
 RUN chown -R www-data:www-data /app
 
 # Configura Supervisor
 COPY ./docker/production/supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+RUN php artisan optimize
 
 # Limpa cache do apt
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
