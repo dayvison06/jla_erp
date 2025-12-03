@@ -27,15 +27,3 @@ jobs:
 
             # 3. Força o rebuild da imagem localmente e sobe os containers
             docker compose -f docker/production/docker-compose.yml up -d
-
-            # 4. Roda os comandos de manutenção do Laravel dentro do container
-            echo "Rodando Migrations..."
-            docker exec jla_erp_app php artisan migrate --seed --force
-
-            echo "Limpando e recriando caches..."
-            docker exec jla_erp_app php artisan key:generate
-            docker exec jla_erp_app php artisan optimize
-            docker exec jla_erp_app php artisan view:cache
-            docker exec jla_erp_app php artisan config:cache
-            docker exec jla_erp_app php artisan route:cache
-            docker exec jla_erp_app php artisan ziggy:generate

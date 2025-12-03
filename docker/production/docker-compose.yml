@@ -17,6 +17,19 @@ services:
       - laravel-storage-production:/var/www/app/storage
       - ../../.env:/var/www/app/.env
 
+    command: >
+          sh -c "
+            echo 'Rodando Migrations...' &&
+            php artisan migrate --seed --force &&
+            echo 'Limpando e recriando caches...' &&
+            php artisan key:generate &&
+            php artisan optimize &&
+            php artisan view:cache &&
+            php artisan config:cache &&
+            php artisan route:cache &&
+            php artisan ziggy:generate
+          "
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=Host(`app.jlaengenhariaes.com.br`)"
