@@ -1,0 +1,40 @@
+name: Production Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # 1. Navega até a pasta do projeto
+            cd /var/www/erp_jla_engenharia
+
+            # 2. Puxa as alterações do GitHub (código novo)
+            git pull origin main
+
+            # 3. Força o rebuild da imagem localmente e sobe os containers
+            docker compose -f docker/production/docker-compose.yml up -d --build
+
+            # 4. Roda os comandos de manutenção do Laravel dentro do container
+            echo "Rodando Migrations..."
+            docker compose exec -T jla_erp_app php artisan migrate --seed --force
+
+            echo "Limpando e recriando caches..."
+            docker compose exec -T jla_erp_app php artisan key:generate
+            docker compose exec -T jla_erp_app php artisan optimize
+            docker compose exec -T jla_erp_app php artisan view:cache
+            docker compose exec -T jla_erp_app php artisan config:cache
+            docker compose exec -T jla_erp_app php artisan route:cache
+            docker compose exec -T jla_erp_app php artisan ziggy:generate
