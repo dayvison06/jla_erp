@@ -30,4 +30,4 @@ jobs:
             docker build -t dayvis/erp_jlaengenharia:1.0 .
 
             # 4. Força o rebuild da imagem localmente e sobe os containers
-            docker compose docker-compose.yml up -d --build
+            docker compose up -d --build
