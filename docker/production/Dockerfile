@@ -32,7 +32,7 @@ COPY . .
 # Instala dependências PHP e JS, e faz o build do frontend
 RUN composer install --no-interaction --no-dev
 RUN npm install
-RUN npm run build
+RUN npm run build:ssr
 
 # Ajusta permissões
 RUN chown -R www-data:www-data /app
@@ -41,6 +41,7 @@ RUN chown -R www-data:www-data /app
 COPY ./docker/production/supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN php artisan optimize
+RUN php artisan storage:link
 
 # Limpa cache do apt
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
