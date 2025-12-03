@@ -20,7 +20,7 @@ services:
     command: >
           sh -c "
             echo 'Rodando Migrations...' &&
-            php artisan migrate --seed --force &&
+            php artisan migrate --force &&
             echo 'Limpando e recriando caches...' &&
             php artisan key:generate &&
             php artisan optimize &&
