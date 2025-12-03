@@ -26,7 +26,7 @@ jobs:
             git pull origin main
 
             # 3. Força o rebuild da imagem localmente e sobe os containers
-            docker compose -f docker/production/docker-compose_production.yml up -d --build
+            docker compose -f docker/production/docker-compose.yml up -d
 
             # 4. Roda os comandos de manutenção do Laravel dentro do container
             echo "Rodando Migrations..."

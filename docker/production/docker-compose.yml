@@ -1,18 +1,17 @@
 services:
   # 1. Serviço principal: App Laravel rodando FrankenPHP
   app:
-    # O contexto e o dockerfile devem apontar para o seu Dockerfile modificado
+    # O contexto sobe 2 níveis para chegar na raiz do projeto (onde está o composer.json)
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../
+      # Aponta de volta para onde o Dockerfile está (relativo à raiz)
+      dockerfile: docker/production/Dockerfile
 
     container_name: jla_erp_app
     restart: unless-stopped
 
-    # Exposição das portas diretamente para o Traefik (ou host)
-    ports:
-      - "80:80"
-      - "443:443"
+    env_file:
+      - .env
 
     # Uso de volumes nomeados para dados persistentes (storage)
     # Laravel precisa de permissão de escrita em 'storage' e 'bootstrap/cache' [12, 16].
@@ -20,9 +19,16 @@ services:
       # Volume nomeado para persistir uploads, logs, etc.
       - laravel-storage-production:/var/www/app/storage
 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`app.jlaengenhariaes.com.br`)"
+      - "traefik.http.routers.app.entrypoints=https"
+      - "traefik.http.routers.app.tls.certresolver=default"
+      - "traefik.http.services.app.loadbalancer.server.port=80"
+
     # Redes (essencial para comunicação interna com outros serviços como DB e Redis)
     networks:
-      - jla_erp_sail
+      - traefik
   # 2. Definição dos Volumes Nomeados para persistência
 volumes:
   laravel-storage-production:
@@ -30,5 +36,5 @@ volumes:
     driver: local
 # 3. Definição da Rede
 networks:
-  jla_erp_sail:
-    driver: bridge
+  traefik:
+    external: true
