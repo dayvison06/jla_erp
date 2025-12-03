@@ -17,7 +17,7 @@ services:
         - .env
     volumes:
       # Volume nomeado para persistir uploads, logs, etc.
-      - laravel-storage-production:/var/www/app/storage
+      - erp_jlaegenhariaes:/var/www/app/storage
 
     labels:
       - "traefik.enable=true"
@@ -31,9 +31,7 @@ services:
       - traefik
   # 2. Definição dos Volumes Nomeados para persistência
 volumes:
-  laravel-storage-production:
-    # O Docker Compose simplifica a criação e o gerenciamento de volumes nomeados [17, 18]
-    driver: local
+  erp_jlaegenhariaes:
 # 3. Definição da Rede
 networks:
   traefik:
