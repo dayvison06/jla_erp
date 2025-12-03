@@ -32,10 +32,10 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`app.jlaengenhariaes.com.br`)"
-      - "traefik.http.routers.app.entrypoints=https"
-      - "traefik.http.routers.app.tls.certresolver=default"
-      - "traefik.http.services.app.loadbalancer.server.port=80"
+      - "traefik.http.routers.jla_erp.rule=Host(`app.jlaengenhariaes.com.br`)"
+      - "traefik.http.routers.jla_erp.entrypoints=https"
+      - "traefik.http.routers.jla_erp.tls.certresolver=default"
+      - "traefik.http.services.jla_erp.loadbalancer.server.port=80"
 
     # Redes (essencial para comunicação interna com outros serviços como DB e Redis)
     networks:
