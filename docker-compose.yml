@@ -1,51 +1,22 @@
 services:
-    laravel.test:
-        image: 'sail-8.4/app'
-        extra_hosts:
-            - 'host.docker.internal:host-gateway'
-        ports:
-            - '${APP_PORT:-80}:80'
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
-        environment:
-            WWWUSER: '${WWWUSER}'
-            LARAVEL_SAIL: 1
-            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
-            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
-            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+    app:
+        image: dayvis/laravel_inertia_nginx:1.0
+        container_name: erp_jlaengenhariaes
         volumes:
-            - '.:/var/www/html'
-        networks:
-            - sail
-        depends_on:
-            - pgsql
-    pgsql:
-        image: 'postgres:17'
+           - ./storage/app/public/:/var/www/app/storage/app/public/
         ports:
-            - '${FORWARD_DB_PORT:-5432}:5432'
-        environment:
-            PGPASSWORD: '${DB_PASSWORD:-secret}'
-            POSTGRES_DB: '${DB_DATABASE}'
-            POSTGRES_USER: '${DB_USERNAME}'
-            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
-        volumes:
-            - 'sail-pgsql:/var/lib/postgresql/data'
-            - './vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+            - "80:80" #http
+            - "443:443" #https
+        env_file:
+            -   .env
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.jla_erp.rule=Host(`app.jlaengenhariaes.com.br`)"
+            - "traefik.http.routers.jla_erp.entrypoints=https"
+            - "traefik.http.routers.jla_erp.tls.certresolver=default"
+            - "traefik.http.services.jla_erp.loadbalancer.server.port=80"
         networks:
-            - sail
-        healthcheck:
-            test:
-                - CMD
-                - pg_isready
-                - '-q'
-                - '-d'
-                - '${DB_DATABASE}'
-                - '-U'
-                - '${DB_USERNAME}'
-            retries: 3
-            timeout: 5s
+            - traefik
 networks:
-    sail:
-        driver: bridge
-volumes:
-    sail-pgsql:
-        driver: local
+    traefik:
+        external: true

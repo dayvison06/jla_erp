@@ -27,7 +27,7 @@ jobs:
 
             # 3. Builda e sobe os containers com Docker Compose
             echo "Build da imagem com novas alterações..."
-            docker build -f docker/production/Dockerfile -t dayvis/erp_jlaengenharia:1.0 .
+            docker build -t dayvis/erp_jlaengenharia:1.0 .
 
             # 4. Força o rebuild da imagem localmente e sobe os containers
-            docker compose -f docker/production/docker-compose.yml up -d --build
+            docker compose docker-compose.yml up -d --build
