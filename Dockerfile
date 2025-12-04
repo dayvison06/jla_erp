@@ -45,9 +45,10 @@ COPY ./docker/php/extra-php-fpm.conf /etc/php8/php-fpm.d/www.conf
 
 WORKDIR $APP_DIR
 RUN cd $APP_DIR
-RUN chown -R www-data:www-data $APP_DIR
+RUN chown www-data:www-data $APP_DIR
 
-COPY  . .
+COPY --chown=www-data:www-data . .
+RUN rm -rf vendor
 RUN rm -rf vendor
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
