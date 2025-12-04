@@ -33,7 +33,7 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link rel="shortcut icon" href="{{ secure_asset('favicon.svg') }}" type="image/svg">
+        <link rel="shortcut icon" href="{{ asset('favicon.svg') }}" type="image/svg">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         @routes
