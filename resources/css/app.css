@@ -187,7 +187,7 @@
 }
 
 .bg-background {
-    @apply bg-[#fafafa];
+    background-color: var(--background);
 }
 
 /*Botões customizados*/
