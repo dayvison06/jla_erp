@@ -47,7 +47,7 @@ WORKDIR $APP_DIR
 RUN cd $APP_DIR
 RUN chown -R www-data:www-data $APP_DIR
 
-COPY . .
+COPY  . .
 RUN rm -rf vendor
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
