@@ -54,9 +54,6 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 RUN npm install
 RUN npm run build:ssr
 
-# garante que storage, bootstrap/cache e public sejam graváveis pelo servidor web
-RUN chmod -R 775 $APP_DIR/storage/ $APP_DIR/bootstrap/cache/ $APP_DIR/public/
-
 RUN apt-get install nginx -y
 RUN rm -rf /etc/nginx/sites-enabled/* && rm -rf /etc/nginx/sites-available/*
 COPY ./docker/nginx/sites.conf /etc/nginx/sites-enabled/default.conf
@@ -64,6 +61,9 @@ COPY ./docker/nginx/error.html /var/www/html/error.html
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # RUN apt update -y && apt install nano git -y
+
+# garante que storage, bootstrap/cache e public sejam graváveis pelo servidor web
+RUN chown -R www-data:www-data $APP_DIR/storage $APP_DIR/bootstrap/cache $APP_DIR/public
 
 RUN php artisan optimize
 RUN php artisan storage:link
