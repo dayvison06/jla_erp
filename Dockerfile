@@ -45,9 +45,10 @@ COPY ./docker/php/extra-php-fpm.conf /etc/php8/php-fpm.d/www.conf
 
 WORKDIR $APP_DIR
 RUN cd $APP_DIR
-RUN chown www-data:www-data $APP_DIR
 
+RUN chown -R www-data:www-data $APP_DIR
 COPY --chown=www-data:www-data . .
+
 RUN rm -rf vendor
 RUN rm -rf vendor
 RUN composer install --no-interaction --no-dev --optimize-autoloader
@@ -64,12 +65,10 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # RUN apt update -y && apt install nano git -y
 
 # garante que storage, bootstrap/cache e public sejam graváveis pelo servidor web
-RUN chown -R www-data:www-data $APP_DIR/storage $APP_DIR/bootstrap/cache $APP_DIR/public \
-    && chmod -R 2775 $APP_DIR/storage $APP_DIR/bootstrap/cache $APP_DIR/public \
-    && find $APP_DIR/public -type d -exec chmod g+s {} \; \
-    && setfacl -R -m u:www-data:rwx -m d:u:www-data:rwx $APP_DIR/storage $APP_DIR/bootstrap/cache $APP_DIR/public
+RUN chmod -R 777 storage bootstrap/cache public
 
 RUN php artisan optimize
+RUN php artisan basset:fresh
 RUN php artisan storage:link
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
