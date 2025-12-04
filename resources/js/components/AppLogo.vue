@@ -7,7 +7,7 @@ const appName = ref('Liber Helper');
 
 <template>
     <div class="flex size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
-        <AppLogoIcon class="size-8 fill-current text-white dark:text-black" />
+        <AppLogoIcon class="size-8 text-foreground" />
     </div>
     <div class="ml-1 grid flex-1 text-left text-sm">
         <span  class="mb-0.5 truncate font-semibold leading-none">{{ appName || 'JLA Engenharia' }}</span>

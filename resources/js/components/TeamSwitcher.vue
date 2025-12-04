@@ -39,7 +39,7 @@ const activeTeam = ref(props.teams[0] || { name: 'Sem time'})
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <div class="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground">
-              <AppLogoIcon />
+              <AppLogoIcon class="text-foreground" />
             </div>
             <div class="grid flex-1 text-left text-sm leading-tight">
               <span class="truncate font-medium">

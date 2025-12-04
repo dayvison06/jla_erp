@@ -89,7 +89,7 @@
 }
 
 :root {
-  --background: hsl(0 0% 100%);
+  --background: hsl(0 0% 98%);
   --foreground: hsl(0 0% 3.9%);
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(0 0% 3.9%);
@@ -127,7 +127,7 @@
 }
 
 .dark {
-  --background: hsl(0 0% 3.9%);
+  --background: hsl(0 0% 10%);
   --foreground: hsl(0 0% 98%);
   --card: hsl(0 0% 3.9%);
   --card-foreground: hsl(0 0% 98%);
@@ -187,13 +187,30 @@
 }
 
 .bg-background {
-    background-color: var(--background);
+  background-color: var(--background);
+}
+.text-foreground {
+  color: var(--foreground);
+}
+.bg-popover {
+  background-color: var(--popover);
+}
+.text-popover-foreground {
+  color: var(--popover-foreground);
+}
+.border {
+  border-color: var(--border);
+}
+.input {
+  background-color: var(--input);
+  color: var(--foreground);
+  border-color: var(--border);
 }
 
 /*Botões customizados*/
 
 .default-box {
-    @apply bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden;
+    @apply bg-background border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden;
 }
 
 .tooltip-balon {
@@ -217,7 +234,8 @@
 }
 
 .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer rounded-md py-1 px-3 transition-colors duration-200;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 .btn-primary-v2 {
