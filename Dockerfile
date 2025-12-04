@@ -55,7 +55,7 @@ RUN npm install
 RUN npm run build:ssr
 
 # garante que storage, bootstrap/cache e public sejam graváveis pelo servidor web
- RUN chmod -R 775 storage bootstrap/cache public
+RUN chmod -R 775 storage/ bootstrap/cache/ public/
 
 RUN apt-get install nginx -y
 RUN rm -rf /etc/nginx/sites-enabled/* && rm -rf /etc/nginx/sites-available/*
