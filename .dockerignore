@@ -7,3 +7,4 @@ public/build/hot
 .gitignore
 npm-debug.log
 .cache
+bootstrap/cache

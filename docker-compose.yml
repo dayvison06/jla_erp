@@ -5,7 +5,7 @@ services:
         volumes:
            - ./storage/app/public/:/var/www/app/storage/app/public/
         env_file:
-            -   .env
+            - .env
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.jla_erp.rule=Host(`app.jlaengenhariaes.com.br`)"
