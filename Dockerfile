@@ -47,7 +47,7 @@ WORKDIR $APP_DIR
 RUN cd $APP_DIR
 RUN chown -R www-data:www-data $APP_DIR
 
-COPY --chown=www-data:www-data . .
+COPY . .
 RUN rm -rf vendor
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
@@ -55,7 +55,7 @@ RUN npm install
 RUN npm run build:ssr
 
 # garante que storage, bootstrap/cache e public sejam graváveis pelo servidor web
-RUN chmod -R 775 storage/ bootstrap/cache/ public/
+RUN chmod -R 775 $APP_DIR/storage/ $APP_DIR/bootstrap/cache/ $APP_DIR/public/
 
 RUN apt-get install nginx -y
 RUN rm -rf /etc/nginx/sites-enabled/* && rm -rf /etc/nginx/sites-available/*
