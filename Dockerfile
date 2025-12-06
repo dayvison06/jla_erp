@@ -50,8 +50,9 @@ RUN chown -R www-data:www-data $APP_DIR
 COPY --chown=www-data:www-data . .
 
 RUN rm -rf vendor
-RUN rm -rf vendor
 RUN composer install --no-interaction --no-dev --optimize-autoloader
+
+RUN apt-get install -y install libx11-xcb1 libxcomposite1 libasound2t64 libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6
 
 RUN npm install
 RUN npm run build:ssr

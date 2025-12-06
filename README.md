@@ -117,7 +117,7 @@ Você pode instalar o projeto localmente ou utilizando Docker.
 
 3.  Inicie os contêineres do Sail em background:
     ```bash
-    ./vendor/bin/sail up -d
+    docker compose -f docker-compose-dev.yml up -d
     ```
 
 4.  Instale as dependências do Composer e NPM dentro do contêiner:
