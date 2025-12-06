@@ -29,6 +29,11 @@ class EmployeeController extends Controller
         $this->employeeServices = $employeeServices;
     }
 
+    /**
+     * Exibe uma lista paginada de funcionários.
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request) : Response
     {
         $query = Employee::query();
@@ -56,6 +61,11 @@ class EmployeeController extends Controller
 
     }
 
+    /**
+     * Pesquisa funcionários com base em um termo de busca.
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function search(Request $request) : JsonResponse
     {
         $searchTerm = $request->input('query');
@@ -70,10 +80,20 @@ class EmployeeController extends Controller
         return response()->json($employees);
     }
 
+    /**
+     * Exibe o formulário para criar um novo funcionário.
+     * @return Response
+     */
     public function create()
     {
         return Inertia::render('modules/employees/CreateEmployee');
     }
+
+    /**
+     * Armazena um novo funcionário no banco de dados.
+     * @param EmployeeRequest $request
+     * @return RedirectResponse
+     */
     public function store (EmployeeRequest $request) : RedirectResponse
     {
 
@@ -121,6 +141,12 @@ class EmployeeController extends Controller
         }
     }
 
+    /**
+     * Exibe as informações de um funcionário específico.
+     * @param int $id
+     * @param Employee $employee
+     * @return Response
+     */
     public function show ($id, Employee $employee) : Response
     {
         $findEmployee = $employee->where('id', $id)
@@ -129,6 +155,12 @@ class EmployeeController extends Controller
         return Inertia::render('modules/employees/ShowEmployee', ['employee' => $findEmployee]);
     }
 
+    /**
+     * Atualiza as informações de um funcionário específico.
+     * @param FormRequest $request
+     * @param int $id
+     * @return Response
+     */
     public function update(FormRequest $request, int $id): Response
     {
         $payload = $request->all();
@@ -158,6 +190,12 @@ class EmployeeController extends Controller
         }
     }
 
+    /**
+     * Faz o upload de arquivos anexos para um funcionário específico.
+     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
+     */
     public function uploadFiles(Request $request, int $id) : RedirectResponse
     {
         $employee = Employee::where('id', $id)->firstOrFail();
@@ -182,6 +220,12 @@ class EmployeeController extends Controller
         ]);
     }
 
+    /**
+     * Desativa um funcionário com base no ID fornecido.
+     * @param Request $request
+     * @param Employee $employee
+     * @return Response
+     */
     public function deactivate(Request $request, Employee $employee) : Response
     {
         try {
@@ -202,12 +246,22 @@ class EmployeeController extends Controller
         ]);
     }
 
+    /**
+     * Faz o download do template de importação de funcionários em XLSX.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
     public function downloadTemplate()
     {
         return response()->download(storage_path('app/templates/template_import_funcionarios.xlsx'), 'template_import_funcionarios.xlsx');
         // ou: return Storage::download('templates/template.csv');
     }
 
+    /**
+     * Importa funcionários a partir de um arquivo XLSX.
+     * @param Request $request
+     * @param Employee $employee
+     * @return Response
+     */
     public function importCSV(Request $request, Employee $employee) : Response
     {
         $file = $request->file()['importFile'];
@@ -221,7 +275,7 @@ class EmployeeController extends Controller
             $spreadsheet = IOFactory::load($path);
             $rows = $spreadsheet->getActiveSheet()->toArray();
 
-// Cabeçalho (primeira linha) e resto dos dados
+            // Cabeçalho (primeira linha) e resto dos dados
             $header = array_shift($rows);
             $data = $rows;
 
@@ -262,6 +316,11 @@ class EmployeeController extends Controller
         }
     }
 
+    /**
+     * Gera um relatório em PDF com as informações dos funcionários selecionados.
+     * @param Request $request
+     * @return void
+     */
     public function generateReport(Request $request)
     {
         $validated = $request->validate([
@@ -274,5 +333,43 @@ class EmployeeController extends Controller
        Pdf::view('ficha-funcionario', [
             'employees' => $employees,
        ])->save(storage_path('/app/public/employee_report.pdf'));
+    }
+
+    /**
+     * Lista todos os cargos empresariais.
+     * @return Response
+     */
+    public function jobRoles() : Response
+    {
+        $jobRoles = JobRole::paginate();
+        return Inertia::render('modules/administrative/JobRoles', [
+            'job_roles' => $jobRoles,
+        ]);
+    }
+
+    /**
+     * Castra cargos empresarias com respectivo salário base e descrição.
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function storeJobRole(Request $request) {
+        $baseSalary = $request->input('base_salary');
+        $baseSalary = str_replace(['.', ','], ['', '.'], $baseSalary);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ], [
+            'name.required' => 'O nome do cargo é obrigatório.',
+        ]);
+
+        JobRole::create([
+            'name' => $request->input('name'),
+            'base_salary' => $baseSalary,
+            'description' => $request->input('description'),
+        ]);
+
+        return response()->json([
+            'message' => 'Cargo criado com sucesso.',
+        ], 201);
     }
 }

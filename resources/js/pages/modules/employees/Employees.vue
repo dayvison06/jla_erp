@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import Cards from '@/pages/modules/employees/Cards.vue';
+import InfoTotalEmployees from '@/pages/modules/employees/InfoTotalEmployees.vue';
 import ListEmployees from '@/pages/modules/employees/ListEmployees.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { debouncedWatch } from '@vueuse/core';
@@ -140,7 +140,7 @@ debouncedWatch(
     <Head title="Funcionários" />
     <!-- Layout principal da aplicação com breadcrumbs -->
     <AppLayout :breadcrumbs="breadcrumbs">
-        <main class="mx-auto w-full py-8">
+        <main>
             <!-- Barra de progresso para uploads e outras operações -->
             <ProgressBar :progress="progressbar" :visible="progressbar > 0" />
             <Dialog v-model:open="dialogImport">
@@ -213,7 +213,7 @@ debouncedWatch(
                     <div class="mb-2 border-t border-gray-100"></div>
 
                     <div class="flex items-center justify-between">
-                        <Cards :all-employees="employees" />
+                        <InfoTotalEmployees :all-employees="employees" />
                         <div class="flex gap-4">
                             <Button @click="dialogImport = !dialogImport" class="btn-primary-v2">
                                 <Import class="h-4 w-4" />

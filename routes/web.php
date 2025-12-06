@@ -24,7 +24,12 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
     Route::post('/upload/{id}', [EmployeeController::class, 'uploadFiles'])->name('upload');
     Route::post('/importar-csv', [EmployeeController::class, 'importCSV'])->name('import_csv');
     Route::get('/download/template', [EmployeeController::class, 'downloadTemplate']);
+    Route::post('ficha-funcionario', [EmployeeController::class, 'generateReport'])->name('employee_report');
+});
 
+Route::prefix('administracao')->middleware(['auth', 'verified'])->name('admin.')->group(function () {
+        Route::get('/cargos', [EmployeeController::class, 'jobRoles'])->name('job_roles');
+        Route::post('/cargos', [EmployeeController::class, 'storeJobRole'])->name('store_job_role');
 });
 
 Route::get('/obras', function () {

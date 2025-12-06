@@ -127,8 +127,8 @@ return new class extends Migration
 
         Schema::create('job_roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->decimal('base_salary', 10, 2);
+            $table->string('name')->unique();
+            $table->float('base_salary', 10, 2);
             $table->text('description')->nullable();
             $table->timestamps();
         });

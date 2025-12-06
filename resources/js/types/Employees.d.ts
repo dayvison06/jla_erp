@@ -113,3 +113,10 @@ interface RoleHistory {
     salary: string;
     reason: string;
 }
+
+export interface JobRole {
+    id: number;
+    name: string;
+    base_salary: number;
+    description: string;
+}

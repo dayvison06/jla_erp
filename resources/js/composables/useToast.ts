@@ -1,26 +1,15 @@
-import { ref } from 'vue';
-
-const toastMessage = ref<{ title: string, type: string, description: string  } | null>(null);
-
-export interface ToastInternal {
-    title: string;
-    type: string; // success, error, info, warning
-    description: string;
-}
+import { toast } from 'vue-sonner'
 
 /**
- * Composable para exibir notificações do tipo toast.
+ * Helper para exibição de mensagens toast
+ * @param title - Título da mensagem
+ * @param message - Mensagem detalhada
+ * @param type - 'success' | 'error' | 'info'
  */
-export function useToast() {
-    /**
-     * Exibe um toast com título, tipo e descrição.
-     * @param title Titulo do toast
-     * @param type Tipo do toast (success, error, info, warning)
-     * @param description Descrição do toast
-     */
-    function showToast(title: string, type: string, description: string) {
-        toastMessage.value = { title, type, description };
-    }
-
-    return { toastMessage, showToast };
+export function showToast(type: 'success' | 'error' | 'info', title: string ,message: string) {
+    toast[type](title, {
+        duration: 3000,
+        position: 'top-center',
+        description: message
+    })
 }

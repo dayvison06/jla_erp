@@ -15,7 +15,6 @@ withDefaults(defineProps<Props>(), {
 
 <template>
     <AppAdminSidebarLayout :breadcrumbs="breadcrumbs">
-        <Toaster />
         <slot />
     </AppAdminSidebarLayout>
 </template>

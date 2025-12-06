@@ -4,6 +4,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItemType } from '@/types';
 import Notification from '@/components/ui/navbar/Notification.vue';
 import { useNotification } from '@/composables/useNotification';
+import AppearanceTabs from '@/components/AppearanceTabs.vue';
 const { notifications } = useNotification()
 
 defineProps<{
@@ -23,6 +24,7 @@ defineProps<{
                 </template>
             </div>
             <div class="flex items-center gap-2">
+                <AppearanceTabs />
                 <Notification :notifications="notifications" />
             </div>
         </div>
