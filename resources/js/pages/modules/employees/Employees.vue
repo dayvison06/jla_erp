@@ -4,7 +4,7 @@ import InfoTotalEmployees from '@/pages/modules/employees/InfoTotalEmployees.vue
 import ListEmployees from '@/pages/modules/employees/ListEmployees.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { debouncedWatch } from '@vueuse/core';
-import { useToast } from '@/composables/useToast';
+import { showToast } from '@/composables/useToast';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { ref } from 'vue';
 import type { Employee } from '@/types/Employees';
@@ -22,6 +22,7 @@ import {
     List,
     CircleEllipsis,
     UserRoundX,
+    Search
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import { Input } from '@/components/ui/input';
@@ -31,7 +32,6 @@ import axios from 'axios';
 
 // Composables e serviços
 const page = usePage();
-const { showToast } = useToast();
 
 // Estado do componente
 const selectedEmployees = ref<number[]>([]);
@@ -62,6 +62,12 @@ const importFileUpload = (event: Event) => {
  * @returns {void}
  */
 async function searchEmployees() {
+    if(searchQuery.value.trim() === '') {
+        employees.value = page.props.employees ?? [];
+        searchResults.value = false;
+        return;
+    }
+
     axios('/funcionarios/buscar', {
         params: {
             query: searchQuery.value,
@@ -72,10 +78,10 @@ async function searchEmployees() {
             listResults.value = response.data;
             searchResults.value = true;
             console.log('Funcionários atualizados:', listResults.value);
+            showToast('success', 'Funcionários buscados com sucesso!');
         })
         .catch((error) => {
-            console.error('Erro ao buscar funcionários:', error);
-            showToast('Erro ao buscar funcionários.', 'error');
+            showToast('error', 'Erro ao buscar funcionários.');
         });
 }
 
@@ -96,7 +102,7 @@ async function showEmployee(id: number) {
 
 async function generateEmployeeReports () {
     if (selectedEmployees.value.length === 0) {
-        showToast('Nenhum funcionário selecionado para gerar relatórios.', 'warning');
+        showToast('warning', 'Nenhum funcionário selecionado para gerar relatórios.');
         return;
     }
 
@@ -114,10 +120,10 @@ async function generateEmployeeReports () {
         link.setAttribute('download', 'relatorios_funcionarios.zip'); // Nome do arquivo
         document.body.appendChild(link);
         link.click();
-        showToast('Relatórios gerados com sucesso!', 'success');
+        showToast('success', 'Relatórios gerados com sucesso!');
     } catch (error) {
         console.error('Erro ao gerar relatórios:', error);
-        showToast('Erro ao gerar relatórios dos funcionários.', 'error');
+        showToast('error', 'Erro ao gerar relatórios dos funcionários.');
     }
 }
 
@@ -196,21 +202,21 @@ debouncedWatch(
                 <div class="p-8">
                     <div class="mb-6 flex items-start gap-6">
                         <!-- Ícone com destaque -->
-                        <div class="bg-background flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg shadow-md">
+                        <div class="icon-background flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg shadow-md">
                             <HardHat class="h-6 w-6 text-white" />
                         </div>
 
                         <!-- Título e descrição do módulo -->
                         <div class="min-w-0 flex-1">
-                            <h1 class="mb-2 text-2xl font-semibold tracking-tight text-gray-900">Funcionários</h1>
-                            <p class="text-base leading-relaxed text-gray-600">
+                            <h1 class="mb-2 text-2xl font-semibold tracking-tight text-foreground">Funcionários</h1>
+                            <p class="text-sm leading-relaxed text-muted-foreground">
                                 Gerencie o cadastro completo de colaboradores, controle permissões e acompanhe o status de cada funcionário em uma
                                 plataforma centralizada e eficiente.
                             </p>
                         </div>
                     </div>
                     <!-- Separador sutil -->
-                    <div class="mb-2 border-t border-gray-100"></div>
+                    <div class="mb-2 border-t border-muted-foreground"></div>
 
                     <div class="flex items-center justify-between">
                         <InfoTotalEmployees :all-employees="employees" />
@@ -233,14 +239,16 @@ debouncedWatch(
                     <div>
                         <div class="relative">
                             <DropdownMenu v-model:open="searchResults">
-                                <DropdownMenuTrigger disabled>
-                                    <Search class="text-primary absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                                    <Input v-model="searchQuery" type="text" placeholder="Buscar por nome ou CPF..." class="" />
+                                <DropdownMenuTrigger disabled class="w-full">
+                                    <div class="relative">
+                                        <Search class="text-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                                        <Input v-model="searchQuery" type="text" placeholder="Buscar por nome ou CPF..." class="pl-8" />
+                                    </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent class="w-full max-w-sm" align="start">
-                                    <DropdownMenuLabel class="text-primary text-sm">Funcionários</DropdownMenuLabel>
+                                    <DropdownMenuLabel class="text-primary text-sm px-2">Encontrados</DropdownMenuLabel>
                                     <DropdownMenuItem
-                                        class="cursor-pointer"
+                                        class="cursor-pointer text-muted-foreground border-t border-muted mt-2"
                                         v-for="item in listResults.data"
                                         :key="item.id"
                                         @click="showEmployee(item.id)"

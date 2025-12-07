@@ -584,7 +584,16 @@ function returnPageEmployees() {
 <template>
     <Head title='Editar'/>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <main class="container mx-auto px-4 py-8">
+        <main>
+            <!-- Botão para cancelar a operação -->
+            <Button
+                type="button"
+                @click="returnPageEmployees()"
+                class="btn-primary-v2"
+            >
+                <CornerDownLeft class="w-4 h-4 mr-2"/>
+                Voltar
+            </Button>
             <div class="text-center">
                 <span class="inline-flex px-2 py-1 text-xs font-semibold text-white rounded" :class="isReadonly ? 'bg-gray-400' : 'bg-primary'" :title="isReadonly ? 'Modo leitura' : 'Modo edição'" role="status" :aria-label="isReadonly ? 'Modo leitura' : 'Modo edição'">
                          <Eye v-if="isReadonly" class="w-4 h-4 mr-1" aria-hidden="true"/>
@@ -615,15 +624,6 @@ function returnPageEmployees() {
                     >
                         <EditIcon class="w-4 h-4 mr-2"/>
                         Alterar Dados
-                    </Button>
-                    <!-- Botão para cancelar a operação -->
-                    <Button
-                        type="button"
-                        @click="returnPageEmployees()"
-                        class="btn-primary-v2"
-                    >
-                        <CornerDownLeft class="w-4 h-4 mr-2"/>
-                        Voltar
                     </Button>
                 </div>
             </header>

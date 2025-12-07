@@ -14,8 +14,8 @@ const tabs = [
 <template>
     <button
         @click="updateAppearance(appearance === 'light' ? 'dark' : 'light')"
-        class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+        class="text-foreground rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-        <component :is="appearance === 'light' ? Moon : Sun" class="h-4 w-4" />
+        <component :is="appearance === 'light' ? Moon : Sun" class="h-5 w-5" />
     </button>
 </template>

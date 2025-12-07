@@ -20,22 +20,22 @@ const inactiveEmployees = computed(() => employees.value.filter(emp => emp.statu
 <template>
     <div>
         <!-- Stats Cards -->
-        <div class="flex gap-2">
+        <div class="flex gap-2 text-muted-foreground">
             <div class="flex gap-2 items-center p-2">
-                <Users class="w-5 h-5 text-gray-600" />
-                <p class="text-sm font-medium text-gray-600">Funcionários </p>
-                <span class="text-xl font-semibold text-gray-600">{{ totalEmployees }}</span>
+                <Users class="w-5 h-5" />
+                <p class="text-sm font-medium">Funcionários </p>
+                <span class="text-xl font-semibold">{{ totalEmployees }}</span>
             </div>
             <div class="flex gap-2 items-center p-2">
-                <UserCheck class="w-5 h-5 text-gray-600" />
-                <p class="text-sm font-medium text-gray-600">Ativos</p>
-                <span class="text-xl font-semibold text-gray-600">{{ activeEmployees }}</span>
+                <UserCheck class="w-5 h-5" />
+                <p class="text-sm font-medium">Ativos</p>
+                <span class="text-xl font-semibold">{{ activeEmployees }}</span>
             </div>
 
             <div class="flex gap-2 items-center p-2">
-                <UserX class="w-5 h-5 text-gray-600" />
-                <p class="text-sm font-medium text-gray-600">Inativos</p>
-                <span class="text-xl font-semibold text-gray-600">{{ inactiveEmployees }}</span>
+                <UserX class="w-5 h-5" />
+                <p class="text-sm font-medium">Inativos</p>
+                <span class="text-xl font-semibold">{{ inactiveEmployees }}</span>
             </div>
         </div>
     </div>

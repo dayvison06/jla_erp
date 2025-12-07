@@ -3,7 +3,7 @@
 import { ref, computed, defineEmits } from 'vue'
 import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
-import { useToast } from '@/composables/useToast';
+import { showToast } from '@/composables/useToast';
 
 const props = defineProps<{
     listEmployees: EmployeeList[],
@@ -16,7 +16,6 @@ const emit = defineEmits<{
 
 const paginatedEmployees = ref(props.listEmployees)
 console.log('Employees in ListEmployees.vue:', paginatedEmployees.value)
-const { showToast } = useToast();
 
 // Estado reativo
 const selectedEmployees = ref<number[]>([])
@@ -158,9 +157,9 @@ const deleteEmployee = () => {
 const getStatusColor = (status: string) => {
     switch (status) {
         case 'active':
-            return 'bg-green-100 text-green-800';
+            return 'bg-green-700 text-white';
         case 'inactive':
-            return 'bg-gray-100 text-gray-800';
+            return 'bg-muted text-gray-800';
         case 'vacation':
             return 'bg-blue-100 text-blue-800';
         case 'leave':
@@ -201,7 +200,7 @@ const getStatusText = (status: string) => {
         <!-- Tabela de Funcionários -->
         <div v-if="viewMode === 'list'" class="relative overflow-x-auto shadow sm:rounded-lg">
             <table class="table-auto w-full border-collapse text-left">
-                <thead class="bg-gray-100 text-gray-800 uppercase sticky top-0 shadow-md">
+                <thead class="bg-card text-foreground uppercase sticky top-0 shadow-md">
                 <tr>
                     <th class="px-6 py-3">
 <!--                     Checkbox customizado-->
@@ -209,7 +208,7 @@ const getStatusText = (status: string) => {
                             <label class="flex items-center cursor-pointer relative">
                                 <input :checked="isAllSelected"
                                        @change="toggleSelectAll"
-                                       type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full bg-slate-100 shadow hover:shadow-md border border-slate-300 checked:bg-secondary checked:bg-secondary" />
+                                       type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full shadow hover:shadow-md border-2 border-muted checked:bg-secondary checked:bg-secondary" />
                                 <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
                                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -229,7 +228,7 @@ const getStatusText = (status: string) => {
                             <svg
                                 v-if="sortColumn === column.key"
                                 class="h-4 w-4"
-                                :class="sortDirection === 'asc' ? 'text-gray-600' : 'text-gray-600 rotate-180'"
+                                :class="sortDirection === 'asc' ? 'text-foreground' : 'text-foreground rotate-180'"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -238,15 +237,13 @@ const getStatusText = (status: string) => {
                             </svg>
                         </div>
                     </th>
-                    <th class="px-3 py-3 text-xs font-medium tracking-wider">
-                    </th>
                 </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-card/40 text-sm text-foreground divide-y divide-gray-200">
                 <tr
                     v-for="employee in paginatedEmployees.data"
                     :key="employee.id"
-                    class="group bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
+                    class="group border-b border-muted hover:bg-muted cursor-pointer"
                     @click="showEmployee(employee.id)"
                 >
                     <td class="px-6 py-4">
@@ -255,7 +252,7 @@ const getStatusText = (status: string) => {
                                 <input
                                     @change="toggleEmployee(employee.id)"
                                     :checked="selectedEmployees.includes(employee.id)"
-                                    type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full bg-slate-100 shadow hover:shadow-md border border-slate-300 checked:bg-secondary checked:bg-secondary" />
+                                    type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full shadow hover:shadow-md border-2 border-muted checked:bg-secondary checked:bg-secondary" />
                                 <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
                                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -272,21 +269,21 @@ const getStatusText = (status: string) => {
                               </span>
                             </div>
                             <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
-                                <div class="text-sm text-gray-500">{{ employee.email }}</div>
+                                <div class="text-sm font-medium">{{ employee.name }}</div>
+                                <div class="text-sm text-muted-foreground">{{ employee.email }}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 whitespace-nowrap">
                         {{ employee.civil_state }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 whitespace-nowrap">
                         <div>
-                            <div class="text-sm font-medium text-gray-900">{{ employee.role }}</div>
-                            <div class="text-sm text-gray-600">{{ employee.contract_type }}</div>
+                            <div class="text-sm font-medium">{{ employee.role }}</div>
+                            <div class="text-sm text-muted-foreground">{{ employee.contract_type }}</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 whitespace-nowrap">
                         {{ formatDate(employee.admission_date) }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -342,18 +339,18 @@ const getStatusText = (status: string) => {
     </section>
     <!-- Paginação -->
     <div class="flex items-center justify-between default-box mt-6 p-4">
-        <div class="text-sm text-gray-700">
+        <div class="text-sm text-foreground">
             <p v-if="paginatedEmployees.to === paginatedEmployees.total"> Mostrando {{ paginatedEmployees.from }} de {{ paginatedEmployees.total }} funcionário</p>
             <p v-else>Mostrando {{ paginatedEmployees.from }} a {{ paginatedEmployees.to }} de {{ paginatedEmployees.total }} funcionários</p>
         </div>
         <div class="flex gap-2">
-            <button
+            <Button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                class="px-3 py-2 text-sm border border-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors curs cursor-pointer"
             >
                 Anterior
-            </button>
+            </Button>
             <span
                 v-for="page in totalPages"
                 :key="page"
@@ -365,13 +362,13 @@ const getStatusText = (status: string) => {
             >
                     {{ page }}
                 </span>
-            <button
+            <Button
                 @click="nextPage"
                 :disabled="currentPage === totalPages"
-                class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                class="px-3 py-2 text-sm border border-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
                 Próxima
-            </button>
+            </Button>
         </div>
     </div>
 </template>

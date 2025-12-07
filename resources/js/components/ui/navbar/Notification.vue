@@ -22,7 +22,7 @@ function marcarComoLido() {
             @click="isNotificationsOpen = !isNotificationsOpen"
             class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative"
         >
-            <Bell size="20" class="text-gray-600 dark:text-gray-300" />
+            <Bell size="20" class="text-foreground" />
             <span
                 v-if="notifications?.length"
                 class="absolute text-xs font-semibold text-white -top-1 -right-1 w-4 h-4 rounded-full bg-red-500"

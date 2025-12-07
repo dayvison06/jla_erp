@@ -22,7 +22,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import EmployeeCachedDialog from '@/components/EmployeeCachedDialog.vue';
 import { Employee, Attachment } from '@/types/Employees';
 import { toast } from 'vue-sonner';
-import { useToast } from '@/composables/useToast';
+import { showToast } from '@/composables/useToast';
 import {Button} from "@/components/ui/button";
 
 onMounted(() => {
@@ -35,7 +35,6 @@ onMounted(() => {
 const cacheDialog = ref(false);
 const isDragging = ref(true);
 const cachedEmployeeData = ref<Employee | null>(null);
-const {  showToast } = useToast();
 const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
     { title: 'Criar', href: '/funcionarios/create' },
@@ -193,6 +192,7 @@ const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
  * @returns {void}
  */
 function setLocalCacheForm() {
+    if (!formData.name) return;
     localStorage.setItem('cachedEmployee', JSON.stringify({ ...formData, attachments: [] }));
 }
 
@@ -696,11 +696,11 @@ function closeEmployeeForm() {
                     <!-- IDENTIFICAÇÃO -->
                     <details class="group mb-4 rounded-md border" open>
                         <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-gray-700 select-none">
-                            <span>Informações Básicas</span>
-                            <ArrowRight class="ml-2 text-gray-500 transition-all duration-100 group-open:rotate-90" />
+                            <span class="text-foreground">Informações Básicas</span>
+                            <ArrowRight class="ml-2 text-foreground transition-all duration-100 group-open:rotate-90" />
                         </summary>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 bg-card">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 <!-- Nome completo -->
                                 <div class="space-y-2">
@@ -795,11 +795,11 @@ function closeEmployeeForm() {
                     <!-- DOCUMENTOS -->
                     <details class="group mb-4 rounded-md border">
                         <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-gray-700 select-none">
-                            <span>Documentos</span>
-                            <ArrowRight class="ml-2 text-gray-500 transition-all duration-100 group-open:rotate-90" />
+                            <span class="text-foreground">Documentos</span>
+                            <ArrowRight class="ml-2 text-foreground transition-all duration-100 group-open:rotate-90" />
                         </summary>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 bg-card">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 <!-- CNPJ -->
                                 <div class="space-y-2">
@@ -883,12 +883,12 @@ function closeEmployeeForm() {
 
                     <!-- INFORMAÇÕES PESSOAIS -->
                     <details class="group mb-4 rounded-md border">
-                        <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-gray-700 select-none">
-                            <span>Informações Pessoais</span>
-                            <ArrowRight class="ml-2 text-gray-500 transition-all duration-100 group-open:rotate-90" />
+                        <summary class="flex cursor-pointer items-center justify-between p-4 font-bold select-none">
+                            <span class="text-foreground">Informações Pessoais</span>
+                            <ArrowRight class="ml-2 text-foreground transition-all duration-100 group-open:rotate-90" />
                         </summary>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 bg-card">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 <!-- Nome da mãe -->
                                 <div class="space-y-2">
