@@ -169,7 +169,7 @@ debouncedWatch(
                                     target="_blank"
                                     rel="noopener"
                                     download
-                                    class="text-secondary mt-2 flex items-center text-sm font-medium"
+                                    class="text-foreground mt-2 flex items-center text-sm font-medium underline"
                                 >
                                     <Import class="mr-2 h-4 w-4" />
                                     Baixar template
@@ -302,14 +302,14 @@ debouncedWatch(
                         </DropdownMenu>
                     </div>
                     <div class="flex items-center justify-end gap-2 md:col-span-2">
-                        <div class="mr-2 flex gap-1 rounded-md border p-0.5">
+                        <div class="mr-2 flex gap-1 rounded-md p-0.5">
                             <Button
                                 data-slot="button"
                                 :class="[
                                     'focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex h-7 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-2.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
                                     viewMode === 'list'
-                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs'
-                                        : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700',
+                                        ? 'bg-card text-foreground hover:bg-background/90 shadow-xs'
+                                        : 'bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                                 ]"
                                 @click="viewMode = 'list'"
                             >
@@ -320,8 +320,8 @@ debouncedWatch(
                                 :class="[
                                     'focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex h-7 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-2.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
                                     viewMode === 'grid'
-                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs'
-                                        : 'hover:bg-accent hover:text-accent-foreground bg-gray-100 text-gray-700',
+                                        ? 'bg-card text-foreground hover:bg-background/90 shadow-xs'
+                                        : 'bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                                 ]"
                                 @click="viewMode = 'grid'"
                             >

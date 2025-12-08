@@ -115,22 +115,22 @@ const deleteFile = (attachment) => {
         <!-- Header com contador e ações -->
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h2 class="text-xl font-semibold text-gray-900">Anexos</h2>
-                <p class="text-sm text-gray-500 mt-1">{{ attachments.length }} arquivos</p>
+                <h2 class="text-xl font-semibold text-foreground">Anexos</h2>
+                <p class="text-sm text-muted-foreground mt-1">{{ attachments.length }} arquivos</p>
             </div>
 
             <!-- Ações em lote -->
             <div v-if="selectedItems.length > 0" class="flex items-center gap-3">
-                <span class="text-sm text-gray-600">{{ selectedItems.length }} selecionados</span>
+                <span class="text-sm text-muted-foreground">{{ selectedItems.length }} selecionados</span>
                 <button
                     @click="exportSelected"
-                    class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                    class="px-4 py-2 btn-primary text-foreground text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
                     Exportar Selecionados
                 </button>
                 <button
                     @click="clearSelection"
-                    class="px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                    class="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                     Cancelar
                 </button>
@@ -142,15 +142,21 @@ const deleteFile = (attachment) => {
             <div
                 v-for="attachment in attachments"
                 :key="attachment.id"
-                class="group flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                class="group flex items-center gap-4 p-3 rounded-lg hover:bg-card/50 transition-colors"
             >
                 <!-- Checkbox -->
-                <input
-                    type="checkbox"
-                    :value="attachment.id"
-                    v-model="selectedItems"
-                    class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                >
+                <div class="inline-flex items-center">
+                    <label class="flex items-center cursor-pointer relative">
+                        <input :value="attachment.id"
+                               v-model="selectedItems"
+                               type="checkbox" class="peer h-6 w-6 cursor-pointer transition-all appearance-none rounded-full shadow hover:shadow-md border-2 border-muted checked:bg-secondary checked:bg-secondary" />
+                        <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    </span>
+                    </label>
+                </div>
 
                 <!-- Ícone do arquivo -->
                 <div class="flex-shrink-0">
@@ -162,12 +168,12 @@ const deleteFile = (attachment) => {
                 <!-- Informações do arquivo -->
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-3">
-                        <p class="text-sm font-medium text-gray-900 truncate">{{ attachment.name }}</p>
-                        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ attachment.type }}</span>
+                        <p class="text-sm font-medium text-foreground truncate">{{ attachment.name }}</p>
+                        <span class="text-xs text-muted-foreground uppercase tracking-wide">{{ attachment.type }}</span>
                     </div>
                     <div class="flex items-center gap-4 mt-1">
-                        <span class="text-xs text-gray-500">{{ formatFileSize(attachment.size) }}</span>
-                        <span class="text-xs text-gray-500">{{ formatDate(attachment.created_at) }}</span>
+                        <span class="text-xs text-muted-foreground">{{ formatFileSize(attachment.size) }}</span>
+                        <span class="text-xs text-muted-foreground">{{ formatDate(attachment.created_at) }}</span>
                     </div>
                 </div>
 

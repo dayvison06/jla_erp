@@ -695,7 +695,7 @@ function closeEmployeeForm() {
                 <TabsContent value="personal">
                     <!-- IDENTIFICAÇÃO -->
                     <details class="group mb-4 rounded-md border" open>
-                        <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-gray-700 select-none">
+                        <summary class="flex cursor-pointer items-center justify-between p-4 font-bold select-none">
                             <span class="text-foreground">Informações Básicas</span>
                             <ArrowRight class="ml-2 text-foreground transition-all duration-100 group-open:rotate-90" />
                         </summary>
@@ -704,7 +704,7 @@ function closeEmployeeForm() {
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 <!-- Nome completo -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
+                                    <label class="block text-sm font-semibold text-foreground">Nome completo *</label>
                                     <input
                                         v-model="formData.name"
                                         type="text"
@@ -715,7 +715,7 @@ function closeEmployeeForm() {
 
                                 <!-- E-mail -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">E-mail *</label>
+                                    <label class="block text-sm font-medium text-foreground">E-mail *</label>
                                     <input
                                         v-model="formData.email"
                                         type="email"
@@ -726,7 +726,7 @@ function closeEmployeeForm() {
 
                                 <!-- Data de nascimento -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                    <label class="block text-sm font-medium text-foreground">Data de nascimento *</label>
                                     <input
                                         v-model="formData.birth_date"
                                         type="date"
@@ -737,7 +737,7 @@ function closeEmployeeForm() {
 
                                 <!-- Sexo/gênero -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
+                                    <label class="block text-sm font-medium text-foreground">Sexo/gênero *</label>
                                     <select
                                         v-model="formData.gender"
                                         class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -752,7 +752,7 @@ function closeEmployeeForm() {
 
                                 <!-- Estado civil -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
+                                    <label class="block text-sm font-medium text-foreground">Estado civil *</label>
                                     <select
                                         v-model="formData.civil_state"
                                         class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -769,7 +769,7 @@ function closeEmployeeForm() {
 
                                 <!-- Nacionalidade -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
+                                    <label class="block text-sm font-medium text-foreground">Nacionalidade *</label>
                                     <input
                                         v-model="formData.nationality"
                                         type="text"
@@ -780,7 +780,7 @@ function closeEmployeeForm() {
 
                                 <!-- Naturalidade -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
+                                    <label class="block text-sm font-medium text-foreground">Naturalidade *</label>
                                     <input
                                         v-model="formData.birthplace"
                                         type="text"
@@ -794,7 +794,7 @@ function closeEmployeeForm() {
 
                     <!-- DOCUMENTOS -->
                     <details class="group mb-4 rounded-md border">
-                        <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-gray-700 select-none">
+                        <summary class="flex cursor-pointer items-center justify-between p-4 font-bold select-none">
                             <span class="text-foreground">Documentos</span>
                             <ArrowRight class="ml-2 text-foreground transition-all duration-100 group-open:rotate-90" />
                         </summary>
@@ -803,7 +803,7 @@ function closeEmployeeForm() {
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 <!-- CNPJ -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">CNPJ</label>
+                                    <label class="block text-sm font-medium text-foreground">CNPJ</label>
                                     <input
                                         v-model="formData.cnpj"
                                         type="text"
@@ -813,7 +813,7 @@ function closeEmployeeForm() {
 
                                 <!-- CPF -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                    <label class="block text-sm font-medium text-foreground">CPF *</label>
                                     <input
                                         v-model="formData.cpf"
                                         type="text"
@@ -825,7 +825,7 @@ function closeEmployeeForm() {
 
                                 <!-- RG -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">RG *</label>
+                                    <label class="block text-sm font-medium text-foreground">RG *</label>
                                     <input
                                         v-model="formData.rg"
                                         type="text"
@@ -836,7 +836,7 @@ function closeEmployeeForm() {
 
                                 <!-- Órgão emissor -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
+                                    <label class="block text-sm font-medium text-foreground">Órgão emissor *</label>
                                     <input
                                         v-model="formData.issuing_agency"
                                         type="text"
@@ -847,7 +847,7 @@ function closeEmployeeForm() {
 
                                 <!-- Data de emissão -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
+                                    <label class="block text-sm font-medium text-foreground">Data de emissão *</label>
                                     <input
                                         v-model="formData.issue_date"
                                         type="date"
@@ -858,7 +858,7 @@ function closeEmployeeForm() {
 
                                 <!-- Título de eleitor -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
+                                    <label class="block text-sm font-medium text-foreground">Título de eleitor *</label>
                                     <input
                                         v-model="formData.voter_registration"
                                         type="text"
@@ -869,7 +869,7 @@ function closeEmployeeForm() {
 
                                 <!-- Certidão de reservista -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
+                                    <label class="block text-sm font-medium text-foreground">Certidão de reservista</label>
                                     <input
                                         v-model="formData.military_certificate"
                                         type="text"
@@ -892,7 +892,7 @@ function closeEmployeeForm() {
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 <!-- Nome da mãe -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
+                                    <label class="block text-sm font-medium text-foreground">Nome da mãe</label>
                                     <input
                                         v-model="formData.mother_name"
                                         type="text"
@@ -902,7 +902,7 @@ function closeEmployeeForm() {
 
                                 <!-- Nome do pai -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
+                                    <label class="block text-sm font-medium text-foreground">Nome do pai</label>
                                     <input
                                         v-model="formData.father_name"
                                         type="text"
@@ -912,7 +912,7 @@ function closeEmployeeForm() {
 
                                 <!-- Grau de escolaridade -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
+                                    <label class="block text-sm font-medium text-foreground">Grau de escolaridade *</label>
                                     <select
                                         v-model="formData.escolarity"
                                         class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -931,7 +931,7 @@ function closeEmployeeForm() {
 
                                 <!-- Tipo sanguíneo -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
+                                    <label class="block text-sm font-medium text-foreground">Tipo sanguíneo</label>
                                     <select
                                         v-model="formData.blood_type"
                                         class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -943,7 +943,7 @@ function closeEmployeeForm() {
 
                                 <!-- Telefone -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Telefone *</label>
+                                    <label class="block text-sm font-medium text-foreground">Telefone *</label>
                                     <input
                                         v-model="formData.phone"
                                         type="text"
@@ -955,7 +955,7 @@ function closeEmployeeForm() {
 
                                 <!-- Celular -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Celular</label>
+                                    <label class="block text-sm font-medium text-foreground">Celular</label>
                                     <input
                                         v-model="formData.mobile"
                                         type="text"
@@ -966,7 +966,7 @@ function closeEmployeeForm() {
 
                                 <!-- Contato de emergência -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
+                                    <label class="block text-sm font-medium text-foreground">Contato de emergência</label>
                                     <input
                                         v-model="formData.emergency_contact"
                                         type="text"
@@ -976,7 +976,7 @@ function closeEmployeeForm() {
 
                                 <!-- Telefone de emergência -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
+                                    <label class="block text-sm font-medium text-foreground">Telefone de emergência</label>
                                     <input
                                         v-model="formData.emergency_phone"
                                         type="text"
@@ -992,7 +992,7 @@ function closeEmployeeForm() {
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         <!-- Campo: Número da Carteira de Trabalho -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho *</label>
+                            <label class="block text-sm font-medium text-foreground">Número da Carteira de Trabalho *</label>
                             <input
                                 v-model="formData.ctps_number"
                                 type="text"
@@ -1003,7 +1003,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Série CTPS -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
+                            <label class="block text-sm font-medium text-foreground">Série CTPS *</label>
                             <input
                                 v-model="formData.ctps_series"
                                 type="text"
@@ -1014,7 +1014,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: UF CTPS -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">UF CTPS *</label>
+                            <label class="block text-sm font-medium text-foreground">UF CTPS *</label>
                             <select
                                 v-model="formData.ctps_state"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1027,7 +1027,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: PIS/PASEP -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
+                            <label class="block text-sm font-medium text-foreground">PIS/PASEP *</label>
                             <input
                                 v-model="formData.pis_pasep"
                                 type="text"
@@ -1038,7 +1038,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Número do NIT -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Número do NIT</label>
+                            <label class="block text-sm font-medium text-foreground">Número do NIT</label>
                             <input
                                 v-model="formData.nit"
                                 type="text"
@@ -1049,7 +1049,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: CNH -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">CNH</label>
+                            <label class="block text-sm font-medium text-foreground">CNH</label>
                             <input
                                 v-model="formData.cnh"
                                 type="text"
@@ -1059,7 +1059,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Categoria CNH -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Categoria CNH</label>
+                            <label class="block text-sm font-medium text-foreground">Categoria CNH</label>
                             <select
                                 v-model="formData.cnh_category"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1071,7 +1071,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Validade CNH -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
+                            <label class="block text-sm font-medium text-foreground">Validade CNH</label>
                             <input
                                 v-model="formData.cnh_expiry"
                                 type="date"
@@ -1081,7 +1081,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Registro profissional -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
+                            <label class="block text-sm font-medium text-foreground">Registro profissional</label>
                             <input
                                 v-model="formData.professional_registration"
                                 type="text"
@@ -1095,7 +1095,7 @@ function closeEmployeeForm() {
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         <!-- Campo: CEP -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label class="block text-sm font-medium text-foreground">
                                 CEP * <span class="text-primary text-xs font-medium">(Preenchimento automático)</span></label
                             >
                             <input
@@ -1109,7 +1109,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Logradouro -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
+                            <label class="block text-sm font-medium text-foreground">Logradouro *</label>
                             <input
                                 v-model="formData.street"
                                 type="text"
@@ -1120,7 +1120,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Número -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Número *</label>
+                            <label class="block text-sm font-medium text-foreground">Número *</label>
                             <input
                                 v-model="formData.number"
                                 type="text"
@@ -1131,7 +1131,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Complemento -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Complemento</label>
+                            <label class="block text-sm font-medium text-foreground">Complemento</label>
                             <input
                                 v-model="formData.complement"
                                 type="text"
@@ -1141,7 +1141,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Bairro -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Bairro *</label>
+                            <label class="block text-sm font-medium text-foreground">Bairro *</label>
                             <input
                                 v-model="formData.district"
                                 type="text"
@@ -1152,7 +1152,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Cidade -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Cidade *</label>
+                            <label class="block text-sm font-medium text-foreground">Cidade *</label>
                             <input
                                 v-model="formData.city"
                                 type="text"
@@ -1163,7 +1163,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Estado -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Estado *</label>
+                            <label class="block text-sm font-medium text-foreground">Estado *</label>
                             <select
                                 v-model="formData.state"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1179,7 +1179,7 @@ function closeEmployeeForm() {
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         <!-- Campo: Banco -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Banco *</label>
+                            <label class="block text-sm font-medium text-foreground">Banco *</label>
                             <select
                                 v-model="formData.bank"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1192,7 +1192,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Agência -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Agência *</label>
+                            <label class="block text-sm font-medium text-foreground">Agência *</label>
                             <input
                                 v-model="formData.agency"
                                 type="text"
@@ -1203,7 +1203,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Conta -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Conta *</label>
+                            <label class="block text-sm font-medium text-foreground">Conta *</label>
                             <input
                                 v-model="formData.account"
                                 type="text"
@@ -1214,7 +1214,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Tipo de conta -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Tipo de conta *</label>
+                            <label class="block text-sm font-medium text-foreground">Tipo de conta *</label>
                             <select
                                 v-model="formData.account_type"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1229,7 +1229,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Tipo Chave PIX -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Tipo de Chave PIX</label>
+                            <label class="block text-sm font-medium text-foreground">Tipo de Chave PIX</label>
                             <select
                                 v-model="formData.pix_key_type"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1245,7 +1245,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Chave PIX -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
+                            <label class="block text-sm font-medium text-foreground">Chave PIX</label>
                             <input
                                 v-model="formData.pix_key"
                                 type="text"
@@ -1259,7 +1259,7 @@ function closeEmployeeForm() {
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         <!-- Status -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Status *</label>
+                            <label class="block text-sm font-medium text-foreground">Status *</label>
                             <select
                                 v-model="formData.status"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1275,7 +1275,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Cargo/função -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
+                            <label class="block text-sm font-medium text-foreground">Cargo/função *</label>
                             <input
                                 v-model="formData.role"
                                 type="text"
@@ -1286,7 +1286,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Setor/departamento -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Setor/departamento *</label>
+                            <label class="block text-sm font-medium text-foreground">Setor/departamento *</label>
                             <select
                                 v-model="formData.department"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1300,7 +1300,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Tipo de vínculo -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Tipo de vínculo *</label>
+                            <label class="block text-sm font-medium text-foreground">Tipo de vínculo *</label>
                             <select
                                 v-model="formData.contract_type"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1317,7 +1317,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Data de admissão -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
+                            <label class="block text-sm font-medium text-foreground">Data de admissão *</label>
                             <input
                                 v-model="formData.admission_date"
                                 type="date"
@@ -1328,7 +1328,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Data de desligamento -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
+                            <label class="block text-sm font-medium text-foreground">Data de desligamento</label>
                             <input
                                 v-model="formData.termination_date"
                                 type="date"
@@ -1340,7 +1340,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Salário -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Salário *</label>
+                            <label class="block text-sm font-medium text-foreground">Salário *</label>
                             <input
                                 v-model="formData.salary"
                                 type="text"
@@ -1352,7 +1352,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Jornada de trabalho -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
+                            <label class="block text-sm font-medium text-foreground">Jornada de trabalho *</label>
                             <input
                                 v-model="formData.work_schedule"
                                 type="text"
@@ -1364,7 +1364,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Benefícios -->
                         <div class="col-span-1 space-y-2 md:col-span-2 lg:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700">Benefícios</label>
+                            <label class="block text-sm font-medium text-foreground">Benefícios</label>
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 <div class="flex items-center">
                                     <input
@@ -1373,7 +1373,7 @@ function closeEmployeeForm() {
                                         value="Vale Transporte"
                                         class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
+                                    <label class="ml-2 text-sm text-foreground">Vale Transporte</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input
@@ -1382,7 +1382,7 @@ function closeEmployeeForm() {
                                         value="valeRefeicao"
                                         class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Vale Refeição</label>
+                                    <label class="ml-2 text-sm text-foreground">Vale Refeição</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input
@@ -1391,7 +1391,7 @@ function closeEmployeeForm() {
                                         value="Plano de Saúde"
                                         class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
+                                    <label class="ml-2 text-sm text-foreground">Plano de Saúde</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input
@@ -1400,7 +1400,7 @@ function closeEmployeeForm() {
                                         value="Plano Odontológico"
                                         class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
+                                    <label class="ml-2 text-sm text-foreground">Plano Odontológico</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input
@@ -1409,7 +1409,7 @@ function closeEmployeeForm() {
                                         value="Seguro de Vida"
                                         class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
+                                    <label class="ml-2 text-sm text-foreground">Seguro de Vida</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input
@@ -1418,7 +1418,7 @@ function closeEmployeeForm() {
                                         value="Previdência Privada"
                                         class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
+                                    <label class="ml-2 text-sm text-foreground">Previdência Privada</label>
                                 </div>
                             </div>
                         </div>
@@ -1428,7 +1428,7 @@ function closeEmployeeForm() {
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         <!-- Campo: Data do último exame -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data do último exame admissional/periódico *</label>
+                            <label class="block text-sm font-medium text-foreground">Data do último exame admissional/periódico *</label>
                             <input
                                 v-model="formData.last_exam_date"
                                 type="date"
@@ -1439,7 +1439,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Data do próximo exame -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
+                            <label class="block text-sm font-medium text-foreground">Data do próximo exame *</label>
                             <input
                                 v-model="formData.next_exam_date"
                                 type="date"
@@ -1450,7 +1450,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Resultado do ASO -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Resultado do ASO *</label>
+                            <label class="block text-sm font-medium text-foreground">Resultado do ASO *</label>
                             <select
                                 v-model="formData.aso_result"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1465,7 +1465,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Alergias ou restrições médicas -->
                         <div class="col-span-1 space-y-2 md:col-span-2 lg:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700">Alergias ou restrições médicas</label>
+                            <label class="block text-sm font-medium text-foreground">Alergias ou restrições médicas</label>
                             <textarea
                                 v-model="formData.allergies"
                                 class="min-h-[100px] w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1475,7 +1475,7 @@ function closeEmployeeForm() {
 
                         <!-- Campo: Histórico de acidentes ou doenças ocupacionais -->
                         <div class="col-span-1 space-y-2 md:col-span-2 lg:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700">Histórico de acidentes ou doenças ocupacionais</label>
+                            <label class="block text-sm font-medium text-foreground">Histórico de acidentes ou doenças ocupacionais</label>
                             <textarea
                                 v-model="formData.accident_history"
                                 class="min-h-[100px] w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1511,7 +1511,7 @@ function closeEmployeeForm() {
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <!-- Campos do formulário do dependente -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
+                                <label class="block text-sm font-medium text-foreground">Nome completo *</label>
                                 <input
                                     v-model="dependent.name"
                                     type="text"
@@ -1521,7 +1521,7 @@ function closeEmployeeForm() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                <label class="block text-sm font-medium text-foreground">Data de nascimento *</label>
                                 <input
                                     v-model="dependent.birth_date"
                                     type="date"
@@ -1531,7 +1531,7 @@ function closeEmployeeForm() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                <label class="block text-sm font-medium text-foreground">CPF *</label>
                                 <input
                                     v-model="dependent.cpf"
                                     type="text"
@@ -1542,7 +1542,7 @@ function closeEmployeeForm() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Grau de parentesco *</label>
+                                <label class="block text-sm font-medium text-foreground">Grau de parentesco *</label>
                                 <select
                                     v-model="dependent.relationship"
                                     class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
@@ -1558,7 +1558,7 @@ function closeEmployeeForm() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Orgão Emissor *</label>
+                                <label class="block text-sm font-medium text-foreground">Orgão Emissor *</label>
                                 <input
                                     v-model="dependent.issuing_agency"
                                     type="text"
@@ -1568,7 +1568,7 @@ function closeEmployeeForm() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de Emissão *</label>
+                                <label class="block text-sm font-medium text-foreground">Data de Emissão *</label>
                                 <input
                                     v-model="dependent.issue_date"
                                     type="date"
@@ -1578,7 +1578,7 @@ function closeEmployeeForm() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Finalidade *</label>
+                                <label class="block text-sm font-medium text-foreground">Finalidade *</label>
                                 <div class="space-y-2">
                                     <div class="flex items-center">
                                         <input
@@ -1587,7 +1587,7 @@ function closeEmployeeForm() {
                                             value="income_tax"
                                             class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                         />
-                                        <label class="ml-2 text-sm text-gray-700">Imposto de Renda</label>
+                                        <label class="ml-2 text-sm text-foreground">Imposto de Renda</label>
                                     </div>
                                     <div class="flex items-center">
                                         <input
@@ -1596,7 +1596,7 @@ function closeEmployeeForm() {
                                             value="health_plan"
                                             class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                         />
-                                        <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
+                                        <label class="ml-2 text-sm text-foreground">Plano de Saúde</label>
                                     </div>
                                     <div class="flex items-center">
                                         <input
@@ -1605,7 +1605,7 @@ function closeEmployeeForm() {
                                             value="dental_plan"
                                             class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
                                         />
-                                        <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
+                                        <label class="ml-2 text-sm text-foreground">Plano Odontológico</label>
                                     </div>
                                 </div>
                             </div>

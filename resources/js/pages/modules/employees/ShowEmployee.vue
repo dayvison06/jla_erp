@@ -595,11 +595,10 @@ function returnPageEmployees() {
                 Voltar
             </Button>
             <div class="text-center">
-                <span class="inline-flex px-2 py-1 text-xs font-semibold text-white rounded" :class="isReadonly ? 'bg-gray-400' : 'bg-primary'" :title="isReadonly ? 'Modo leitura' : 'Modo edição'" role="status" :aria-label="isReadonly ? 'Modo leitura' : 'Modo edição'">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold text-foreground bg-card shadow-md rounded" :title="isReadonly ? 'Modo leitura' : 'Modo edição'" role="status" :aria-label="isReadonly ? 'Modo leitura' : 'Modo edição'">
                          <Eye v-if="isReadonly" class="w-4 h-4 mr-1" aria-hidden="true"/>
-                         <EditIcon v-else class="w-4 h-4 mr-1" aria-hidden="true"/>
-                         {{ isReadonly ? 'Modo leitura' : 'Modo edição' }}
-             </span>
+                         <span v-if="isReadonly">Modo leitura</span>
+                </span>
             </div>
             <header class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-4">
@@ -666,17 +665,17 @@ function returnPageEmployees() {
                     <!-- IDENTIFICAÇÃO -->
                     <details class="group border rounded-md mb-4" open>
                         <summary
-                            class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700"
+                            class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-foreground"
                         >
-                            <span>Informações Básicas</span>
-                            <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                            <span class="text-foreground">Informações Básicas</span>
+                            <ArrowRight class="ml-2 text-foreground group-open:rotate-90 transition-all duration-100"/>
                         </summary>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 bg-card">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <!-- Nome completo -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-semibold text-gray-700">Nome completo *</label>
+                                    <label class="block text-sm font-semibold text-foreground">Nome completo *</label>
                                     <Input
                                         v-model="formData.name"
                                         type="text"
@@ -687,7 +686,7 @@ function returnPageEmployees() {
 
                                 <!-- E-mail -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">E-mail *</label>
+                                    <label class="block text-sm font-medium text-foreground">E-mail *</label>
                                     <Input
                                         v-model="formData.email"
                                         type="email"
@@ -699,7 +698,7 @@ function returnPageEmployees() {
 
                                 <!-- Data de nascimento -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                    <label class="block text-sm font-medium text-foreground">Data de nascimento *</label>
                                     <Input
                                         v-model="formData.birth_date"
                                         type="date"
@@ -711,7 +710,7 @@ function returnPageEmployees() {
 
                                 <!-- Sexo/gênero -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Sexo/gênero *</label>
+                                    <label class="block text-sm font-medium text-foreground">Sexo/gênero *</label>
                                     <select
                                         v-model="formData.gender"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -727,7 +726,7 @@ function returnPageEmployees() {
 
                                 <!-- Estado civil -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Estado civil *</label>
+                                    <label class="block text-sm font-medium text-foreground">Estado civil *</label>
                                     <select
                                         v-model="formData.civil_state"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -745,7 +744,7 @@ function returnPageEmployees() {
 
                                 <!-- Nacionalidade -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nacionalidade *</label>
+                                    <label class="block text-sm font-medium text-foreground">Nacionalidade *</label>
                                     <Input
                                         v-model="formData.nationality"
                                         type="text"
@@ -757,7 +756,7 @@ function returnPageEmployees() {
 
                                 <!-- Naturalidade -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Naturalidade *</label>
+                                    <label class="block text-sm font-medium text-foreground">Naturalidade *</label>
                                     <Input
                                         v-model="formData.birthplace"
                                         type="text"
@@ -772,16 +771,16 @@ function returnPageEmployees() {
 
                     <!-- DOCUMENTOS -->
                     <details class="group border rounded-md mb-4">
-                        <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700">
-                            <span>Documentos</span>
-                            <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                        <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-foreground">
+                            <span class="text-foreground">Documentos</span>
+                            <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100 text-foreground"/>
                         </summary>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 bg-card">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <!-- CNPJ -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">CNPJ</label>
+                                    <label class="block text-sm font-medium text-foreground">CNPJ</label>
                                     <Input
                                         v-model="formData.cnpj"
                                         type="text"
@@ -792,7 +791,7 @@ function returnPageEmployees() {
 
                                 <!-- CPF -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                    <label class="block text-sm font-medium text-foreground">CPF *</label>
                                     <Input
                                         v-model="formData.cpf"
                                         type="text"
@@ -805,7 +804,7 @@ function returnPageEmployees() {
 
                                 <!-- RG -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">RG *</label>
+                                    <label class="block text-sm font-medium text-foreground">RG *</label>
                                     <Input
                                         v-model="formData.rg"
                                         type="text"
@@ -817,7 +816,7 @@ function returnPageEmployees() {
 
                                 <!-- Órgão emissor -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Órgão emissor *</label>
+                                    <label class="block text-sm font-medium text-foreground">Órgão emissor *</label>
                                     <Input
                                         v-model="formData.issuing_agency"
                                         type="text"
@@ -829,7 +828,7 @@ function returnPageEmployees() {
 
                                 <!-- Data de emissão -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Data de emissão *</label>
+                                    <label class="block text-sm font-medium text-foreground">Data de emissão *</label>
                                     <Input
                                         v-model="formData.issue_date"
                                         type="date"
@@ -841,7 +840,7 @@ function returnPageEmployees() {
 
                                 <!-- Título de eleitor -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Título de eleitor *</label>
+                                    <label class="block text-sm font-medium text-foreground">Título de eleitor *</label>
                                     <Input
                                         v-model="formData.voter_registration"
                                         type="text"
@@ -853,7 +852,7 @@ function returnPageEmployees() {
 
                                 <!-- Certidão de reservista -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Certidão de reservista</label>
+                                    <label class="block text-sm font-medium text-foreground">Certidão de reservista</label>
                                     <Input
                                         v-model="formData.military_certificate"
                                         type="text"
@@ -868,16 +867,16 @@ function returnPageEmployees() {
 
                     <!-- INFORMAÇÕES PESSOAIS -->
                     <details class="group border rounded-md mb-4">
-                        <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-gray-700">
-                            <span>Informações Pessoais</span>
-                            <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100"/>
+                        <summary class="flex items-center justify-between cursor-pointer select-none p-4 font-bold text-foreground">
+                            <span class="text-foreground">Informações Pessoais</span>
+                            <ArrowRight class="ml-2 text-gray-500 group-open:rotate-90 transition-all duration-100 text-foreground"/>
                         </summary>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 bg-card">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <!-- Nome da mãe -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nome da mãe</label>
+                                    <label class="block text-sm font-medium text-foreground">Nome da mãe</label>
                                     <Input
                                         v-model="formData.mother_name"
                                         type="text"
@@ -888,7 +887,7 @@ function returnPageEmployees() {
 
                                 <!-- Nome do pai -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Nome do pai</label>
+                                    <label class="block text-sm font-medium text-foreground">Nome do pai</label>
                                     <Input
                                         v-model="formData.father_name"
                                         type="text"
@@ -899,7 +898,7 @@ function returnPageEmployees() {
 
                                 <!-- Grau de escolaridade -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Grau de escolaridade *</label>
+                                    <label class="block text-sm font-medium text-foreground">Grau de escolaridade *</label>
                                     <select
                                         v-model="formData.escolarity"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -919,7 +918,7 @@ function returnPageEmployees() {
 
                                 <!-- Tipo sanguíneo -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Tipo sanguíneo</label>
+                                    <label class="block text-sm font-medium text-foreground">Tipo sanguíneo</label>
                                     <select
                                         v-model="formData.blood_type"
                                         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -932,7 +931,7 @@ function returnPageEmployees() {
 
                                 <!-- Telefone -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Telefone *</label>
+                                    <label class="block text-sm font-medium text-foreground">Telefone *</label>
                                     <Input
                                         v-model="formData.phone"
                                         type="text"
@@ -945,7 +944,7 @@ function returnPageEmployees() {
 
                                 <!-- Celular -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Celular</label>
+                                    <label class="block text-sm font-medium text-foreground">Celular</label>
                                     <Input
                                         v-model="formData.mobile"
                                         type="text"
@@ -957,7 +956,7 @@ function returnPageEmployees() {
 
                                 <!-- Contato de emergência -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Contato de emergência</label>
+                                    <label class="block text-sm font-medium text-foreground">Contato de emergência</label>
                                     <Input
                                         v-model="formData.emergency_contact"
                                         type="text"
@@ -968,7 +967,7 @@ function returnPageEmployees() {
 
                                 <!-- Telefone de emergência -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Telefone de emergência</label>
+                                    <label class="block text-sm font-medium text-foreground">Telefone de emergência</label>
                                     <Input
                                         v-model="formData.emergency_phone"
                                         type="text"
@@ -985,7 +984,7 @@ function returnPageEmployees() {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Campo: Número da Carteira de Trabalho -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Número da Carteira de Trabalho
+                            <label class="block text-sm font-medium text-foreground">Número da Carteira de Trabalho
                                 *</label>
                             <Input
                                 v-model="formData.ctps_number"
@@ -998,7 +997,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Série CTPS -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Série CTPS *</label>
+                            <label class="block text-sm font-medium text-foreground">Série CTPS *</label>
                             <Input
                                 v-model="formData.ctps_series"
                                 type="text"
@@ -1010,7 +1009,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: UF CTPS -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">UF CTPS *</label>
+                            <label class="block text-sm font-medium text-foreground">UF CTPS *</label>
                             <select
                                 v-model="formData.ctps_state"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1024,7 +1023,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: PIS/PASEP -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">PIS/PASEP *</label>
+                            <label class="block text-sm font-medium text-foreground">PIS/PASEP *</label>
                             <Input
                                 v-model="formData.pis_pasep"
                                 type="text"
@@ -1036,7 +1035,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Número do NIT -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Número do NIT</label>
+                            <label class="block text-sm font-medium text-foreground">Número do NIT</label>
                             <Input
                                 v-model="formData.nit"
                                 type="text"
@@ -1048,7 +1047,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: CNH -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">CNH</label>
+                            <label class="block text-sm font-medium text-foreground">CNH</label>
                             <Input
                                 v-model="formData.cnh"
                                 type="text"
@@ -1059,7 +1058,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Categoria CNH -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Categoria CNH</label>
+                            <label class="block text-sm font-medium text-foreground">Categoria CNH</label>
                             <select
                                 v-model="formData.cnh_category"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1072,7 +1071,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Validade CNH -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Validade CNH</label>
+                            <label class="block text-sm font-medium text-foreground">Validade CNH</label>
                             <Input
                                 v-model="formData.cnh_expiry"
                                 type="date"
@@ -1083,7 +1082,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Registro profissional -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Registro profissional</label>
+                            <label class="block text-sm font-medium text-foreground">Registro profissional</label>
                             <Input
                                 v-model="formData.professional_registration"
                                 type="text"
@@ -1098,7 +1097,7 @@ function returnPageEmployees() {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Campo: CEP -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700"> CEP * <span class="text-xs font-medium text-primary">(Preenchimento automático)</span></label>
+                            <label class="block text-sm font-medium text-foreground"> CEP * <span class="text-xs font-medium text-primary">(Preenchimento automático)</span></label>
                             <Input
                                 v-model="formData.postal_code"
                                 type="text"
@@ -1111,7 +1110,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Logradouro -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Logradouro *</label>
+                            <label class="block text-sm font-medium text-foreground">Logradouro *</label>
                             <Input
                                 v-model="formData.street"
                                 type="text"
@@ -1123,7 +1122,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Número -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Número *</label>
+                            <label class="block text-sm font-medium text-foreground">Número *</label>
                             <Input
                                 v-model="formData.number"
                                 type="text"
@@ -1135,7 +1134,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Complemento -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Complemento</label>
+                            <label class="block text-sm font-medium text-foreground">Complemento</label>
                             <Input
                                 v-model="formData.complement"
                                 type="text"
@@ -1146,7 +1145,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Bairro -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Bairro *</label>
+                            <label class="block text-sm font-medium text-foreground">Bairro *</label>
                             <Input
                                 v-model="formData.district"
                                 type="text"
@@ -1158,7 +1157,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Cidade -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Cidade *</label>
+                            <label class="block text-sm font-medium text-foreground">Cidade *</label>
                             <Input
                                 v-model="formData.city"
                                 type="text"
@@ -1170,7 +1169,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Estado -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Estado *</label>
+                            <label class="block text-sm font-medium text-foreground">Estado *</label>
                             <select
                                 v-model="formData.state"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1187,7 +1186,7 @@ function returnPageEmployees() {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Campo: Banco -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Banco *</label>
+                            <label class="block text-sm font-medium text-foreground">Banco *</label>
                             <select
                                 v-model="formData.bank"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1203,7 +1202,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Agência -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Agência *</label>
+                            <label class="block text-sm font-medium text-foreground">Agência *</label>
                             <Input
                                 v-model="formData.agency"
                                 type="text"
@@ -1215,7 +1214,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Conta -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Conta *</label>
+                            <label class="block text-sm font-medium text-foreground">Conta *</label>
                             <Input
                                 v-model="formData.account"
                                 type="text"
@@ -1227,7 +1226,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Tipo de conta -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Tipo de conta *</label>
+                            <label class="block text-sm font-medium text-foreground">Tipo de conta *</label>
                             <select
                                 v-model="formData.account_type"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1243,7 +1242,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Tipo Chave PIX -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Tipo de Chave PIX</label>
+                            <label class="block text-sm font-medium text-foreground">Tipo de Chave PIX</label>
                             <select
                                 v-model="formData.pix_key_type"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1260,7 +1259,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Chave PIX -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Chave PIX</label>
+                            <label class="block text-sm font-medium text-foreground">Chave PIX</label>
                             <Input
                                 v-model="formData.pix_key"
                                 type="text"
@@ -1275,7 +1274,7 @@ function returnPageEmployees() {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Status -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Status *</label>
+                            <label class="block text-sm font-medium text-foreground">Status *</label>
                             <select
                                 v-model="formData.status"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1292,7 +1291,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Cargo/função -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Cargo/função *</label>
+                            <label class="block text-sm font-medium text-foreground">Cargo/função *</label>
                             <Input
                                 v-model="formData.role"
                                 type="text"
@@ -1304,7 +1303,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Setor/departamento -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Setor/departamento *</label>
+                            <label class="block text-sm font-medium text-foreground">Setor/departamento *</label>
                             <select
                                 v-model="formData.department"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1319,7 +1318,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Tipo de vínculo -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Tipo de vínculo *</label>
+                            <label class="block text-sm font-medium text-foreground">Tipo de vínculo *</label>
                             <select
                                 v-model="formData.contract_type"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1337,7 +1336,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Data de admissão -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data de admissão *</label>
+                            <label class="block text-sm font-medium text-foreground">Data de admissão *</label>
                             <Input
                                 v-model="formData.admission_date"
                                 type="date"
@@ -1349,7 +1348,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Data de desligamento -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data de desligamento</label>
+                            <label class="block text-sm font-medium text-foreground">Data de desligamento</label>
                             <Input
                                 v-model="formData.termination_date"
                                 type="date"
@@ -1361,7 +1360,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Salário -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Salário *</label>
+                            <label class="block text-sm font-medium text-foreground">Salário *</label>
                             <Input
                                 v-model="formData.salary"
                                 type="text"
@@ -1374,7 +1373,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Jornada de trabalho -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Jornada de trabalho *</label>
+                            <label class="block text-sm font-medium text-foreground">Jornada de trabalho *</label>
                             <Input
                                 v-model="formData.work_schedule"
                                 type="text"
@@ -1387,7 +1386,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Benefícios -->
                         <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Benefícios</label>
+                            <label class="block text-sm font-medium text-foreground">Benefícios</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div class="flex items-center">
                                     <Input
@@ -1397,7 +1396,7 @@ function returnPageEmployees() {
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         :disabled="isReadonly"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Vale Transporte</label>
+                                    <label class="ml-2 text-sm text-foreground">Vale Transporte</label>
                                 </div>
                                 <div class="flex items-center">
                                     <Input
@@ -1407,7 +1406,7 @@ function returnPageEmployees() {
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         :disabled="isReadonly"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Vale Refeição</label>
+                                    <label class="ml-2 text-sm text-foreground">Vale Refeição</label>
                                 </div>
                                 <div class="flex items-center">
                                     <Input
@@ -1417,7 +1416,7 @@ function returnPageEmployees() {
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         :disabled="isReadonly"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
+                                    <label class="ml-2 text-sm text-foreground">Plano de Saúde</label>
                                 </div>
                                 <div class="flex items-center">
                                     <Input
@@ -1427,7 +1426,7 @@ function returnPageEmployees() {
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         :disabled="isReadonly"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
+                                    <label class="ml-2 text-sm text-foreground">Plano Odontológico</label>
                                 </div>
                                 <div class="flex items-center">
                                     <Input
@@ -1437,7 +1436,7 @@ function returnPageEmployees() {
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         :disabled="isReadonly"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Seguro de Vida</label>
+                                    <label class="ml-2 text-sm text-foreground">Seguro de Vida</label>
                                 </div>
                                 <div class="flex items-center">
                                     <Input
@@ -1447,7 +1446,7 @@ function returnPageEmployees() {
                                         class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                         :disabled="isReadonly"
                                     />
-                                    <label class="ml-2 text-sm text-gray-700">Previdência Privada</label>
+                                    <label class="ml-2 text-sm text-foreground">Previdência Privada</label>
                                 </div>
                             </div>
                         </div>
@@ -1457,7 +1456,7 @@ function returnPageEmployees() {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Campo: Data do último exame -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data do último exame
+                            <label class="block text-sm font-medium text-foreground">Data do último exame
                                 admissional/periódico *</label>
                             <Input
                                 v-model="formData.last_exam_date"
@@ -1470,7 +1469,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Data do próximo exame -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Data do próximo exame *</label>
+                            <label class="block text-sm font-medium text-foreground">Data do próximo exame *</label>
                             <Input
                                 v-model="formData.next_exam_date"
                                 type="date"
@@ -1482,7 +1481,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Resultado do ASO -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Resultado do ASO *</label>
+                            <label class="block text-sm font-medium text-foreground">Resultado do ASO *</label>
                             <select
                                 v-model="formData.aso_result"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1498,7 +1497,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Alergias ou restrições médicas -->
                         <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Alergias ou restrições
+                            <label class="block text-sm font-medium text-foreground">Alergias ou restrições
                                 médicas</label>
                             <textarea
                                 v-model="formData.allergies"
@@ -1510,7 +1509,7 @@ function returnPageEmployees() {
 
                         <!-- Campo: Histórico de acidentes ou doenças ocupacionais -->
                         <div class="col-span-1 md:col-span-2 lg:col-span-3 space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Histórico de acidentes ou doenças
+                            <label class="block text-sm font-medium text-foreground">Histórico de acidentes ou doenças
                                 ocupacionais</label>
                             <textarea
                                 v-model="formData.accident_history"
@@ -1557,7 +1556,7 @@ function returnPageEmployees() {
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Campos do formulário do dependente -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Nome completo *</label>
+                                <label class="block text-sm font-medium text-foreground">Nome completo *</label>
                                 <Input
                                     v-model="dependent.name"
                                     type="text"
@@ -1568,7 +1567,7 @@ function returnPageEmployees() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de nascimento *</label>
+                                <label class="block text-sm font-medium text-foreground">Data de nascimento *</label>
                                 <Input
                                     v-model="dependent.birth_date"
                                     type="date"
@@ -1579,7 +1578,7 @@ function returnPageEmployees() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">CPF *</label>
+                                <label class="block text-sm font-medium text-foreground">CPF *</label>
                                 <Input
                                     v-model="dependent.cpf"
                                     type="text"
@@ -1591,7 +1590,7 @@ function returnPageEmployees() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Grau de parentesco *</label>
+                                <label class="block text-sm font-medium text-foreground">Grau de parentesco *</label>
                                 <select
                                     v-model="dependent.relationship"
                                     class="w-full p-2 border rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
@@ -1608,7 +1607,7 @@ function returnPageEmployees() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Orgão Emissor *</label>
+                                <label class="block text-sm font-medium text-foreground">Orgão Emissor *</label>
                                 <Input
                                     v-model="dependent.issuing_agency"
                                     type="text"
@@ -1619,7 +1618,7 @@ function returnPageEmployees() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Data de Emissão *</label>
+                                <label class="block text-sm font-medium text-foreground">Data de Emissão *</label>
                                 <Input
                                     v-model="dependent.issue_date"
                                     type="date"
@@ -1630,7 +1629,7 @@ function returnPageEmployees() {
                             </div>
 
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">Finalidade *</label>
+                                <label class="block text-sm font-medium text-foreground">Finalidade *</label>
                                 <div class="space-y-2">
                                     <div class="flex items-center">
                                         <Input
@@ -1640,7 +1639,7 @@ function returnPageEmployees() {
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                             :disabled="isReadonly"
                                         />
-                                        <label class="ml-2 text-sm text-gray-700">Imposto de Renda</label>
+                                        <label class="ml-2 text-sm text-foreground">Imposto de Renda</label>
                                     </div>
                                     <div class="flex items-center">
                                         <Input
@@ -1650,7 +1649,7 @@ function returnPageEmployees() {
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                             :disabled="isReadonly"
                                         />
-                                        <label class="ml-2 text-sm text-gray-700">Plano de Saúde</label>
+                                        <label class="ml-2 text-sm text-foreground">Plano de Saúde</label>
                                     </div>
                                     <div class="flex items-center">
                                         <Input
@@ -1660,7 +1659,7 @@ function returnPageEmployees() {
                                             class="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
                                             :disabled="isReadonly"
                                         />
-                                        <label class="ml-2 text-sm text-gray-700">Plano Odontológico</label>
+                                        <label class="ml-2 text-sm text-foreground">Plano Odontológico</label>
                                     </div>
                                 </div>
                             </div>
@@ -1676,14 +1675,14 @@ function returnPageEmployees() {
                     <!-- Área para arrastar e soltar arquivos -->
                     <div
                         class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200"
-                        :class="isDragging ? 'border-gray-500 bg-gray-50' : 'border-gray-300 hover:border-gray-400'"
+                        :class="isDragging ? 'border-muted-foreground bg-card' : 'border-muted-foreground hover:text-foreground/50'"
                         @dragover.prevent="isDragging = true"
                         @dragleave.prevent="isDragging = false"
                         @drop.prevent="handleFileDrop"
                     >
                         <div class="flex flex-col items-center justify-center">
-                            <UploadCloudIcon class="h-12 w-12 text-gray-400 mb-3" :class="{ 'text-gray-500': isDragging }" />
-                            <p class="text-lg font-medium" :class="{ 'text-gray-600': isDragging }">
+                            <UploadCloudIcon class="h-12 w-12 text-gray-400 mb-3" :class="{ 'text-foreground': isDragging }" />
+                            <p class="text-lg font-medium" :class="{ 'text-muted-foreground': isDragging }">
                                 Arraste e solte arquivos aqui
                             </p>
                             <p class="text-sm text-gray-500 mt-1">ou</p>
