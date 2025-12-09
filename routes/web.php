@@ -30,6 +30,7 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
 Route::prefix('administracao')->middleware(['auth', 'verified'])->name('admin.')->group(function () {
         Route::get('/cargos', [EmployeeController::class, 'jobRoles'])->name('job_roles');
         Route::post('/cargos', [EmployeeController::class, 'storeJobRole'])->name('store_job_role');
+        Route::get('/cargos/lista', [EmployeeController::class, 'jobRolesList'])->name('job_roles_list');
 });
 
 Route::get('/obras', function () {

@@ -24,17 +24,33 @@ import { Employee, Attachment } from '@/types/Employees';
 import { toast } from 'vue-sonner';
 import { showToast } from '@/composables/useToast';
 import {Button} from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import axios from 'axios';
 
 onMounted(() => {
     loadLocalCacheFormDialog();
+    getListJobRoles();
     formData.benefits = ['Vale Transporte', 'valeRefeicao', 'planoSaude', 'Plano Odontológico', 'Seguro de Vida', 'previdenciaPrivada'];
     formData.status = 'active';
-    formData.admission_date = new Date().toISOString().split('T')[0];
+    formData.admission_date = new Date().toLocaleDateString('pt-BR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).split('/').reverse().join('-');
 });
 
 const cacheDialog = ref(false);
 const isDragging = ref(true);
 const cachedEmployeeData = ref<Employee | null>(null);
+const jobRoles = ref<Array<string>>([]);
 const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
     { title: 'Criar', href: '/funcionarios/create' },
@@ -112,18 +128,6 @@ const formData = reactive<Employee>({
 });
 
 console.log('ATTACHMENTS', formData.attachments);
-
-// Dados de referência para o formulário
-// const tabs = [
-//     {id: 'personal', name: 'Dados Pessoais', icon: UserIcon},
-//     {id: 'documents', name: 'Documentos Trabalhistas', icon: BriefcaseBusiness},
-//     {id: 'contact', name: 'Endereço', icon: MapPinHouse},
-//     {id: 'bank', name: 'Dados Bancários', icon: Banknote},
-//     {id: 'contract', name: 'Informações Contratuais', icon: FilePenLine},
-//     {id: 'health', name: 'Saúde e Segurança', icon: Cross},
-//     {id: 'dependents', name: 'Dependentes', icon: Users},
-//     {id: 'attachments', name: 'Anexos', icon: Paperclip},
-// ]
 
 const states = [
     'AC',
@@ -253,6 +257,21 @@ const createEmployee = () => {
         },
     });
 };
+
+/**
+ * Obtém a lista de cargos disponíveis.
+ * @returns {void}
+ */
+async function getListJobRoles() {
+    axios.get('/administracao/cargos/lista', {
+    }).then((response) => {
+        // Supondo que a resposta seja um array de cargos
+        jobRoles.value = response.data;
+        console.log('Job Roles:', jobRoles.value);
+    }, (error) => {
+        console.error('Erro ao buscar cargos:', error);
+    });
+}
 
 /**
  * Reseta o formulário para os valores padrão.
@@ -1276,12 +1295,30 @@ function closeEmployeeForm() {
                         <!-- Campo: Cargo/função -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-foreground">Cargo/função *</label>
-                            <input
+                            <Select
                                 v-model="formData.role"
                                 type="text"
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                                 required
                             />
+                            <Select>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione uma função" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Cargos</SelectLabel>
+                                        <SelectItem
+                                            v-for="role in jobRoles"
+                                            :key="role.id"
+                                            :value="role.name"
+                                            @select="formData.salary = role.base_salary"
+                                        >
+                                            {{ role.name }}
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <!-- Campo: Setor/departamento -->
@@ -1347,18 +1384,6 @@ function closeEmployeeForm() {
                                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                                 required
                                 @input="formatSalary"
-                            />
-                        </div>
-
-                        <!-- Campo: Jornada de trabalho -->
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-foreground">Jornada de trabalho *</label>
-                            <input
-                                v-model="formData.work_schedule"
-                                type="text"
-                                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                required
-                                placeholder="Ex: 44 horas semanais"
                             />
                         </div>
 

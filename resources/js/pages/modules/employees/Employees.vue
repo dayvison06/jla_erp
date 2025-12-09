@@ -57,6 +57,22 @@ const importFileUpload = (event: Event) => {
     }
 };
 
+function paginateEmployees() {
+    router.get('/funcionarios', {
+        per_page: itemsPerPage.value,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            console.log('Funcionários paginados com sucesso.');
+        },
+        onError: () => {
+            showToast('error', 'Erro ao paginar funcionários.');
+        }
+    });
+    console.log(`Paginação para ${itemsPerPage.value} itens por página.`);
+}
+
 /**
  * Busca funcionários com base nos filtros de busca e status.
  * @returns {void}
@@ -71,7 +87,6 @@ async function searchEmployees() {
     axios('/funcionarios/buscar', {
         params: {
             query: searchQuery.value,
-            per_page: itemsPerPage.value,
         },
     })
         .then((response) => {
@@ -294,10 +309,6 @@ debouncedWatch(
                                     <HardHat class="h-4 w-4" />
                                     Ficha de funcionário
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <UserRoundX class="h-4 w-4" />
-                                    Desligar funcionário
-                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -345,21 +356,21 @@ debouncedWatch(
                                 <DropdownMenuItem
                                     @click="
                                         itemsPerPage = 10;
-                                        searchEmployees();
+                                        paginateEmployees();
                                     "
                                     >10</DropdownMenuItem
                                 >
                                 <DropdownMenuItem
                                     @click="
                                         itemsPerPage = 25;
-                                        searchEmployees();
+                                        paginateEmployees();
                                     "
                                     >25</DropdownMenuItem
                                 >
                                 <DropdownMenuItem
                                     @click="
                                         itemsPerPage = 50;
-                                        searchEmployees();
+                                        paginateEmployees();
                                     "
                                     >50</DropdownMenuItem
                                 >

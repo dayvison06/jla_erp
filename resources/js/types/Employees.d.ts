@@ -65,7 +65,6 @@ export interface Employee {
     admission_date: string;
     termination_date: string | null;
     salary: string;
-    work_schedule: string;
     benefits: string[];
 
     last_exam_date: string;

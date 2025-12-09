@@ -39,11 +39,12 @@ class EmployeeController extends Controller
         $query = Employee::query();
         $jobRoles = JobRole::all();
         $departments = Departament::all();
+        $per_page = $request->query('per_page', 10);
 
       $employees = $query->with('job_roles', 'department')
           ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date'])
           ->orderBy('name', 'ASC')
-          ->paginate(10);
+          ->paginate($per_page);
 
         return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,
@@ -345,6 +346,16 @@ class EmployeeController extends Controller
         return Inertia::render('modules/administrative/JobRoles', [
             'job_roles' => $jobRoles,
         ]);
+    }
+
+    /**
+     * Retorna uma lista de todos os cargos empresariais em formato JSON.
+     * @return JsonResponse
+     */
+    public function jobRolesList() : JsonResponse
+    {
+        $jobRoles = JobRole::all();
+        return response()->json($jobRoles);
     }
 
     /**
