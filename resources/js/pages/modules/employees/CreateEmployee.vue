@@ -164,19 +164,6 @@ const banks = [
     { codigo: '748', nome: 'Sicredi' },
 ];
 
-const departments = [
-    'Administrativo',
-    'Comercial',
-    'Financeiro',
-    'Marketing',
-    'Operações',
-    'Recursos Humanos',
-    'TI',
-    'Jurídico',
-    'Logística',
-    'Produção',
-];
-
 const cnhCategories = ['A', 'B', 'C', 'D', 'E', 'AB', 'AC', 'AD', 'AE'];
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -943,32 +930,37 @@ watch(() => formData, () => {
                                 <!-- Grau de escolaridade -->
                                 <div class="space-y-2">
                                     <Label class="block text-sm font-medium text-foreground">Grau de escolaridade *</Label>
-                                    <select
-                                        v-model="formData.escolarity"
-                                        class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                        required
-                                    >
-                                        <option value="">Selecione</option>
-                                        <option value="fundamental">Ensino Fundamental</option>
-                                        <option value="medio">Ensino Médio</option>
-                                        <option value="tecnico">Ensino Técnico</option>
-                                        <option value="superior">Ensino Superior</option>
-                                        <option value="posGraduacao">Pós-graduação</option>
-                                        <option value="mestrado">Mestrado</option>
-                                        <option value="doutorado">Doutorado</option>
-                                    </select>
+                                    <Select v-model="formData.escolarity">
+                                        <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                                            <SelectValue placeholder="Selecione"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectItem value="fundamental">Ensino Fundamental</SelectItem>
+                                                <SelectItem value="medio">Ensino Médio</SelectItem>
+                                                <SelectItem value="tecnico">Ensino Técnico</SelectItem>
+                                                <SelectItem value="superior">Ensino Superior</SelectItem>
+                                                <SelectItem value="posGraduacao">Pós-graduação</SelectItem>
+                                                <SelectItem value="mestrado">Mestrado</SelectItem>
+                                                <SelectItem value="doutorado">Doutorado</SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <!-- Tipo sanguíneo -->
                                 <div class="space-y-2">
                                     <Label class="block text-sm font-medium text-foreground">Tipo sanguíneo</Label>
-                                    <select
-                                        v-model="formData.blood_type"
-                                        class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                    >
-                                        <option value="">Selecione</option>
-                                        <option v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</option>
-                                    </select>
+                                    <Select v-model="formData.blood_type">
+                                        <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                                            <SelectValue placeholder="Selecione"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectItem v-for="type in bloodTypes" :key="type" :value="type">{{ type }}</SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <!-- Telefone -->
@@ -1045,14 +1037,16 @@ watch(() => formData, () => {
                         <!-- Campo: UF CTPS -->
                         <div class="space-y-2">
                             <Label class="block text-sm font-medium text-foreground">UF CTPS *</Label>
-                            <select
-                                v-model="formData.ctps_state"
-                                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                required
-                            >
-                                <option value="">Selecione</option>
-                                <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
-                            </select>
+                            <Select v-model="formData.ctps_state">
+                                <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                                    <SelectValue placeholder="Selecione"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem v-for="uf in states" :key="uf" :value="uf">{{ uf }}</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <!-- Campo: PIS/PASEP -->
@@ -1090,13 +1084,16 @@ watch(() => formData, () => {
                         <!-- Campo: Categoria CNH -->
                         <div class="space-y-2">
                             <Label class="block text-sm font-medium text-foreground">Categoria CNH</Label>
-                            <select
-                                v-model="formData.cnh_category"
-                                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                            >
-                                <option value="">Selecione</option>
-                                <option v-for="cat in cnhCategories" :key="cat" :value="cat">{{ cat }}</option>
-                            </select>
+                            <Select v-model="formData.cnh_category">
+                                <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                                    <SelectValue placeholder="Selecione"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem v-for="cat in cnhCategories" :key="cat" :value="cat">{{ cat }}</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <!-- Campo: Validade CNH -->
@@ -1194,14 +1191,16 @@ watch(() => formData, () => {
                         <!-- Campo: Estado -->
                         <div class="space-y-2">
                             <Label class="block text-sm font-medium text-foreground">Estado *</Label>
-                            <select
-                                v-model="formData.state"
-                                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                required
-                            >
-                                <option value="">Selecione</option>
-                                <option v-for="uf in states" :key="uf" :value="uf">{{ uf }}</option>
-                            </select>
+                            <Select v-model="formData.state">
+                            <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                                <SelectValue placeholder="Selecione"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem v-for="uf in states" :key="uf" :value="uf">{{ uf }}</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </TabsContent>
@@ -1332,35 +1331,23 @@ watch(() => formData, () => {
                             </Select>
                         </div>
 
-                        <!-- Campo: Setor/departamento -->
-                        <div class="space-y-2">
-                            <Label class="block text-sm font-medium text-foreground">Setor/departamento *</Label>
-                            <select
-                                v-model="formData.department"
-                                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                required
-                            >
-                                <option value="">Selecione</option>
-                                <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
-                                <option value="outro">Outro</option>
-                            </select>
-                        </div>
-
                         <!-- Campo: Tipo de vínculo -->
                         <div class="space-y-2">
                             <Label class="block text-sm font-medium text-foreground">Tipo de vínculo *</Label>
-                            <select
-                                v-model="formData.contract_type"
-                                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                                required
-                            >
-                                <option value="">Selecione</option>
-                                <option value="clt">CLT</option>
-                                <option value="estagio">Estágio</option>
-                                <option value="pj">PJ</option>
-                                <option value="autonomo">Autônomo</option>
-                                <option value="temporario">Temporário</option>
-                            </select>
+                            <Select v-model="formData.contract_type">
+                                <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                                    <SelectValue placeholder="Selecione"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="clt">CLT</SelectItem>
+                                        <SelectItem value="estagio">Estágio</SelectItem>
+                                        <SelectItem value="pj">PJ</SelectItem>
+                                        <SelectItem value="autonomo">Autônomo</SelectItem>
+                                        <SelectItem value="temporario">Temporário</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <!-- Campo: Data de admissão -->
