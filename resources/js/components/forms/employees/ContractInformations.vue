@@ -2,9 +2,10 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
+
+import Checkbox from '@/components/project/Checkbox.vue'
 
 const status = defineModel('status');
 const role = defineModel('role');
@@ -12,7 +13,7 @@ const contract_type = defineModel('contract_type');
 const admission_date = defineModel('admission_date');
 const termination_date = defineModel('termination_date');
 const salary = defineModel('salary');
-const benefits = defineModel('benefits', { type: Array as () => string[], default: () => [] });
+const benefits = defineModel('benefits', { type: Array, default: () => [] });
 const isReadonly = defineModel('read_only', {type: Boolean, default: false });
 
 const jobRoles = ref<Array<string>>([]);
@@ -53,8 +54,18 @@ async function getListJobRoles() {
     });
 }
 
+async function getListBenefits() {
+    axios.get('/administracao/beneficios/lista', {
+    }).then((response) => {
+        // Supondo que a resposta seja um array de benefícios
+        // Aqui você pode processar os benefícios conforme necessário
+    }, (error) => {
+    });
+}
+
 onMounted(() => {
     getListJobRoles();
+    getListBenefits();
 });
 
 </script>
@@ -83,13 +94,6 @@ onMounted(() => {
         <!-- Campo: Cargo/função -->
         <div class="space-y-2">
             <Label class="block text-sm font-medium text-foreground">Cargo/função *</Label>
-            <Select
-                v-model="role"
-                type="text"
-                class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
-                required
-                :disabled="isReadonly"
-            />
             <Select v-model="role" required :disabled="isReadonly">
                 <SelectTrigger>
                     <SelectValue placeholder="Selecione uma função" />
@@ -174,54 +178,48 @@ onMounted(() => {
                 <div class="flex items-center">
                     <Checkbox
                         v-model="benefits"
-                        value="ValeTransporte"
-                        class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
-                        :disabled="isReadonly"
+                        value="Transporte"
+                        class="h-4 w-4 rounded"
                     />
                     <Label class="ml-2 text-sm text-foreground">Vale Transporte</Label>
                 </div>
                 <div class="flex items-center">
                     <Checkbox
                         v-model="benefits"
-                        value="valeRefeicao"
-                        class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
-                        :disabled="isReadonly"
+                        value="Refeicao"
+                        class="h-4 w-4 rounded"
                     />
                     <Label class="ml-2 text-sm text-foreground">Vale Refeição</Label>
                 </div>
                 <div class="flex items-center">
                     <Checkbox
                         v-model="benefits"
-                        value="Plano de Saúde"
-                        class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
-                        :disabled="isReadonly"
+                        value="Saude"
+                        class="h-4 w-4 rounded"
                     />
                     <Label class="ml-2 text-sm text-foreground">Plano de Saúde</Label>
                 </div>
                 <div class="flex items-center">
-                    <Input
+                    <Checkbox
                         v-model="benefits"
-                        type="checkbox"
-                        value="Plano Odontológico"
-                        class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
+                        value="Odontologico"
+                        class="h-4 w-4 rounded"
                     />
                     <Label class="ml-2 text-sm text-foreground">Plano Odontológico</Label>
                 </div>
                 <div class="flex items-center">
                     <Checkbox
                         v-model="benefits"
-                        value="Seguro de Vida"
-                        class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
-                        :disabled="isReadonly"
+                        value="Seguro"
+                        class="h-4 w-4 rounded"
                     />
                     <Label class="ml-2 text-sm text-foreground">Seguro de Vida</Label>
                 </div>
                 <div class="flex items-center">
                     <Checkbox
                         v-model="benefits"
-                        value="Previdência Privada"
-                        class="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
-                        :disabled="isReadonly"
+                        value="Previdencia"
+                        class="h-4 w-4 rounded"
                     />
                     <Label class="ml-2 text-sm text-foreground">Previdência Privada</Label>
                 </div>

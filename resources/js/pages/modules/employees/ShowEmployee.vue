@@ -50,99 +50,6 @@ const breadcrumbs = [
 ];
 
 /**
- * Adiciona um arquivo à lista de anexos.
- *
- * @param {File} file - O arquivo a ser adicionado.
- * @returns {void}
- */
-const addFile = (file: File) => {
-
-    // evita duplicados
-    if (formData.attachments.some(a => a.name === file.name && a.size === fileSize)) {
-        return;
-    }
-
-    const newAttachment: Attachment = {
-        name: file.name,
-        type: file.type || 'application/octet-stream',
-        size: file.size,
-        file: file,
-        path: URL.createObjectURL(file),
-        created_at: new Date().toISOString(),
-    };
-
-    formData.attachments.push(newAttachment);
-    uploadAttachments();
-};
-
-/**
- * Manipula o upload de arquivos a partir do input.
- *
- * @param {Event} event - O evento de change.
- * @returns {void}
- */
-const handleFileUpload = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-    if (input.files) {
-        Array.from(input.files).forEach(addFile);
-        input.value = '';
-    }
-};
-
-/**
- * Manipula o drop de arquivos na área de drop.
- *
- * @param {DragEvent} event - O evento de drop.
- * @returns {void}
- */
-const handleFileDrop = (event: DragEvent) => {
-    console.log('File drop event:', event);
-    isDragging.value = false;
-    if (!event.dataTransfer?.files) return;
-    Array.from(event.dataTransfer.files).forEach(addFile);
-};
-
-/**
- * Formata uma string de data para o formato dd/mm/aaaa.
- *
- * @param {string} dateString - A string de data.
- * @returns {string} A data formatada.
- */
-const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-}
-
-/**
- * Confirma a exclusão de um funcionário.
- *
- * @param {Employee} employee - O funcionário a ser excluído.
- * @returns {void}
- */
-const confirmDelete = (employee: Employee) => {
-    employeeToDelete.value = employee;
-    showDeleteModal.value = true;
-}
-
-/**
- * Remove um anexo do formulário.
- *
- * @param {number} id - O ID do anexo a ser removido.
- * @returns {void}
- */
-const removeAttachment = (id: number) => {
-    const index = formData.attachments.findIndex(attachment => attachment.id === id);
-    if (index !== -1) {
-        // Revoke object URL to prevent memory leaks
-        if (formData.attachments[index].url) {
-            URL.revokeObjectURL(formData.attachments[index].url);
-        }
-        formData.attachments.splice(index, 1);
-    }
-}
-
-/**
  * Salva as alterações de um funcionário existente.
  * @returns {void}
  */
@@ -181,7 +88,6 @@ onMounted(() => {
     if (employee) {
         Object.assign(formData, employee);
     }
-    console.log('FORM DATA ON MOUNT', formData);
 });
 </script>
 
@@ -266,7 +172,7 @@ onMounted(() => {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="personal">
-                    <Personal
+                    <PersonalInformations
                         v-model:name="formData.name"
                         v-model:gender="formData.gender"
                         v-model:birth_date="formData.birth_date"
@@ -292,7 +198,7 @@ onMounted(() => {
                     />
                 </TabsContent>
                 <TabsContent value="documents">
-                    <Documents
+                    <DocumentsInformations
                         v-model:ctps_number="formData.ctps_number"
                         v-model:ctps_series="formData.ctps_series"
                         v-model:ctps_state="formData.ctps_state"
@@ -306,7 +212,7 @@ onMounted(() => {
                     />
                 </TabsContent>
                 <TabsContent value="address">
-                    <Address
+                    <AddressInformations
                         v-model:postal_code="formData.postal_code"
                         v-model:street="formData.street"
                         v-model:number="formData.number"

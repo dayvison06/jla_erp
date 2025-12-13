@@ -129,7 +129,6 @@ function closeEmployeeForm() {
 
 onMounted(() => {
     loadLocalCacheFormDialog();
-    formData.benefits = ['Vale Transporte', 'valeRefeicao', 'planoSaude', 'Plano Odontológico', 'Seguro de Vida', 'previdenciaPrivada'];
     formData.status = 'active';
     formData.admission_date = new Date().toLocaleDateString('pt-BR', {
         year: 'numeric',
