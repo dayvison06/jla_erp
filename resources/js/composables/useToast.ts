@@ -6,7 +6,8 @@ import { toast } from 'vue-sonner'
  * @param message - Mensagem detalhada
  * @param type - 'success' | 'error' | 'info'
  */
-export function showToast(type: 'success' | 'error' | 'info', title: string ,message: string) {
+export function showToast(type: 'success' | 'error' | 'info', title: string ,message?: string) {
+    console.log('Showing toast:', { type, title, message })
     toast[type](title, {
         duration: 3000,
         position: 'top-center',
