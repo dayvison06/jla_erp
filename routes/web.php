@@ -31,11 +31,18 @@ Route::prefix('administracao')->middleware(['auth', 'verified'])->name('admin.')
         Route::get('/cargos', [EmployeeController::class, 'jobRoles'])->name('job_roles');
         Route::post('/cargos', [EmployeeController::class, 'storeJobRole'])->name('store_job_role');
         Route::get('/cargos/lista', [EmployeeController::class, 'jobRolesList'])->name('job_roles_list');
+        Route::get('/departamentos/lista', [EmployeeController::class, 'departmentsList'])->name('departments_list');
 });
 
-Route::get('/obras', function () {
-    return Inertia::render('Works');
-})->middleware(['auth', 'verified'])->name('works');
+use App\Http\Controllers\WorkController;
+
+Route::prefix('obras')->middleware(['auth', 'verified'])->name('works.')->group(function () {
+    Route::get('/', [WorkController::class, 'index'])->name('index');
+    Route::get('/lista', [WorkController::class, 'list'])->name('list');
+    Route::post('/', [WorkController::class, 'store'])->name('store');
+    Route::put('/{id}', [WorkController::class, 'update'])->name('update');
+    Route::delete('/{id}', [WorkController::class, 'destroy'])->name('destroy');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
