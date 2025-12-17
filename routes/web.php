@@ -20,7 +20,7 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
     Route::post('/', [EmployeeController::class, 'store']);
     Route::get('/{id}', [EmployeeController::class, 'show']);
     Route::post('/deactivate', [EmployeeController::class, 'deactivate']);
-    Route::put('/{id}', [EmployeeController::class, 'update']);
+    Route::patch('/{id}', [EmployeeController::class, 'update']);
     Route::post('/upload/{id}', [EmployeeController::class, 'uploadFiles'])->name('upload');
     Route::post('/importar-csv', [EmployeeController::class, 'importCSV'])->name('import_csv');
     Route::get('/download/template', [EmployeeController::class, 'downloadTemplate']);

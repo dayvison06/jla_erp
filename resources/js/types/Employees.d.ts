@@ -73,7 +73,6 @@ export interface Employee {
     allergies: string;
     blood_type: string;
     accident_history: string;
-    additional_info: string;
 
     dependents: Dependent[];
     attachments: Attachment[];

@@ -11,10 +11,9 @@
   - Exibir controles de página e atualizar a lista ao navegar.
 
 ### 2. Cadastro e Edição de Funcionários
-- [ ] Adicionar validação visual e feedback de erro para todos os campos obrigatórios.
-  - Exibir mensagens de erro abaixo dos campos.
+- [] Adicionar validação visual e feedback de erro para todos os campos obrigatórios.
   - Bloquear envio se houver campos obrigatórios não preenchidos.
-- [ ] Exibir mensagens de sucesso/erro após operações.
+- [x] Exibir mensagens de sucesso/erro após operações.
   - Usar o sistema de toast para feedback ao usuário.
 - [ ] Garantir atualização automática da lista após criar/editar.
   - Chamar loadEmployees() após sucesso.

@@ -14,11 +14,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
 {
@@ -249,12 +251,11 @@ class EmployeeController extends Controller
 
     /**
      * Faz o download do template de importação de funcionários em XLSX.
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function downloadTemplate()
+    public function downloadTemplate(): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        return response()->download(storage_path('app/templates/template_import_funcionarios.xlsx'), 'template_import_funcionarios.xlsx');
-        // ou: return Storage::download('templates/template.csv');
+        return Storage::download('templates/template_import_funcionarios.xlsx');
     }
 
     /**

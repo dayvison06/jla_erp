@@ -14,7 +14,7 @@ export const formData = reactive<Employee>({
     rg: '',
     issuing_agency: '',
     issue_date: '',
-    escolarity: '',
+    education_level: '',
     voter_registration: '',
     military_certificate: '',
     mother_name: '',
@@ -49,6 +49,7 @@ export const formData = reactive<Employee>({
     agency: '',
     account: '',
     account_type: '',
+    pix_key_type: '',
     pix_key: '',
 
     role: '',
@@ -57,7 +58,6 @@ export const formData = reactive<Employee>({
     admission_date: '',
     termination_date: null,
     salary: '',
-    work_schedule: '',
     benefits: [],
 
     last_exam_date: '',
