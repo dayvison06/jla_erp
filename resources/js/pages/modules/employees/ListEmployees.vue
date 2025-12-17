@@ -70,16 +70,11 @@ const sortBy = (column: string) => {
         sortDirection.value = 'asc'
     }
 }
-const previousPage = () => {
-    if (currentPage.value > 1) {
-        currentPage.value--
-    }
-}
-
-const nextPage = () => {
-    if (currentPage.value < totalPages.value) {
-        currentPage.value++
-    }
+const goToPage = (page: number) => {
+    router.get('/funcionarios', { page }, {
+        preserveState: true,
+        preserveScroll: true
+    })
 }
 
 const formatDate = (dateString: string) => {
@@ -157,17 +152,17 @@ const deleteEmployee = () => {
 const getStatusColor = (status: string) => {
     switch (status) {
         case 'active':
-            return 'bg-green-700 text-white';
+            return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
         case 'inactive':
-            return 'bg-muted text-gray-800';
+            return 'bg-muted text-muted-foreground';
         case 'vacation':
-            return 'bg-blue-100 text-blue-800';
+            return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
         case 'leave':
-            return 'bg-yellow-100 text-yellow-800';
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
         case 'terminated':
-            return 'bg-red-100 text-red-800';
+            return 'bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive-foreground';
         default:
-            return 'bg-gray-100 text-gray-800';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
 }
 
@@ -263,13 +258,13 @@ const getStatusText = (status: string) => {
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
-                            <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                              <span class="text-sm font-medium text-gray-800">
+                            <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                              <span class="text-sm font-medium text-foreground">
                                 {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
                               </span>
                             </div>
                             <div class="ml-4">
-                                <div class="text-sm font-medium">{{ employee.name }}</div>
+                                <div class="text-sm font-medium text-foreground">{{ employee.name }}</div>
                                 <div class="text-sm text-muted-foreground">{{ employee.email }}</div>
                             </div>
                         </div>
@@ -303,27 +298,27 @@ const getStatusText = (status: string) => {
             <div
                 v-for="employee in paginatedEmployees.data"
                 :key="employee.id"
-                class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow cursor-pointer"
+                class="default-box p-6 flex flex-col group hover:shadow-lg transition-shadow cursor-pointer bg-card text-card-foreground border-border"
                 @click="showEmployee(employee.id)"
             >
                 <div class="flex items-center mb-4">
-                    <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                      <span class="text-lg font-bold text-gray-800">
+                    <div class="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                      <span class="text-lg font-bold text-foreground">
                         {{ employee.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
                       </span>
                     </div>
                     <div class="ml-4">
-                        <div class="text-base font-semibold text-gray-900">{{ employee.name }}</div>
-                        <div class="text-sm text-gray-500">{{ employee.cpf }}</div>
+                        <div class="text-base font-semibold text-foreground">{{ employee.name }}</div>
+                        <div class="text-sm text-muted-foreground">{{ employee.cpf }}</div>
                     </div>
                 </div>
-                <div class="mb-2 text-sm text-gray-700">
+                <div class="mb-2 text-sm text-foreground">
                     <span class="font-medium">Função:</span> {{ employee.role }}
                 </div>
-                <div class="mb-2 text-sm text-gray-700">
+                <div class="mb-2 text-sm text-foreground">
                     <span class="font-medium">Departamento:</span> {{ employee.department[0] }}
                 </div>
-                <div class="mb-2 text-sm text-gray-700">
+                <div class="mb-2 text-sm text-foreground">
                     <span class="font-medium">Admissão:</span> {{ formatDate(employee.admission_date) }}
                 </div>
                 <div class="mb-2">
@@ -345,26 +340,26 @@ const getStatusText = (status: string) => {
         </div>
         <div class="flex gap-2">
             <Button
-                @click="previousPage"
-                :disabled="currentPage === 1"
+                @click="goToPage(paginatedEmployees.current_page - 1)"
+                :disabled="paginatedEmployees.current_page === 1"
                 class="px-3 py-2 text-sm border border-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors curs cursor-pointer"
             >
                 Anterior
             </Button>
             <span
-                v-for="page in totalPages"
+                v-for="page in paginatedEmployees.last_page"
                 :key="page"
-                @click="currentPage = page"
+                @click="goToPage(page)"
                 :class="[
                         'px-3 py-2 text-sm rounded-lg cursor-pointer',
-                        currentPage === page ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        paginatedEmployees.current_page === page ? 'btn-primary' : 'bg-muted text-foreground hover:bg-accent'
                     ]"
             >
                     {{ page }}
                 </span>
             <Button
-                @click="nextPage"
-                :disabled="currentPage === totalPages"
+                @click="goToPage(paginatedEmployees.current_page + 1)"
+                :disabled="paginatedEmployees.current_page === paginatedEmployees.last_page"
                 class="px-3 py-2 text-sm border border-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
                 Próxima

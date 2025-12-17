@@ -1,9 +1,29 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { X, ChevronDown } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+    SheetFooter,
+    SheetClose
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 interface FilterOption {
-    id: string
+    id: string | number
     label: string
     checked: boolean
 }
@@ -17,81 +37,88 @@ interface Filter {
     maxVisible: number
 }
 
+const props = defineProps<{
+    open: boolean
+}>()
+
 const emit = defineEmits<{
-    close: []
+    'update:open': [value: boolean]
     apply: [filters: Filter[]]
 }>()
 
+const isOpen = computed({
+    get: () => props.open,
+    set: (val) => emit('update:open', val)
+})
+
 const filters = ref<Filter[]>([
     {
-        id: 'reporting_manager',
-        label: 'Reporting manager',
-        operator: 'contains',
+        id: 'status',
+        label: 'Status',
+        operator: 'is',
         maxVisible: 5,
         showAll: false,
         options: [
-            { id: '1', label: 'No manager assigned', checked: false },
-            { id: '2', label: 'Me', checked: false },
-            { id: '3', label: 'Carolina Cabette Fonseca', checked: false },
-            { id: '4', label: 'Financial LiberFly', checked: false },
-            { id: '5', label: 'Jakeline Pompeu de Almeida', checked: false },
-            { id: '6', label: 'João Silva', checked: false },
-            { id: '7', label: 'Maria Santos', checked: false },
+            { id: 'active', label: 'Ativo', checked: false },
+            { id: 'inactive', label: 'Inativo', checked: false },
+            { id: 'vacation', label: 'Em Férias', checked: false },
+            { id: 'on_leave', label: 'Licença Médica', checked: false },
+            { id: 'terminated', label: 'Desligado', checked: false },
         ],
     },
     {
-        id: 'role',
-        label: 'Role',
-        operator: 'contains',
+        id: 'job_role',
+        label: 'Cargo',
+        operator: 'is',
         maxVisible: 5,
         showAll: false,
-        options: [
-            { id: '1', label: 'Account Admin', checked: false },
-            { id: '2', label: 'Administrator', checked: false },
-            { id: '3', label: 'Agent', checked: false },
-            { id: '4', label: 'Lead converter', checked: false },
-            { id: '5', label: 'Legal Ops.', checked: false },
-            { id: '6', label: 'Sales Manager', checked: false },
-        ],
+        options: [],
     },
     {
-        id: 'territories',
-        label: 'Territories',
-        operator: 'contains',
-        maxVisible: 5,
-        showAll: false,
-        options: [
-            { id: '1', label: 'No territory assigned', checked: false },
-            { id: '2', label: 'Atendimento', checked: false },
-        ],
-    },
-    {
-        id: 'teams',
-        label: 'Teams',
-        operator: 'contains',
-        maxVisible: 5,
-        showAll: false,
-        options: [
-            { id: '1', label: 'Agendamento Closers', checked: false },
-            { id: '2', label: 'Atendimento', checked: false },
-            { id: '3', label: 'Closers', checked: false },
-            { id: '4', label: 'Comercial', checked: false },
-            { id: '5', label: 'Financeiro', checked: false },
-            { id: '6', label: 'Marketing', checked: false },
-            { id: '7', label: 'Suporte', checked: false },
-        ],
-    },
-    {
-        id: 'last_login',
-        label: 'Last login',
-        operator: 'any time',
+        id: 'department',
+        label: 'Departamento',
+        operator: 'is',
         maxVisible: 5,
         showAll: false,
         options: [],
     },
 ])
 
-const operatorOptions = ['contains', 'does not contain', 'is', 'is not', 'any time']
+const operatorOptions = ['is', 'is not']
+
+const fetchFilters = async () => {
+    try {
+        const [rolesResponse, deptsResponse] = await Promise.all([
+            axios.get('/administracao/cargos/lista'),
+            axios.get('/administracao/departamentos/lista')
+        ])
+
+        const roleFilter = filters.value.find(f => f.id === 'job_role')
+        if (roleFilter) {
+            roleFilter.options = rolesResponse.data.map((role: any) => ({
+                id: role.id,
+                label: role.name,
+                checked: false
+            }))
+        }
+
+        const deptFilter = filters.value.find(f => f.id === 'department')
+        if (deptFilter) {
+            deptFilter.options = deptsResponse.data.map((dept: any) => ({
+                id: dept.id,
+                label: dept.name,
+                checked: false
+            }))
+        }
+
+    } catch (error) {
+        console.error('Error fetching filters:', error)
+    }
+}
+
+onMounted(() => {
+    fetchFilters()
+})
 
 const visibleOptions = (filter: Filter) => {
     if (filter.showAll || filter.options.length <= filter.maxVisible) {
@@ -111,113 +138,94 @@ const toggleShowAll = (filterId: string) => {
     }
 }
 
-const toggleOption = (filterId: string, optionId: string) => {
-    const filter = filters.value.find((f) => f.id === filterId)
-    if (filter) {
-        const option = filter.options.find((o) => o.id === optionId)
-        if (option) {
-            option.checked = !option.checked
-        }
-    }
-}
-
 const hasSelectedFilters = computed(() => {
     return filters.value.some((filter) => filter.options.some((option) => option.checked))
 })
 
 const handleApply = () => {
     emit('apply', filters.value)
+    isOpen.value = false
 }
 </script>
 
 <template>
-    <div class="fixed inset-y-0 right-0 w-full sm:w-96 bg-white dark:bg-gray-800 shadow-2xl border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col">
-        <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
-            <button
-                @click="$emit('close')"
-                class="h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center justify-center transition-colors"
-                aria-label="Close filters"
-            >
-                <X class="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            </button>
-        </div>
+    <Sheet v-model:open="isOpen">
+        <SheetContent class="w-full sm:max-w-md flex flex-col p-0 gap-0 border-l bg-background text-foreground">
+            <SheetHeader class="px-6 py-4 border-b">
+                <SheetTitle>Filtros</SheetTitle>
+                <SheetDescription>
+                    Selecione as opções abaixo para refinar os resultados.
+                </SheetDescription>
+            </SheetHeader>
 
-        <!-- Filter Body -->
-        <div class="flex-1 overflow-y-auto px-4 py-4">
-            <div class="space-y-6">
-                <div v-for="filter in filters" :key="filter.id" class="filter-section">
-                    <!-- Filter Header -->
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ filter.label }}
-                        </label>
-                        <div class="relative">
-                            <select
-                                v-model="filter.operator"
-                                class="text-xs text-gray-600 dark:text-gray-400 bg-transparent border-none pr-6 pl-2 py-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 focus:outline-none appearance-none"
-                            >
-                                <option v-for="op in operatorOptions" :key="op" :value="op">
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+                <div v-for="(filter, index) in filters" :key="filter.id">
+                    <div class="flex items-center justify-between mb-3">
+                        <Label class="text-base font-semibold">{{ filter.label }}</Label>
+                        
+                        <!-- Operator Selection -->
+                        <Select v-model="filter.operator">
+                            <SelectTrigger class="w-[120px] h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="op in operatorOptions" :key="op" :value="op">
                                     {{ op }}
-                                </option>
-                            </select>
-                            <ChevronDown class="h-3 w-3 text-gray-500 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
-                    <!-- Filter Options -->
-                    <div v-if="filter.options.length > 0" class="space-y-1.5">
-                        <label
+                    <!-- Options List -->
+                    <div v-if="filter.options.length > 0" class="space-y-3">
+                        <div
                             v-for="option in visibleOptions(filter)"
                             :key="option.id"
-                            class="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors group"
+                            class="flex items-center space-x-2"
                         >
-                            <div class="relative flex items-center justify-center">
-                                <input
-                                    type="checkbox"
-                                    :checked="option.checked"
-                                    @change="toggleOption(filter.id, option.id)"
-                                    class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
-                                />
-                            </div>
-                            <span class="text-sm text-gray-700 dark:text-gray-300 flex-1 truncate" :title="option.label">
-                {{ option.label }}
-              </span>
-                        </label>
+                            <Checkbox 
+                                :id="`${filter.id}-${option.id}`" 
+                                :checked="option.checked" 
+                                @update:checked="(v) => option.checked = v"
+                            />
+                            <Label 
+                                :for="`${filter.id}-${option.id}`" 
+                                class="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                {{ option.label }}
+                            </Label>
+                        </div>
 
-                        <!-- Show More Link -->
-                        <button
-                            v-if="hasMoreOptions(filter)"
+                        <Button 
+                            v-if="hasMoreOptions(filter)" 
+                            variant="link" 
+                            class="px-0 h-auto text-xs text-primary" 
                             @click="toggleShowAll(filter.id)"
-                            class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-1 px-2"
                         >
-                            {{ filter.showAll ? 'Show less' : 'Show more' }}
-                        </button>
+                            {{ filter.showAll ? 'Mostrar menos' : `Mostrar mais (${filter.options.length - filter.maxVisible})` }}
+                        </Button>
                     </div>
 
-                    <!-- Empty State for filters without options -->
-                    <div v-else class="text-xs text-gray-500 dark:text-gray-400 italic py-2">
-                        No options available
+                     <!-- Empty State -->
+                    <div v-else class="text-sm text-muted-foreground italic">
+                        Nenhuma opção disponível
                     </div>
+                    
+                    <Separator class="mt-6" v-if="index < filters.length - 1" />
                 </div>
             </div>
-        </div>
 
-        <!-- Footer -->
-        <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-end">
-            <button
-                @click="handleApply"
-                :disabled="!hasSelectedFilters"
-                :class="[
-          'px-6 py-2 rounded-md text-sm font-medium transition-colors',
-          hasSelectedFilters
-            ? 'btn-primary'
-            : 'btn-disabled',
-        ]"
-            >
-                Aplicar
-            </button>
-        </div>
-    </div>
+            <SheetFooter class="px-6 py-4 border-t bg-muted/20 sm:justify-between">
+                <Button variant="outline" @click="isOpen = false">
+                    Cancelar
+                </Button>
+                <div class="flex gap-2">
+                    <!-- Clear filters button could go here -->
+                    <Button @click="handleApply" :disabled="!hasSelectedFilters">
+                        Aplicar Filtros
+                    </Button>
+                </div>
+            </SheetFooter>
+        </SheetContent>
+    </Sheet>
 </template>

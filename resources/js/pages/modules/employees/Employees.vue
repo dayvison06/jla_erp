@@ -22,13 +22,14 @@ import {
     List,
     CircleEllipsis,
     UserRoundX,
-    Search
+    Search, UploadIcon
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import FilterSidebar from '@/components/FilterSidebar.vue';
 import axios from 'axios';
+import { Label } from '@/components/ui/label';
 
 // Composables e serviços
 const page = usePage();
@@ -154,6 +155,12 @@ debouncedWatch(
     },
     { debounce: 800 },
 );
+
+const handleApplyFilters = (filters: any) => {
+    console.log('Filters applied:', filters);
+    filterMode.value = false;
+    // Implement specific filter logic here
+}
 </script>
 
 <template>
@@ -182,8 +189,6 @@ debouncedWatch(
                                 <a
                                     href="/funcionarios/download/template"
                                     target="_blank"
-                                    rel="noopener"
-                                    download
                                     class="text-foreground mt-2 flex items-center text-sm font-medium underline"
                                 >
                                     <Import class="mr-2 h-4 w-4" />
@@ -198,7 +203,13 @@ debouncedWatch(
                                 <TableProperties class="h-4 w-4" />
                                 <Label for="xlsx" class="text-sm">Planilha</Label>
                             </div>
-                            <Input type="file" class=" " @change="importFileUpload" />
+                            <Label
+                                class="btn-primary mt-3 inline-flex cursor-pointer items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                            >
+                                <FileSpreadsheet class="mr-1 h-4 w-4" />
+                                Enviar arquivo
+                                <Input type="file" class="hidden" @change="importFileUpload" multiple />
+                            </Label>
                         </div>
                     </div>
 
@@ -279,15 +290,13 @@ debouncedWatch(
                             <Filter class="h-4 w-4" />
                         </Button>
                         <FilterSidebar
-                            v-if="filterMode"
-                            @close="filterMode = false"
-                            @update="updateTask"
-                            @delete="deleteTask"
-                            @duplicate="duplicateTask"
+                            :open="filterMode"
+                            @update:open="filterMode = $event"
+                            @apply="handleApplyFilters" 
                         />
                         <Button
                             @click="exportSelected"
-                            class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                             :disabled="selectedEmployees.length === 0"
                         >
                             <FileSpreadsheet class="h-4 w-4" />
