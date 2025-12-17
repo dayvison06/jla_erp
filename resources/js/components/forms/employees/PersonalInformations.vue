@@ -137,6 +137,7 @@ const formatCPF = (e: Event) => {
                         type="email"
                         class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                         required
+                        :readonly="isReadonly"
                     />
                 </div>
 

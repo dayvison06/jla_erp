@@ -32,6 +32,7 @@ import HealthInformations from '@/components/forms/employees/HealthInformations.
 import DependentInformations from '@/components/forms/employees/DependentInformations.vue';
 import AttachmentInformations from '@/components/forms/employees/AttachmentInformations.vue';
 import { formData } from '@/composables/useStoreEmployees';
+import { debouncedWatch } from '@vueuse/core';
 
 const cacheDialog = ref(false);
 const cachedEmployeeData = ref<Employee | null>(null);
@@ -83,7 +84,6 @@ function handleDestroyCacheForm() {
 const progressbar = ref(0);
 const createEmployee = () => {
     formData.salary = formData.salary.replace(/\D/g, '');
-    setLocalCacheForm();
 
     router.post('/funcionarios', formData, {
         forceFormData: true,
@@ -137,9 +137,9 @@ onMounted(() => {
     }).split('/').reverse().join('-');
 });
 
-watch(() => formData, () => {
-    console.log(formData);
-}, { deep: true });
+debouncedWatch(() => formData, () => {
+    setLocalCacheForm();
+}, { deep: true, debounce: 5000 });
 </script>
 
 <template>
@@ -199,6 +199,7 @@ watch(() => formData, () => {
                 <TabsContent value="personal">
                   <PersonalInformations
                         v-model:name="formData.name"
+                        v-model:email="formData.email"
                         v-model:gender="formData.gender"
                         v-model:birth_date="formData.birth_date"
                         v-model:civil_state="formData.civil_state"

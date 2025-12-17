@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import { router } from '@inertiajs/vue3'
 import { UploadCloudIcon, UploadIcon } from 'lucide-vue-next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,10 +86,9 @@ function uploadAttachments() {
             }
         },
         onSuccess: () => {
-            progressbar.value = 0;
+
         },
         onError: () => {
-            progressbar.value = 0;
         }
     });
 }

@@ -50,11 +50,21 @@ const breadcrumbs = [
 ];
 
 /**
- * Salva as alterações de um funcionário existente.
+ * Salva as alterações de um funcionário existente pegando somente os dados modificados.
  * @returns {void}
  */
 const saveEmployee = () => {
-    router.put(`/funcionarios/${formData.id}`, formData, {
+    const onlyModifiedData: Record<string, any> = {};
+    for (const key in formData) {
+        // Ignora campo vazio
+        if (formData[key] === '') continue;
+        if (formData[key] !== employee[key]) {
+            onlyModifiedData[key] = formData[key];
+        }
+    }
+    console.log('Modified Data:', onlyModifiedData);
+
+    router.patch(`/funcionarios/${formData.id}`, formData, {
         preserveState: true,
         preserveScroll: true,
         onProgress: (event) => {
@@ -174,6 +184,7 @@ onMounted(() => {
                 <TabsContent value="personal">
                     <PersonalInformations
                         v-model:name="formData.name"
+                        v-model:email="formData.email"
                         v-model:gender="formData.gender"
                         v-model:birth_date="formData.birth_date"
                         v-model:civil_state="formData.civil_state"
