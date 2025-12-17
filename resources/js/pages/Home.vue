@@ -2,31 +2,62 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { ref } from 'vue';
-import { File, ChartBarIcon, CogIcon, PlusIcon } from 'lucide-vue-next';
-import { BreadcrumbItem, User } from '@/types';
+import {
+    Users,
+    UserPlus,
+    HardHat,
+    Briefcase,
+    Settings,
+    LayoutDashboard
+} from 'lucide-vue-next';
+import { User } from '@/types';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent
+} from '@/components/ui/card';
 
 const page = usePage()
 const user: User = page.props.auth.user
-
 
 interface QuickAction {
     title: string;
     description: string;
     icon: any;
     link: string;
+    variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
-// Ações rápidas
+// Ações rápidas mapeadas para os módulos do sistema
 const quickActions = ref<QuickAction[]>([
     {
-        title: 'Configurações',
-        description: 'Ajustar suas preferências',
-        icon: CogIcon,
-        link: '/settings/profile'
+        title: 'Funcionários',
+        description: 'Gerencie o quadro de colaboradores, documentos e cadastros.',
+        icon: Users,
+        link: '/funcionarios'
+    },
+    {
+        title: 'Novo Funcionário',
+        description: 'Inicie o processo de admissão de um novo colaborador.',
+        icon: UserPlus,
+        link: '/funcionarios/criar'
+    },
+    {
+        title: 'Obras',
+        description: 'Acompanhe o andamento das obras e projetos em execução.',
+        icon: HardHat,
+        link: '/obras'
+    },
+    {
+        title: 'Cargos e Funções',
+        description: 'Administre a estrutura de cargos e salários da empresa.',
+        icon: Briefcase,
+        link: '/administracao/cargos'
     },
 ]);
 
-// Métodos
 const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Bom dia';
@@ -34,8 +65,8 @@ const getGreeting = () => {
     return 'Boa noite';
 };
 
-const breadcrumbs: BreadcrumbItem = [
-    { name: 'Home', href: '/' },
+const breadcrumbs = [
+    { title: 'Home', href: '/' },
 ];
 </script>
 
@@ -43,28 +74,60 @@ const breadcrumbs: BreadcrumbItem = [
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <main class="container mx-auto px-4 py-8">
-            <!-- Header com saudação personalizada -->
-            <header class="mb-8">
-                <div class="flex items-center">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-                            {{ getGreeting() }}, <small class=" font-normal text-3xl">{{ user.name }}</small>
-                        </h1>
+            <!-- Header com saudação -->
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 bg-primary/10 rounded-lg">
+                        <LayoutDashboard class="w-6 h-6 text-primary" />
                     </div>
+                    <span class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Visão Geral</span>
                 </div>
+                <h1 class="text-3xl font-bold tracking-tight text-foreground">
+                    {{ getGreeting() }}, <span class="text-primary">{{ user.name }}</span>
+                </h1>
+                <p class="text-muted-foreground mt-2">
+                    Bem-vindo ao JLA ERP. Aqui está o resumo das suas atividades e atalhos rápidos.
+                </p>
             </header>
-            <!-- Ações rápidas -->
-            <section class="mb-10">
-                <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white mb-6">Ações Rápidas</h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Link v-for="(action, index) in quickActions" :key="index" :href="action.link"
-                         class="group flex cursor-pointer flex-col items-center rounded-xl bg-white p-6 text-center shadow-lg transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-750">
-                            <div class="mb-4 rounded-full bg-gray-100 p-4 transition-all group-hover:bg-gray-200 dark:bg-gray-900 dark:group-hover:bg-gray-800">
-                                <component :is="action.icon" class="h-6 w-6 text-gray-600 dark:text-gray-400" />
-                            </div>
-                            <h3 class="mb-2 font-medium text-gray-800 dark:text-white">{{ action.title }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ action.description }}</p>
+
+            <!-- Ações Rápidas / Módulos -->
+            <section>
+                <h2 class="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+                    Acesso Rápido
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Link
+                        v-for="(action, index) in quickActions"
+                        :key="index"
+                        :href="action.link"
+                        class="block group outline-none"
+                    >
+                        <Card class="h-full transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-ring">
+                            <CardHeader>
+                                <div class="mb-4 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-secondary text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-200">
+                                    <component :is="action.icon" class="w-5 h-5" />
+                                </div>
+                                <CardTitle class="text-base font-semibold group-hover:text-primary transition-colors">
+                                    {{ action.title }}
+                                </CardTitle>
+                                <CardDescription>
+                                    {{ action.description }}
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
                     </Link>
+                </div>
+            </section>
+
+            <!-- Placeholder para Dashboard Futuro -->
+            <section class="mt-10">
+                 <div class="bg-muted/10 border-2 border-dashed border-muted rounded-xl p-8 text-center">
+                    <h3 class="text-sm font-medium text-muted-foreground">
+                        Painel de Indicadores em desenvolvimento
+                    </h3>
+                    <p class="text-xs text-muted-foreground/70 mt-1">
+                        Em breve você verá estatísticas e gráficos importantes aqui.
+                    </p>
                 </div>
             </section>
         </main>
