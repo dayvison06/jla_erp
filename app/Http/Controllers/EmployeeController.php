@@ -106,7 +106,7 @@ class EmployeeController extends Controller
             DB::transaction(function () use ($data, $request, &$employee) {
                 $employee = Employee::create($data);
                 app(EmployeeServices::class)->processJobRoles($employee, $request->job_roles ?? []);
-                app(EmployeeServices::class)->processDependents($employee, $request->dependents ?? []);
+                // app(EmployeeServices::class)->processDependents($employee, $request->dependents ?? []);
                 app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
             });
 
@@ -356,6 +356,16 @@ class EmployeeController extends Controller
     {
         $jobRoles = JobRole::all();
         return response()->json($jobRoles);
+    }
+
+    /**
+     * Retorna uma lista de todos os departamentos em formato JSON.
+     * @return JsonResponse
+     */
+    public function departmentsList() : JsonResponse
+    {
+        $departments = Departament::all();
+        return response()->json($departments);
     }
 
     /**

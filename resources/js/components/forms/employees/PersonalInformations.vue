@@ -6,79 +6,6 @@ import { ArrowRight } from 'lucide-vue-next';
 import { Label } from '@/components/ui/label';
 import { isReadonly } from 'vue';
 
-/**
- * Formata o telefone de emergência no input.
- *
- * @param {Event} e - O evento de input.
- * @returns {void}
- */
-const formatEmergencyPhone = (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-
-    if (value.length <= 11) {
-        value = value.replace(/(\d{2})(\d)/, '($1) $2');
-        value = value.replace(/(\d{5})(\d)/, '$1-$2');
-    }
-
-    formData.emergency_phone = value;
-};
-
-/**
- * Formata o telefone no input.
- *
- * @param {Event} e - O evento de input.
- * @returns {void}
- */
-const formatPhone = (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-
-    if (value.length <= 10) {
-        value = value.replace(/(\d{2})(\d)/, '($1) $2');
-        value = value.replace(/(\d{4})(\d)/, '$1-$2');
-    }
-
-    formData.phone = value;
-};
-
-/**
- * Formata o celular no input.
- *
- * @param {Event} e - O evento de input.
- * @returns {void}
- */
-const formatMobile = (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-
-    if (value.length <= 11) {
-        value = value.replace(/(\d{2})(\d)/, '($1) $2');
-        value = value.replace(/(\d{5})(\d)/, '$1-$2');
-    }
-
-    formData.mobile = value;
-};
-
-/**
- * Formata o CPF no input.
- *
- * @param {Event} e - O evento de input.
- * @returns {void}
- */
-const formatCPF = (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-
-    if (value.length <= 11) {
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    }
-
-    formData.cpf = value;
-};
-
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 const name = defineModel('name');
@@ -104,6 +31,79 @@ const mobile = defineModel('mobile');
 const emergency_contact = defineModel('emergency_contact');
 const emergency_phone = defineModel('emergency_phone');
 const isReadonly = defineModel('read_only', { type: Boolean, default: false });
+
+/**
+ * Formata o telefone de emergência no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
+const formatEmergencyPhone = (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length <= 11) {
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    emergency_phone.value = value;
+};
+
+/**
+ * Formata o telefone no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
+const formatPhone = (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length <= 10) {
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+
+    phone.value = value;
+};
+
+/**
+ * Formata o celular no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
+const formatMobile = (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length <= 11) {
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    mobile.value = value;
+};
+
+/**
+ * Formata o CPF no input.
+ *
+ * @param {Event} e - O evento de input.
+ * @returns {void}
+ */
+const formatCPF = (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    cpf.value = value;
+};
 
 </script>
 
