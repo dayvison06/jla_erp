@@ -48,12 +48,13 @@ const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
     { title: 'Visualizar', href: `/funcionarios/${employee?.cpf}` }
 ];
-
+console.log('INERTIA DATA EMPLOYEE:', employee);
 /**
  * Salva as alterações de um funcionário existente pegando somente os dados modificados.
  * @returns {void}
  */
 const saveEmployee = () => {
+    console.log('Form Data before save:', formData);
     const onlyModifiedData: Record<string, any> = {};
     for (const key in formData) {
         // Ignora campo vazio
@@ -199,7 +200,7 @@ onMounted(() => {
                         v-model:military_certificate="formData.military_certificate"
                         v-model:mother_name="formData.mother_name"
                         v-model:father_name="formData.father_name"
-                        v-model:escolarity="formData.escolarity"
+                        v-model:education_level="formData.education_level"
                         v-model:blood_type="formData.blood_type"
                         v-model:phone="formData.phone"
                         v-model:mobile="formData.mobile"
@@ -241,6 +242,7 @@ onMounted(() => {
                         v-model:account="formData.account"
                         v-model:account_type="formData.account_type"
                         v-model:pix_key_type="formData.pix_key_type"
+                        v-model:pix_key="formData.pix_key"
                         v-model:read_only="isReadonly"
                     />
                 </TabsContent>
@@ -252,6 +254,7 @@ onMounted(() => {
                         v-model:admission_date="formData.admission_date"
                         v-model:termination_date="formData.termination_date"
                         v-model:salary="formData.salary"
+                        v-model:benefits="formData.benefits"
                         v-model:read_only="isReadonly"
                     />
                 </TabsContent>

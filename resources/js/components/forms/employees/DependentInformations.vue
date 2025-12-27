@@ -6,11 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Select,
-    SelectContent,
+    SelectContent, SelectGroup,
     SelectItem,
     SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    SelectValue
+} from '@/components/ui/select';
 
 const dependents = defineModel('dependents', { type: Array as () => Array<any>, default: () => [] });
 const isReadonly = defineModel('read_only', { type: Boolean, default: false });
@@ -123,7 +123,7 @@ const updatePurpose = (checked: boolean, purposeValue: string, dependent: any) =
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Campos do formulário do dependente -->
             <div class="space-y-2">
-                <Label :for="`name-${index}`">Nome completo *</Label>
+                <Label :for="`name-${index}`">Nome completo</Label>
                 <Input
                     :id="`name-${index}`"
                     v-model="dependent.name"
@@ -135,7 +135,7 @@ const updatePurpose = (checked: boolean, purposeValue: string, dependent: any) =
             </div>
 
             <div class="space-y-2">
-                <Label :for="`birth_date-${index}`">Data de nascimento *</Label>
+                <Label :for="`birth_date-${index}`">Data de nascimento</Label>
                 <Input
                     :id="`birth_date-${index}`"
                     v-model="dependent.birth_date"
@@ -146,7 +146,25 @@ const updatePurpose = (checked: boolean, purposeValue: string, dependent: any) =
             </div>
 
             <div class="space-y-2">
-                <Label :for="`cpf-${index}`">CPF *</Label>
+                <Label :for="`civil_state-${index}`">Estado Civil</Label>
+                <Select v-model="dependent.civil_state" required :disabled="isReadonly">
+                    <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
+                        <SelectValue placeholder="Selecione"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectItem value="Solteiro(a)">Solteiro(a)</SelectItem>
+                            <SelectItem value="Casado(a)">Casado(a)</SelectItem>
+                            <SelectItem value="Divorciado(a)">Divorciado(a)</SelectItem>
+                            <SelectItem value="Viúvo(a)">Viúvo(a)</SelectItem>
+                            <SelectItem value="União Estável">União Estável</SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div class="space-y-2">
+                <Label :for="`cpf-${index}`">CPF</Label>
                 <Input
                     :id="`cpf-${index}`"
                     v-model="dependent.cpf"
@@ -160,7 +178,19 @@ const updatePurpose = (checked: boolean, purposeValue: string, dependent: any) =
             </div>
 
             <div class="space-y-2">
-                <Label>Grau de parentesco *</Label>
+                <Label :for="`rg-${index}`">RG</Label>
+                <Input
+                    :id="`rg-${index}`"
+                    v-model="dependent.rg"
+                    type="text"
+                    required
+                    :readonly="isReadonly"
+                    placeholder="Número do RG"
+                />
+            </div>
+
+            <div class="space-y-2">
+                <Label>Grau de parentesco</Label>
                 <Select v-model="dependent.relationship" :disabled="isReadonly">
                     <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -198,40 +228,40 @@ const updatePurpose = (checked: boolean, purposeValue: string, dependent: any) =
                 />
             </div>
 
-            <div class="space-y-2 md:col-span-2 lg:col-span-3">
-                <Label class="mb-2 block">Finalidade *</Label>
-                <div class="flex flex-wrap gap-4">
-                    <div class="flex items-center space-x-2 border rounded-md p-3 bg-background">
-                        <Checkbox
-                            :id="`purpose-income-${index}`"
-                            :checked="dependent.purposes?.includes('income_tax')"
-                            @update:checked="(checked) => updatePurpose(checked, 'income_tax', dependent)"
-                            :disabled="isReadonly"
-                        />
-                        <Label :for="`purpose-income-${index}`" class="font-normal cursor-pointer">Imposto de Renda</Label>
-                    </div>
+<!--            <div class="space-y-2 md:col-span-2 lg:col-span-3">-->
+<!--                <Label class="mb-2 block">Finalidade *</Label>-->
+<!--                <div class="flex flex-wrap gap-4">-->
+<!--                    <div class="flex items-center space-x-2 border rounded-md p-3 bg-background">-->
+<!--                        <Checkbox-->
+<!--                            :id="`purpose-income-${index}`"-->
+<!--                            :checked="dependent.purposes?.includes('income_tax')"-->
+<!--                            @update:checked="(checked) => updatePurpose(checked, 'income_tax', dependent)"-->
+<!--                            :disabled="isReadonly"-->
+<!--                        />-->
+<!--                        <Label :for="`purpose-income-${index}`" class="font-normal cursor-pointer">Imposto de Renda</Label>-->
+<!--                    </div>-->
 
-                    <div class="flex items-center space-x-2 border rounded-md p-3 bg-background">
-                        <Checkbox
-                            :id="`purpose-health-${index}`"
-                            :checked="dependent.purposes?.includes('health_plan')"
-                            @update:checked="(checked) => updatePurpose(checked, 'health_plan', dependent)"
-                            :disabled="isReadonly"
-                        />
-                        <Label :for="`purpose-health-${index}`" class="font-normal cursor-pointer">Plano de Saúde</Label>
-                    </div>
+<!--                    <div class="flex items-center space-x-2 border rounded-md p-3 bg-background">-->
+<!--                        <Checkbox-->
+<!--                            :id="`purpose-health-${index}`"-->
+<!--                            :checked="dependent.purposes?.includes('health_plan')"-->
+<!--                            @update:checked="(checked) => updatePurpose(checked, 'health_plan', dependent)"-->
+<!--                            :disabled="isReadonly"-->
+<!--                        />-->
+<!--                        <Label :for="`purpose-health-${index}`" class="font-normal cursor-pointer">Plano de Saúde</Label>-->
+<!--                    </div>-->
 
-                    <div class="flex items-center space-x-2 border rounded-md p-3 bg-background">
-                        <Checkbox
-                            :id="`purpose-dental-${index}`"
-                            :checked="dependent.purposes?.includes('dental_plan')"
-                            @update:checked="(checked) => updatePurpose(checked, 'dental_plan', dependent)"
-                            :disabled="isReadonly"
-                        />
-                        <Label :for="`purpose-dental-${index}`" class="font-normal cursor-pointer">Plano Odontológico</Label>
-                    </div>
-                </div>
-            </div>
+<!--                    <div class="flex items-center space-x-2 border rounded-md p-3 bg-background">-->
+<!--                        <Checkbox-->
+<!--                            :id="`purpose-dental-${index}`"-->
+<!--                            :checked="dependent.purposes?.includes('dental_plan')"-->
+<!--                            @update:checked="(checked) => updatePurpose(checked, 'dental_plan', dependent)"-->
+<!--                            :disabled="isReadonly"-->
+<!--                        />-->
+<!--                        <Label :for="`purpose-dental-${index}`" class="font-normal cursor-pointer">Plano Odontológico</Label>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
     </div>
 </template>

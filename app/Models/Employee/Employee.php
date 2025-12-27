@@ -82,6 +82,20 @@ class Employee extends Model
         $this->attributes['cpf'] = preg_replace("/\D/", '', $value);
     }
 
+    public function setSalaryAttribute($value) : void
+    {
+        $this->attributes['salary'] = (float) str_replace(',', '.', preg_replace('/[^\d,]/', '', $value));
+    }
+
+    public function getSalaryAttribute() : ?string
+    {
+        $salary = $this->attributes['salary'] ?? null;
+
+        return $salary !== null
+            ? number_format((float) $salary, 2, ',', '.')
+            : null;
+    }
+
     public function dependents() : HasMany
     {
         return $this->hasMany(Depedent::class, 'employee_id', 'id');

@@ -32,6 +32,7 @@ Route::prefix('administracao')->middleware(['auth', 'verified'])->name('admin.')
         Route::post('/cargos', [EmployeeController::class, 'storeJobRole'])->name('store_job_role');
         Route::get('/cargos/lista', [EmployeeController::class, 'jobRolesList'])->name('job_roles_list');
         Route::get('/departamentos/lista', [EmployeeController::class, 'departmentsList'])->name('departments_list');
+        Route::get('/beneficios/lista', [EmployeeController::class, 'benefitsList'])->name('benefits_list');
 });
 
 use App\Http\Controllers\WorkController;

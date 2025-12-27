@@ -74,8 +74,8 @@ export interface Employee {
     blood_type: string;
     accident_history: string;
 
-    dependents: Dependent[];
     attachments: Attachment[];
+    dependents: Dependent[];
 }
 
 interface Dependent {

@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
-
 import Checkbox from '@/components/project/Checkbox.vue'
 
 const status = defineModel('status');
@@ -15,9 +14,8 @@ const termination_date = defineModel('termination_date');
 const salary = defineModel('salary');
 const benefits = defineModel('benefits', { type: Array, default: () => [] });
 const isReadonly = defineModel('read_only', {type: Boolean, default: false });
-
+console.log('BENEFITS', benefits.value);
 const jobRoles = ref<Array<string>>([]);
-
 /**
  * Formata o salário no input.
  *
@@ -54,11 +52,12 @@ async function getListJobRoles() {
     });
 }
 
+const benefitsList = ref<Array<string>>([]);
 async function getListBenefits() {
     axios.get('/administracao/beneficios/lista', {
     }).then((response) => {
         // Supondo que a resposta seja um array de benefícios
-        // Aqui você pode processar os benefícios conforme necessário
+        benefitsList.value = response.data;
     }, (error) => {
     });
 }
@@ -66,6 +65,11 @@ async function getListBenefits() {
 onMounted(() => {
     getListJobRoles();
     getListBenefits();
+
+    // Se vier como array de objetos, converte para array de ids para o Checkbox marcar
+    if (Array.isArray(benefits.value) && typeof benefits.value[0] === 'object') {
+        benefits.value = (benefits.value as any[]).map((b) => b.id);
+    }
 });
 
 </script>
@@ -175,53 +179,13 @@ onMounted(() => {
         <div class="col-span-1 space-y-2 md:col-span-2 lg:col-span-3">
             <Label class="block text-sm font-medium text-foreground">Benefícios</Label>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div class="flex items-center">
+                <div class="flex items-center" v-for="benefit in benefitsList" :key="benefit">
                     <Checkbox
                         v-model="benefits"
-                        value="Transporte"
+                        :value="benefit.id"
                         class="h-4 w-4 rounded"
                     />
-                    <Label class="ml-2 text-sm text-foreground">Vale Transporte</Label>
-                </div>
-                <div class="flex items-center">
-                    <Checkbox
-                        v-model="benefits"
-                        value="Refeicao"
-                        class="h-4 w-4 rounded"
-                    />
-                    <Label class="ml-2 text-sm text-foreground">Vale Refeição</Label>
-                </div>
-                <div class="flex items-center">
-                    <Checkbox
-                        v-model="benefits"
-                        value="Saude"
-                        class="h-4 w-4 rounded"
-                    />
-                    <Label class="ml-2 text-sm text-foreground">Plano de Saúde</Label>
-                </div>
-                <div class="flex items-center">
-                    <Checkbox
-                        v-model="benefits"
-                        value="Odontologico"
-                        class="h-4 w-4 rounded"
-                    />
-                    <Label class="ml-2 text-sm text-foreground">Plano Odontológico</Label>
-                </div>
-                <div class="flex items-center">
-                    <Checkbox
-                        v-model="benefits"
-                        value="Seguro"
-                        class="h-4 w-4 rounded"
-                    />
-                    <Label class="ml-2 text-sm text-foreground">Seguro de Vida</Label>
-                </div>
-                <div class="flex items-center">
-                    <Checkbox
-                        v-model="benefits"
-                        value="Previdencia"
-                        class="h-4 w-4 rounded"
-                    />
-                    <Label class="ml-2 text-sm text-foreground">Previdência Privada</Label>
+                    <Label class="ml-2 text-sm text-foreground">{{ benefit.name}}</Label>
                 </div>
             </div>
         </div>

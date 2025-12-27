@@ -22,7 +22,8 @@ import {
     List,
     CircleEllipsis,
     UserRoundX,
-    Search, UploadIcon
+    Search,
+    Loader
 } from 'lucide-vue-next';
 import type { BreadcrumbItem } from '@/types';
 import { Input } from '@/components/ui/input';
@@ -45,6 +46,7 @@ const searchResults = ref(false);
 const listResults = ref(<Employee[]>[]);
 const filterMode = ref(false);
 const itemsPerPage = ref(10);
+const loadingSearch = ref(false);
 console.log(employees.value);
 // Breadcrumbs para navegação
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Funcionários', href: '/funcionarios' }];
@@ -79,9 +81,11 @@ function paginateEmployees() {
  * @returns {void}
  */
 async function searchEmployees() {
+    loadingSearch.value = true;
     if(searchQuery.value.trim() === '') {
         employees.value = page.props.employees ?? [];
         searchResults.value = false;
+        loadingSearch.value = false;
         return;
     }
 
@@ -93,6 +97,7 @@ async function searchEmployees() {
         .then((response) => {
             listResults.value = response.data;
             searchResults.value = true;
+            loadingSearch.value = false;
             console.log('Funcionários atualizados:', listResults.value);
             showToast('success', 'Funcionários buscados com sucesso!');
         })
@@ -269,6 +274,7 @@ const handleApplyFilters = (filters: any) => {
                                     <div class="relative">
                                         <Search class="text-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                                         <Input v-model="searchQuery" type="text" placeholder="Buscar por nome ou CPF..." class="pl-8" />
+                                        <Loader v-if="loadingSearch" class="text-foreground absolute animate-spin top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform" />
                                     </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent class="w-full max-w-sm" align="start">
@@ -292,7 +298,7 @@ const handleApplyFilters = (filters: any) => {
                         <FilterSidebar
                             :open="filterMode"
                             @update:open="filterMode = $event"
-                            @apply="handleApplyFilters" 
+                            @apply="handleApplyFilters"
                         />
                         <Button
                             @click="exportSelected"

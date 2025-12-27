@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Employee\Benefit;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Role;
@@ -26,6 +27,12 @@ class DatabaseSeeder extends Seeder
            'name' => 'Administrador',
            'email' => 'admin@admin.com',
            'password' => bcrypt('admin123'),
+        ]);
+
+        Benefit::create([
+            'name' => 'Vale Alimentação',
+            'description' => 'Benefício para alimentação dos funcionários',
+            'active' => true,
         ]);
 
 //        $normalUser = User::factory()->create([

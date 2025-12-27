@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EmployeeRequest;
 use App\Imports\EmployeesImport;
+use App\Models\Employee\Benefit;
 use App\Models\Employee\Departament;
 use App\Models\Employee\Employee;
 use App\Models\Employee\JobRole;
@@ -96,23 +97,20 @@ class EmployeeController extends Controller
      * Armazena um novo funcionário no banco de dados.
      * @param EmployeeRequest $request
      * @return RedirectResponse
+     * @throws \Throwable
      */
     public function store (EmployeeRequest $request) : RedirectResponse
     {
-
         $payload = $request->except('attachments');
         Log::info('Recebendo dados para cadastro de funcionário', ['payload' => $payload,]);
         $data = array_filter($payload, fn($value) => !is_array($value));
 
+        DB::beginTransaction();
         try {
-            DB::transaction(function () use ($data, $request, &$employee) {
-                $employee = Employee::create($data);
-                app(EmployeeServices::class)->processJobRoles($employee, $request->job_roles ?? []);
-                // app(EmployeeServices::class)->processDependents($employee, $request->dependents ?? []);
-                app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
-            });
-
-            Log::info('Funcionário criado com sucesso: ' . $employee->id);
+            $employee = Employee::create($data);
+            app(EmployeeServices::class)->processJobRoles($employee, $request->job_roles ?? []);
+            // app(EmployeeServices::class)->processDependents($employee, $request->dependents ?? []);
+            app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
 
             if ($request->attachments) {
                 foreach ($request->file('attachments') as $file) {
@@ -128,13 +126,14 @@ class EmployeeController extends Controller
                     ]);
                 }
             }
-
+            DB::commit();
             return redirect()->route('employees.index')->with('notify', [
                 'type' => 'success',
                 'title' => 'Funcionário Adicionado',
                 'message' => 'O funcionário ' . $employee->name . ' foi adicionado com sucesso.',
             ]);
         } catch (\Throwable $e) {
+            DB::rollBack();
             Log::error('Erro ao criar funcionário: ' . $e->getMessage());
             return redirect()->back()->with('notify', [
                 'type' => 'error',
@@ -175,7 +174,7 @@ class EmployeeController extends Controller
         try {
             $employee->update($data);
             $this->employeeServices->processDependents($employee, $payload['dependents'] ?? []);
-            $employee->benefits()->update($payload['benefits']);
+            app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
             // Atualizar outros relacionamentos conforme necessário
             return Inertia::render('modules/employees/ShowEmployee', ['employee' => $employee])->with('notify', [
                 'type' => 'success',
@@ -369,6 +368,15 @@ class EmployeeController extends Controller
         return response()->json($departments);
     }
 
+    /**
+     * Retorna uma lista de todos os benefícios em formato JSON.
+     * @return JsonResponse
+     */
+    public function benefitsList() : JsonResponse
+    {
+        $benefits = Benefit::all();
+        return response()->json($benefits);
+    }
     /**
      * Castra cargos empresarias com respectivo salário base e descrição.
      * @param Request $request

@@ -101,13 +101,13 @@ return new class extends Migration
             $table->string('name');
             $table->string('relationship');
             $table->date('birth_date');
-            $table->string('cpf', 14)->nullable();
+            $table->string('civil_state', 20)->nullable();
+            $table->string('cpf', 14)->unique();
             $table->string('rg', 20)->nullable();
             $table->string('issuing_agency', 20)->nullable();
             $table->date('issue_date')->nullable();
             $table->boolean('is_income_tax_dependent')->default(false);
             $table->boolean('is_health_plan_dependent')->default(false);
-            $table->string('civil_state', 20)->nullable();
             $table->timestamps();
         });
 

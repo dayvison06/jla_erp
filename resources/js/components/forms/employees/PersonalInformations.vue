@@ -24,7 +24,7 @@ const voter_registration = defineModel('voter_registration');
 const military_certificate = defineModel('military_certificate');
 const mother_name = defineModel('mother_name');
 const father_name = defineModel('father_name');
-const escolarity = defineModel('escolarity');
+const education_level = defineModel('education_level');
 const blood_type = defineModel('blood_type');
 const phone = defineModel('phone');
 const mobile = defineModel('mobile');
@@ -347,19 +347,19 @@ const formatCPF = (e: Event) => {
                 <!-- Grau de escolaridade -->
                 <div class="space-y-2">
                     <Label class="block text-sm font-medium text-foreground">Grau de escolaridade *</Label>
-                    <Select v-model="escolarity" :disabled="isReadonly">
+                    <Select v-model="education_level" :disabled="isReadonly">
                         <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
                             <SelectValue placeholder="Selecione"/>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
-                                <SelectItem value="fundamental">Ensino Fundamental</SelectItem>
-                                <SelectItem value="medio">Ensino Médio</SelectItem>
-                                <SelectItem value="tecnico">Ensino Técnico</SelectItem>
-                                <SelectItem value="superior">Ensino Superior</SelectItem>
-                                <SelectItem value="posGraduacao">Pós-graduação</SelectItem>
-                                <SelectItem value="mestrado">Mestrado</SelectItem>
-                                <SelectItem value="doutorado">Doutorado</SelectItem>
+                                <SelectItem value="Ensino Fundamental">Ensino Fundamental</SelectItem>
+                                <SelectItem value="Ensino Médio">Ensino Médio</SelectItem>
+                                <SelectItem value="Ensino Técnico">Ensino Técnico</SelectItem>
+                                <SelectItem value="Ensino Superior">Ensino Superior</SelectItem>
+                                <SelectItem value="Pos-graduação">Pós-graduação</SelectItem>
+                                <SelectItem value="Mestrado">Mestrado</SelectItem>
+                                <SelectItem value="Doutorado">Doutorado</SelectItem>
                             </SelectGroup>
                         </SelectContent>
                     </Select>

@@ -214,7 +214,7 @@ debouncedWatch(() => formData, () => {
                         v-model:military_certificate="formData.military_certificate"
                         v-model:mother_name="formData.mother_name"
                         v-model:father_name="formData.father_name"
-                        v-model:escolarity="formData.escolarity"
+                        v-model:education_level="formData.education_level"
                         v-model:blood_type="formData.blood_type"
                         v-model:phone="formData.phone"
                         v-model:mobile="formData.mobile"
@@ -253,6 +253,7 @@ debouncedWatch(() => formData, () => {
                         v-model:account="formData.account"
                         v-model:account_type="formData.account_type"
                         v-model:pix_key_type="formData.pix_key_type"
+                        v-model:pix_key="formData.pix_key"
                     />
                 </TabsContent>
                 <TabsContent value="contract">

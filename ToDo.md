@@ -1,5 +1,16 @@
 # ToDo.md
 
+# Tarefas Atuais
+
+- Remover Status Input
+    - Deixar como badge em baixo do nome
+- Remover Data de desligamento
+    - Só será visível se o status for "desligado"
+- Validar salvamento de Anexos
+    - Verificar se o arquivo foi realmente salvo no backend
+    - Melhoria de load e informação para o usuário
+
+
 ## Plano Detalhado para Tornar o Frontend de Funcionários Totalmente Funcional
 
 ### 1. Listagem e Busca de Funcionários
