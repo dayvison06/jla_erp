@@ -28,10 +28,25 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
 });
 
 Route::prefix('administracao')->middleware(['auth', 'verified'])->name('admin.')->group(function () {
+        // Cargos
         Route::get('/cargos', [EmployeeController::class, 'jobRoles'])->name('job_roles');
         Route::post('/cargos', [EmployeeController::class, 'storeJobRole'])->name('store_job_role');
+        Route::put('/cargos/{id}', [EmployeeController::class, 'updateJobRole'])->name('update_job_role');
+        Route::delete('/cargos/{id}', [EmployeeController::class, 'destroyJobRole'])->name('destroy_job_role');
         Route::get('/cargos/lista', [EmployeeController::class, 'jobRolesList'])->name('job_roles_list');
+
+        // Departamentos
+        Route::get('/departamentos', [EmployeeController::class, 'departments'])->name('departments');
+        Route::post('/departamentos', [EmployeeController::class, 'storeDepartment'])->name('store_department');
+        Route::put('/departamentos/{id}', [EmployeeController::class, 'updateDepartment'])->name('update_department');
+        Route::delete('/departamentos/{id}', [EmployeeController::class, 'destroyDepartment'])->name('destroy_department');
         Route::get('/departamentos/lista', [EmployeeController::class, 'departmentsList'])->name('departments_list');
+
+        // Benefícios
+        Route::get('/beneficios', [EmployeeController::class, 'benefits'])->name('benefits');
+        Route::post('/beneficios', [EmployeeController::class, 'storeBenefit'])->name('store_benefit');
+        Route::put('/beneficios/{id}', [EmployeeController::class, 'updateBenefit'])->name('update_benefit');
+        Route::delete('/beneficios/{id}', [EmployeeController::class, 'destroyBenefit'])->name('destroy_benefit');
         Route::get('/beneficios/lista', [EmployeeController::class, 'benefitsList'])->name('benefits_list');
 });
 

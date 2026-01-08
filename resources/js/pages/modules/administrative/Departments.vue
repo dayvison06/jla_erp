@@ -4,7 +4,6 @@ import { Head, usePage, router } from '@inertiajs/vue3';
 import type { BreadcrumbItemType } from '@/types';
 import {
     CirclePlus,
-    DollarSign,
     Search,
     MoreHorizontal,
     Pencil,
@@ -33,16 +32,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { ref, watch } from 'vue';
 import { showToast } from '@/composables/useToast';
 
-interface JobRole {
+interface Department {
     id?: number;
     name: string;
-    base_salary: string;
     description: string | null;
 }
 
 const props = defineProps<{
-    job_roles: {
-        data: JobRole[];
+    departments: {
+        data: Department[];
         links: any[];
         meta: any;
     };
@@ -53,81 +51,71 @@ const props = defineProps<{
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Administrativo', href: '/administracao' },
-    { title: 'Cargos', href: '/administracao/cargos' },
+    { title: 'Departamentos', href: '/administracao/departamentos' },
 ];
 
 const dialogOpen = ref(false);
 const isEditing = ref(false);
 const search = ref(props.filters?.search || '');
 
-const formRole = ref<JobRole>({
+const formDepartment = ref<Department>({
     name: '',
-    base_salary: '',
     description: '',
 });
 
-function resetFormRole() {
-    formRole.value = {
+function resetFormDepartment() {
+    formDepartment.value = {
         name: '',
-        base_salary: '',
         description: '',
     };
     isEditing.value = false;
 }
 
-function formatSalary() {
-    if (formRole.value.base_salary) {
-        let salary = formRole.value.base_salary.toString().replace(/\D/g, '');
-        salary = (parseInt(salary) / 100).toFixed(2);
-        formRole.value.base_salary = salary.toString().replace('.', ',');
-    }
-}
-
 function openCreateDialog() {
-    resetFormRole();
+    resetFormDepartment();
     dialogOpen.value = true;
 }
 
-function openEditDialog(role: JobRole) {
-    formRole.value = { ...role };
+function openEditDialog(dept: Department) {
+    formDepartment.value = { ...dept };
     isEditing.value = true;
     dialogOpen.value = true;
 }
 
-function submitJobRole() {
-    if (isEditing.value && formRole.value.id) {
-        router.put(route('admin.update_job_role', formRole.value.id), formRole.value, {
+function submitDepartment() {
+    if (isEditing.value && formDepartment.value.id) {
+        router.put(route('admin.update_department', formDepartment.value.id), formDepartment.value, {
             onSuccess: () => {
                 dialogOpen.value = false;
-                resetFormRole();
-                showToast('success', 'Cargo atualizado com sucesso!');
+                resetFormDepartment();
+                showToast('success', 'Departamento atualizado com sucesso!');
             },
             onError: (errors) => {
-                showToast('error', 'Erro ao atualizar cargo.', Object.values(errors)[0]);
+                showToast('error', 'Erro ao atualizar departamento.', Object.values(errors)[0]);
             }
         });
     } else {
-        router.post(route('admin.store_job_role'), formRole.value, {
+        router.post(route('admin.store_department'), formDepartment.value, {
             onSuccess: () => {
                 dialogOpen.value = false;
-                resetFormRole();
-                showToast('success', 'Cargo criado com sucesso!');
+                resetFormDepartment();
+                showToast('success', 'Departamento criado com sucesso!');
             },
             onError: (errors) => {
-                showToast('error', 'Erro ao criar cargo.', Object.values(errors)[0]);
+                showToast('error', 'Erro ao criar departamento.', Object.values(errors)[0]);
             }
         });
     }
 }
 
-function deleteJobRole(id: number) {
-    if (confirm('Tem certeza que deseja excluir este cargo?')) {
-        router.delete(route('admin.destroy_job_role', id), {
+function deleteDepartment(id: number) {
+    if (confirm('Tem certeza que deseja excluir este departamento?')) {
+        router.delete(route('admin.destroy_department', id), {
             onSuccess: () => {
-               showToast('success', 'Cargo excluído com sucesso!');
+               showToast('success', 'Departamento excluído com sucesso!');
             },
             onError: () => {
-                showToast('error', 'Erro ao excluir cargo.');
+                showToast('error', 'Erro ao excluir departamento.');
             }
         });
     }
@@ -138,7 +126,7 @@ watch(search, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         router.get(
-            route('admin.job_roles'),
+            route('admin.departments'),
             { search: value },
             { preserveState: true, replace: true }
         );
@@ -148,7 +136,7 @@ watch(search, (value) => {
 </script>
 
 <template>
-    <Head title="Cargos" />
+    <Head title="Departamentos" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <main>
             <div class="bg-card relative overflow-hidden shadow-md sm:rounded-lg">
@@ -172,7 +160,7 @@ watch(search, (value) => {
                     >
                         <Button @click="openCreateDialog">
                             <CirclePlus class="h-4 w-4 mr-2" />
-                            Novo Cargo
+                            Novo Departamento
                         </Button>
                     </div>
                 </div>
@@ -181,17 +169,15 @@ watch(search, (value) => {
                     <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
                         <thead class="bg-gray-50 text-xs text-gray-700 uppercase dark:bg-gray-700 dark:text-gray-400">
                             <tr>
-                                <th scope="col" class="px-4 py-3">Cargo</th>
-                                <th scope="col" class="px-4 py-3">Salário Base</th>
+                                <th scope="col" class="px-4 py-3">Departamento</th>
                                 <th scope="col" class="px-4 py-3">Descrição</th>
                                 <th scope="col" class="px-4 py-3 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-if="job_roles.data.length > 0" v-for="role in job_roles.data" :key="role.id" class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ role.name }}</td>
-                                <td class="px-4 py-3">R$ {{ role.base_salary }}</td>
-                                <td class="px-4 py-3 truncate max-w-xs">{{ role.description }}</td>
+                            <tr v-if="departments.data.length > 0" v-for="dept in departments.data" :key="dept.id" class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ dept.name }}</td>
+                                <td class="px-4 py-3 truncate max-w-xs">{{ dept.description }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
@@ -202,12 +188,12 @@ watch(search, (value) => {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                            <DropdownMenuItem @click="openEditDialog(role)">
+                                            <DropdownMenuItem @click="openEditDialog(dept)">
                                                 <Pencil class="mr-2 h-4 w-4" />
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem @click="deleteJobRole(role.id!)" class="text-red-500 focus:text-red-500">
+                                            <DropdownMenuItem @click="deleteDepartment(dept.id!)" class="text-red-500 focus:text-red-500">
                                                 <Trash class="mr-2 h-4 w-4" />
                                                 Excluir
                                             </DropdownMenuItem>
@@ -216,8 +202,8 @@ watch(search, (value) => {
                                 </td>
                             </tr>
                             <tr v-else>
-                                <td colspan="4" class="px-4 py-8 text-center text-gray-500">
-                                    Nenhum cargo encontrado.
+                                <td colspan="3" class="px-4 py-8 text-center text-gray-500">
+                                    Nenhum departamento encontrado.
                                 </td>
                             </tr>
                         </tbody>
@@ -226,19 +212,19 @@ watch(search, (value) => {
 
                 <!-- Pagination -->
                 <nav
-                    v-if="job_roles.meta && job_roles.meta.links"
+                    v-if="departments.meta && departments.meta.links"
                     class="flex flex-col items-start justify-between space-y-3 p-4 md:flex-row md:items-center md:space-y-0"
                 >
                     <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                         Mostrando
-                        <span class="font-semibold text-gray-900 dark:text-white">{{ job_roles.meta.from }}</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ departments.meta.from }}</span>
                         -
-                        <span class="font-semibold text-gray-900 dark:text-white">{{ job_roles.meta.to }}</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ departments.meta.to }}</span>
                         de
-                        <span class="font-semibold text-gray-900 dark:text-white">{{ job_roles.meta.total }}</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ departments.meta.total }}</span>
                     </span>
                      <ul class="inline-flex items-stretch -space-x-px">
-                         <li v-for="link in job_roles.meta.links" :key="link.label">
+                         <li v-for="link in departments.meta.links" :key="link.label">
                             <component
                                 :is="link.url ? 'a' : 'span'"
                                 :href="link.url"
@@ -261,37 +247,24 @@ watch(search, (value) => {
         <Dialog v-model:open="dialogOpen">
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>{{ isEditing ? 'Editar Cargo' : 'Novo Cargo' }}</DialogTitle>
+                    <DialogTitle>{{ isEditing ? 'Editar Departamento' : 'Novo Departamento' }}</DialogTitle>
                     <DialogDescription>
-                        {{ isEditing ? 'Atualize as informações do cargo abaixo.' : 'Preencha as informações para criar um novo cargo.' }}
+                        {{ isEditing ? 'Atualize as informações do departamento abaixo.' : 'Preencha as informações para criar um novo departamento.' }}
                     </DialogDescription>
                 </DialogHeader>
                 <div class="grid gap-4 py-4">
                     <div class="grid gap-2">
-                        <Label for="name">Nome do Cargo</Label>
-                        <Input id="name" v-model="formRole.name" placeholder="Ex: Desenvolvedor" />
-                    </div>
-                    <div class="grid gap-2">
-                        <Label for="salary">Salário Base</Label>
-                        <div class="relative">
-                            <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                            <Input
-                                id="salary"
-                                v-model="formRole.base_salary"
-                                class="pl-9"
-                                placeholder="0,00"
-                                @input="formatSalary"
-                            />
-                        </div>
+                        <Label for="name">Nome do Departamento</Label>
+                        <Input id="name" v-model="formDepartment.name" placeholder="Ex: Informática" />
                     </div>
                     <div class="grid gap-2">
                         <Label for="description">Descrição</Label>
-                        <Textarea id="description" :model-value="formRole.description || ''" @update:model-value="(v) => formRole.description = v" placeholder="Descrição das responsabilidades..." />
+                        <Textarea id="description" :model-value="formDepartment.description || ''" @update:model-value="(v) => formDepartment.description = v" placeholder="Descrição do departamento..." />
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="secondary" @click="dialogOpen = false">Cancelar</Button>
-                    <Button @click="submitJobRole">{{ isEditing ? 'Salvar Alterações' : 'Criar Cargo' }}</Button>
+                    <Button @click="submitDepartment">{{ isEditing ? 'Salvar Alterações' : 'Criar Departamento' }}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

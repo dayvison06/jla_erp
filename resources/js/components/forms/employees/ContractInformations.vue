@@ -89,7 +89,7 @@ onMounted(() => {
                         <SelectItem
                             v-for="role in jobRoles"
                             :key="role.id"
-                            :value="role.name"
+                            :value="role.id"
                             @select="salary = role.base_salary"
                         >
                             {{ role.name }}

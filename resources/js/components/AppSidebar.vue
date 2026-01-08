@@ -4,7 +4,17 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Home, LayoutDashboard, Cog, HardHat, Construction, FileChartColumn } from 'lucide-vue-next';
+import {
+    Home,
+    LayoutDashboard,
+    Cog,
+    HardHat,
+    Construction,
+    FileChartColumn,
+    NotebookPen,
+    UserRoundCog,
+    ReceiptText
+} from 'lucide-vue-next';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import { usePage } from '@inertiajs/vue3'
 
@@ -24,12 +34,22 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Administração',
-        icon: Cog,
+        icon: NotebookPen,
         subItems: [
             {
                 title: 'Cargos',
                 href: '/administracao/cargos',
+                icon: UserRoundCog,
+            },
+            {
+                title: 'Departamentos',
+                href: '/administracao/departamentos',
                 icon: LayoutDashboard,
+            },
+            {
+                title: 'Benefícios',
+                href: '/administracao/beneficios',
+                icon: ReceiptText,
             },
         ],
     }
