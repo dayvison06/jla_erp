@@ -22,7 +22,7 @@ Route::prefix('funcionarios')->middleware(['auth', 'verified'])->name('employees
     Route::post('/deactivate', [EmployeeController::class, 'deactivate']);
     Route::patch('/{id}', [EmployeeController::class, 'update']);
     Route::post('/upload/{id}', [EmployeeController::class, 'uploadFiles'])->name('upload');
-    Route::post('/importar-csv', [EmployeeController::class, 'importCSV'])->name('import_csv');
+    Route::post('/importar-excel', [EmployeeController::class, 'importExcel'])->name('import_csv');
     Route::get('/download/template', [EmployeeController::class, 'downloadTemplate']);
     Route::post('ficha-funcionario', [EmployeeController::class, 'generateReport'])->name('employee_report');
 });

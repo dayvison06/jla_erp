@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EducationLevel;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -24,7 +25,7 @@ return new class extends Migration
             $table->string('cnpj', 14)->nullable();
             $table->string('issuing_agency', 20)->nullable();
             $table->date('issue_date')->nullable();
-            $table->enum('education_level', ['Ensino Fundamental', 'Ensino Médio', 'Ensino Superior Incompleto', 'Ensino Superior Completo', 'Pós-Graduação (Especialização/MBA)', 'Mestrado', 'Doutorado'])->nullable();
+            $table->enum('education_level', array_column(EducationLevel::cases(), 'value'))->nullable();
             $table->string('voter_registration', 20)->nullable();
             $table->string('military_certificate', 20)->nullable();
             $table->string('mother_name', 100)->nullable();

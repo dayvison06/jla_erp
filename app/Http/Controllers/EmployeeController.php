@@ -21,6 +21,7 @@ use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
@@ -171,18 +172,20 @@ class EmployeeController extends Controller
         Log::info('Recebendo dados para atualização de funcionário', ['data' => $data,]);
 
         $employee = Employee::where('id', $id)->firstOrFail();
+        DB::beginTransaction();
         try {
             $employee->update($data);
             $this->employeeServices->processDependents($employee, $payload['dependents'] ?? []);
             app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
             // Atualizar outros relacionamentos conforme necessário
+            DB::commit();
             return Inertia::render('modules/employees/ShowEmployee', ['employee' => $employee])->with('notify', [
                 'type' => 'success',
                 'title' => 'Funcionário Atualizado',
                 'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
             ]);
-
         } catch (\Throwable $e) {
+            DB::rollBack();
             Log::error('Erro ao atualizar funcionário: ' . $e->getMessage());
             return Inertia::render('modules/employees/ShowEmployee', ['employee' => $employee])->with('notify', [
                 'type' => 'error',
@@ -250,11 +253,11 @@ class EmployeeController extends Controller
 
     /**
      * Faz o download do template de importação de funcionários em XLSX.
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return BinaryFileResponse
      */
-    public function downloadTemplate(): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadTemplate() : BinaryFileResponse
     {
-        return Storage::download('templates/template_import_funcionarios.xlsx');
+        return response()->download(public_path('assets/docs/templates/template_import_funcionarios.xlsx'), 'template_import_funcionarios.xlsx');
     }
 
     /**
@@ -263,44 +266,11 @@ class EmployeeController extends Controller
      * @param Employee $employee
      * @return Response
      */
-    public function importCSV(Request $request, Employee $employee) : Response
+    public function importExcel(Request $request, Employee $employee) : Response
     {
-        $file = $request->file()['importFile'];
-        Excel::import(new EmployeesImport(), $file);
-
         try {
             $file = $request->file()['importFile'];
-            $path = $file->getRealPath();
-
-            // Usando PhpSpreadsheet para ler arquivos XLSX/XLS
-            $spreadsheet = IOFactory::load($path);
-            $rows = $spreadsheet->getActiveSheet()->toArray();
-
-            // Cabeçalho (primeira linha) e resto dos dados
-            $header = array_shift($rows);
-            $data = $rows;
-
-            $data = array_map('str_getcsv', file($path));
-            $header = array_shift($data);
-
-
-
-            foreach ($data as $row) {
-                $rowData = array_combine($header, $row);
-                dd($rowData);
-                // Processar cada linha e criar/atualizar funcionários
-//                Employee::updateOrCreate(
-//                    ['cpf' => $this->employeeServices->cleanCpf($rowData['cpf'])],
-//                    [
-//                        'name' => $rowData['name'],
-//                        'email' => $rowData['email'],
-//                        'department' => $rowData['department'],
-//                        'job_role' => $rowData['job_role'],
-//                        'status' => $rowData['status'],
-//                        // Outros campos conforme necessário
-//                    ]
-//                );
-            }
+            Excel::import(new EmployeesImport(), $file);
 
             return Inertia::render('modules/employees/Employees')->with('notify', [
                 'type' => 'success',
@@ -308,7 +278,7 @@ class EmployeeController extends Controller
                 'message' => 'Os funcionários foram importados com sucesso.',
             ]);
         } catch (\Throwable $e) {
-            Log::error('Erro ao importar CSV de funcionários: ' . $e->getMessage());
+            Log::error('Erro ao importar Excel de funcionários: ' . $e->getMessage());
             return Inertia::render('modules/employees/Employees')->with('notify', [
                 'type' => 'error',
                 'title' => 'Erro',

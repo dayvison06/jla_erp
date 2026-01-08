@@ -95,7 +95,11 @@ class Employee extends Model
             ? number_format((float) $salary, 2, ',', '.')
             : null;
     }
-
+    # ToDo: Corrigir salvamento do CNPJ no banco, formatar corretamente sem sinais
+    public function setCnpjAttribute($value) : void
+    {
+        $this->attributes['cnpj'] = preg_replace("/\D/", '', $value);
+    }
     public function dependents() : HasMany
     {
         return $this->hasMany(Depedent::class, 'employee_id', 'id');
