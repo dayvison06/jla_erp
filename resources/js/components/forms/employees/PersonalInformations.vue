@@ -120,7 +120,7 @@ const formatCPF = (e: Event) => {
                 <!-- Nome completo -->
                 <div class="space-y-2">
                     <Label class="block text-sm font-semibold text-foreground">Nome completo *</Label>
-                    <input
+                    <Input
                         v-model="name"
                         type="text"
                         class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
