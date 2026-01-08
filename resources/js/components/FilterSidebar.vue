@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed, watch } from 'vue'
 import {
     Sheet,
     SheetContent,
@@ -8,18 +7,10 @@ import {
     SheetTitle,
     SheetDescription,
     SheetFooter,
-    SheetClose
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 
 interface FilterOption {
@@ -31,7 +22,6 @@ interface FilterOption {
 interface Filter {
     id: string
     label: string
-    operator: string
     options: FilterOption[]
     showAll: boolean
     maxVisible: number
@@ -39,6 +29,9 @@ interface Filter {
 
 const props = defineProps<{
     open: boolean
+    activeFilters?: Record<string, string>
+    jobRoles?: any[]
+    departments?: any[]
 }>()
 
 const emit = defineEmits<{
@@ -55,7 +48,6 @@ const filters = ref<Filter[]>([
     {
         id: 'status',
         label: 'Status',
-        operator: 'is',
         maxVisible: 5,
         showAll: false,
         options: [
@@ -69,7 +61,6 @@ const filters = ref<Filter[]>([
     {
         id: 'job_role',
         label: 'Cargo',
-        operator: 'is',
         maxVisible: 5,
         showAll: false,
         options: [],
@@ -77,48 +68,64 @@ const filters = ref<Filter[]>([
     {
         id: 'department',
         label: 'Departamento',
-        operator: 'is',
         maxVisible: 5,
         showAll: false,
         options: [],
     },
 ])
 
-const operatorOptions = ['is', 'is not']
-
-const fetchFilters = async () => {
-    try {
-        const [rolesResponse, deptsResponse] = await Promise.all([
-            axios.get('/administracao/cargos/lista'),
-            axios.get('/administracao/departamentos/lista')
-        ])
-
+// Watch for changes in props to update options
+watch(() => props.jobRoles, (newRoles) => {
+    if (newRoles) {
         const roleFilter = filters.value.find(f => f.id === 'job_role')
         if (roleFilter) {
-            roleFilter.options = rolesResponse.data.map((role: any) => ({
+            roleFilter.options = newRoles.map((role: any) => ({
                 id: role.id,
                 label: role.name,
                 checked: false
             }))
+            applyInitialState()
         }
+    }
+}, { immediate: true })
 
+watch(() => props.departments, (newDepts) => {
+    if (newDepts) {
         const deptFilter = filters.value.find(f => f.id === 'department')
         if (deptFilter) {
-            deptFilter.options = deptsResponse.data.map((dept: any) => ({
+            deptFilter.options = newDepts.map((dept: any) => ({
                 id: dept.id,
                 label: dept.name,
                 checked: false
             }))
+            applyInitialState()
         }
-
-    } catch (error) {
-        console.error('Error fetching filters:', error)
     }
-}
+}, { immediate: true })
 
-onMounted(() => {
-    fetchFilters()
-})
+watch(() => props.activeFilters, () => {
+    applyInitialState()
+}, { deep: true, immediate: true })
+
+function applyInitialState() {
+    if (!props.activeFilters) return
+
+    filters.value.forEach(filter => {
+        // Reset checks first
+        // filter.options.forEach(opt => opt.checked = false)
+        
+        if (props.activeFilters && props.activeFilters[filter.id]) {
+            const selectedIds = props.activeFilters[filter.id].split(',')
+            filter.options.forEach(option => {
+                option.checked = selectedIds.includes(option.id.toString())
+            })
+        } else {
+             filter.options.forEach(option => {
+                option.checked = false
+            })
+        }
+    })
+}
 
 const visibleOptions = (filter: Filter) => {
     if (filter.showAll || filter.options.length <= filter.maxVisible) {
@@ -146,6 +153,14 @@ const handleApply = () => {
     emit('apply', filters.value)
     isOpen.value = false
 }
+
+const clearFilters = () => {
+    filters.value.forEach(filter => {
+        filter.options.forEach(option => option.checked = false)
+    })
+    emit('apply', filters.value)
+    isOpen.value = false
+}
 </script>
 
 <template>
@@ -158,22 +173,10 @@ const handleApply = () => {
                 </SheetDescription>
             </SheetHeader>
 
-            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-8">
                 <div v-for="(filter, index) in filters" :key="filter.id">
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center justify-between mb-4">
                         <Label class="text-base font-semibold">{{ filter.label }}</Label>
-                        
-                        <!-- Operator Selection -->
-                        <Select v-model="filter.operator">
-                            <SelectTrigger class="w-[120px] h-8 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="op in operatorOptions" :key="op" :value="op">
-                                    {{ op }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
                     </div>
 
                     <!-- Options List -->
@@ -199,7 +202,7 @@ const handleApply = () => {
                         <Button 
                             v-if="hasMoreOptions(filter)" 
                             variant="link" 
-                            class="px-0 h-auto text-xs text-primary" 
+                            class="px-0 h-auto text-xs text-primary font-medium hover:no-underline"
                             @click="toggleShowAll(filter.id)"
                         >
                             {{ filter.showAll ? 'Mostrar menos' : `Mostrar mais (${filter.options.length - filter.maxVisible})` }}
@@ -211,20 +214,17 @@ const handleApply = () => {
                         Nenhuma opção disponível
                     </div>
                     
-                    <Separator class="mt-6" v-if="index < filters.length - 1" />
+                    <Separator class="mt-8" v-if="index < filters.length - 1" />
                 </div>
             </div>
 
-            <SheetFooter class="px-6 py-4 border-t bg-muted/20 sm:justify-between">
-                <Button variant="outline" @click="isOpen = false">
-                    Cancelar
+            <SheetFooter class="px-6 py-4 border-t bg-muted/20 sm:justify-between grid grid-cols-2 gap-3">
+                <Button variant="outline" class="w-full" @click="clearFilters">
+                    Limpar
                 </Button>
-                <div class="flex gap-2">
-                    <!-- Clear filters button could go here -->
-                    <Button @click="handleApply" :disabled="!hasSelectedFilters">
-                        Aplicar Filtros
-                    </Button>
-                </div>
+                <Button class="w-full" @click="handleApply" :disabled="!hasSelectedFilters">
+                    Aplicar
+                </Button>
             </SheetFooter>
         </SheetContent>
     </Sheet>

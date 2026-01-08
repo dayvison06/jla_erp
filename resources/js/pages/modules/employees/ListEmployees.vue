@@ -1,21 +1,20 @@
 
 <script setup lang="ts">
-import { ref, computed, defineEmits } from 'vue'
+import { ref, computed } from 'vue'
 import type { Employee, EmployeeList } from '@/types/Employees'
 import { router } from '@inertiajs/vue3';
 import { showToast } from '@/composables/useToast';
 
 const props = defineProps<{
-    listEmployees: EmployeeList[],
+    listEmployees: any,
     viewMode: 'list' | 'grid'
 }>()
 
 const emit = defineEmits<{
-    selectedEmployees: []
+    'update:selectedEmployees': [value: number[]]
 }>()
 
-const paginatedEmployees = ref(props.listEmployees)
-console.log('Employees in ListEmployees.vue:', paginatedEmployees.value)
+const paginatedEmployees = computed(() => props.listEmployees)
 
 // Estado reativo
 const selectedEmployees = ref<number[]>([])
@@ -313,7 +312,7 @@ const getStatusText = (status: string) => {
                     </div>
                 </div>
                 <div class="mb-2 text-sm text-foreground">
-                    <span class="font-medium">Função:</span> {{ employee.role }}
+                    <span class="font-medium">Cargo:</span> {{ employee.role }}
                 </div>
                 <div class="mb-2 text-sm text-foreground">
                     <span class="font-medium">Departamento:</span> {{ employee.department[0] }}

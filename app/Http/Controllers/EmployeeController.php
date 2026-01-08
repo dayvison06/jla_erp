@@ -45,10 +45,41 @@ class EmployeeController extends Controller
         $departments = Departament::all();
         $per_page = $request->query('per_page', 10);
 
-      $employees = $query->with('job_roles', 'department')
-          ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date'])
+        // Filtros (job_role, department, status)
+        if ($request->filled('status')) {
+            $statuses = explode(',', $request->input('status'));
+            $query->whereIn('status', $statuses);
+        }
+
+        if ($request->filled('job_role')) {
+            $roles = explode(',', $request->input('job_role'));
+            $query->whereHas('job_roles', function($q) use ($roles) {
+                $q->whereIn('id', $roles);
+            });
+        }
+
+        if ($request->filled('department')) {
+            $depts = explode(',', $request->input('department'));
+            $query->whereHas('department', function($q) use ($depts) {
+                $q->whereIn('id', $depts);
+            });
+        }
+
+        // Search Filter (integrated into main query if passed)
+        if ($request->filled('query')) {
+            $term = $request->input('query');
+            $query->where(function($q) use ($term) {
+                 $q->where('name', 'LIKE', '%' . $term . '%')
+                   ->orWhere('cpf', 'LIKE', '%' . $term . '%')
+                   ->orWhere('email', 'LIKE', '%' . $term . '%');
+            });
+        }
+
+        $employees = $query->with('job_roles', 'department')
+          ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date', 'photo', 'cpf'])
           ->orderBy('name', 'ASC')
-          ->paginate($per_page);
+          ->paginate($per_page)
+          ->withQueryString();
 
         return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,
@@ -61,7 +92,7 @@ class EmployeeController extends Controller
                 'on_leave' => 'Licença Médica',
                 'terminated' => 'Desligado',
             ],
-            // outros dados
+            'filters' => $request->only(['status', 'job_role', 'department', 'query', 'per_page']),
         ]);
 
     }
@@ -170,11 +201,12 @@ class EmployeeController extends Controller
         $data = array_filter($payload, fn($value) => !is_array($value));
 
         Log::info('Recebendo dados para atualização de funcionário', ['data' => $data,]);
-
+        debug($data);
         $employee = Employee::where('id', $id)->firstOrFail();
         DB::beginTransaction();
         try {
             $employee->update($data);
+            $employee->job_roles()->attach($request->role, ['start_date' => now()]);
             $this->employeeServices->processDependents($employee, $payload['dependents'] ?? []);
             app(EmployeeServices::class)->processBenefits($employee, $request->benefits ?? []);
             // Atualizar outros relacionamentos conforme necessário
@@ -290,7 +322,7 @@ class EmployeeController extends Controller
     /**
      * Gera um relatório em PDF com as informações dos funcionários selecionados.
      * @param Request $request
-     * @return void
+     * @return mixed
      */
     public function generateReport(Request $request)
     {
@@ -301,20 +333,72 @@ class EmployeeController extends Controller
         $employeeIds = $validated['employee_ids'];
         $employees = Employee::whereIn('id', $employeeIds)
             ->get();
-       Pdf::view('ficha-funcionario', [
+
+       return Pdf::view('ficha-funcionario', [
             'employees' => $employees,
-       ])->save(storage_path('/app/public/employee_report.pdf'));
+       ])->download('ficha-funcionarios.pdf');
     }
 
     /**
      * Lista todos os cargos empresariais.
+     * @param Request $request
      * @return Response
      */
-    public function jobRoles() : Response
+    public function jobRoles(Request $request) : Response
     {
-        $jobRoles = JobRole::paginate();
+        $query = JobRole::query();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
+        $jobRoles = $query->orderBy('name')->paginate(10)->withQueryString();
+
         return Inertia::render('modules/administrative/JobRoles', [
             'job_roles' => $jobRoles,
+            'filters' => $request->only(['search']),
+        ]);
+    }
+
+    /**
+     * Lista todos os departamentos.
+     * @param Request $request
+     * @return Response
+     */
+    public function departments(Request $request) : Response
+    {
+        $query = Departament::query();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
+        $departments = $query->orderBy('name')->paginate(10)->withQueryString();
+
+        return Inertia::render('modules/administrative/Departments', [
+            'departments' => $departments,
+            'filters' => $request->only(['search']),
+        ]);
+    }
+
+    /**
+     * Lista todos os benefícios.
+     * @param Request $request
+     * @return Response
+     */
+    public function benefits(Request $request) : Response
+    {
+        $query = Benefit::query();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
+        $benefits = $query->orderBy('name')->paginate(10)->withQueryString();
+
+        return Inertia::render('modules/administrative/Benefits', [
+            'benefits' => $benefits,
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -368,8 +452,132 @@ class EmployeeController extends Controller
             'description' => $request->input('description'),
         ]);
 
-        return response()->json([
-            'message' => 'Cargo criado com sucesso.',
-        ], 201);
+        return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Cargo criado com sucesso.'
+        ]);
+    }
+
+    /**
+     * Atualiza um cargo.
+     */
+    public function updateJobRole(Request $request, $id) {
+        $role = JobRole::findOrFail($id);
+
+        $baseSalary = $request->input('base_salary');
+        if($baseSalary) {
+             $baseSalary = str_replace(['.', ','], ['', '.'], $baseSalary);
+        }
+
+        $role->update([
+             'name' => $request->input('name'),
+             'base_salary' => $baseSalary ?? $role->base_salary,
+             'description' => $request->input('description'),
+        ]);
+
+        return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Cargo atualizado com sucesso.'
+        ]);
+    }
+
+    /**
+     * Remove um cargo.
+     */
+    public function destroyJobRole($id) {
+        $role = JobRole::findOrFail($id);
+        $role->delete();
+
+         return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Cargo removido com sucesso.'
+        ]);
+    }
+
+    /**
+     * Cria um novo departamento.
+     */
+    public function storeDepartment(Request $request) {
+        $request->validate(['name' => 'required|string|max:255']);
+        Departament::create($request->only('name', 'description'));
+
+         return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Departamento criado com sucesso.'
+        ]);
+    }
+
+    /**
+     * Atualiza um departamento.
+     */
+    public function updateDepartment(Request $request, $id) {
+        $dept = Departament::findOrFail($id);
+        $dept->update($request->only('name', 'description'));
+
+        return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Departamento atualizado com sucesso.'
+        ]);
+    }
+
+    /**
+     * Remove um departamento.
+     */
+    public function destroyDepartment($id) {
+        $dept = Departament::findOrFail($id);
+        $dept->delete();
+
+        return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Departamento removido com sucesso.'
+        ]);
+    }
+
+    /**
+     * Cria um novo benefício.
+     */
+    public function storeBenefit(Request $request) {
+        $request->validate(['name' => 'required|string|max:255']);
+        Benefit::create($request->only('name', 'description', 'active'));
+
+         return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Benefício criado com sucesso.'
+        ]);
+    }
+
+    /**
+     * Atualiza um benefício.
+     */
+    public function updateBenefit(Request $request, $id) {
+        $benefit = Benefit::findOrFail($id);
+        $benefit->update($request->only('name', 'description', 'active'));
+
+         return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Benefício atualizado com sucesso.'
+        ]);
+    }
+
+    /**
+     * Remove um benefício.
+     */
+    public function destroyBenefit($id) {
+        $benefit = Benefit::findOrFail($id);
+        $benefit->delete();
+
+         return redirect()->back()->with('notify', [
+            'type' => 'success',
+            'title' => 'Sucesso',
+            'message' => 'Benefício removido com sucesso.'
+        ]);
     }
 }

@@ -6,7 +6,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { debouncedWatch } from '@vueuse/core';
 import { showToast } from '@/composables/useToast';
 import ProgressBar from '@/components/ProgressBar.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { Employee } from '@/types/Employees';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -37,19 +37,34 @@ const page = usePage();
 
 // Estado do componente
 const selectedEmployees = ref<number[]>([]);
-const employees = ref<Employee[]>(page.props.employees ?? []);
+const employees = computed(() => page.props.employees);
 const viewMode = ref<'list' | 'grid'>('list');
 const dialogImport = ref(false);
 const importFile = ref<File | null>(null);
-const searchQuery = ref('');
+const currentFilters = computed(() => page.props.filters as Record<string, any> || {});
+const searchQuery = ref(currentFilters.value.query || '');
 const searchResults = ref(false);
-const listResults = ref(<Employee[]>[]);
+const listResults = ref<Employee[]>([]);
 const filterMode = ref(false);
-const itemsPerPage = ref(10);
+const itemsPerPage = ref(Number(currentFilters.value.per_page) || 10);
 const loadingSearch = ref(false);
-console.log(employees.value);
-// Breadcrumbs para navegação
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Funcionários', href: '/funcionarios' }];
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Administrativo', href: '/administrativo' },
+    { title: 'Funcionários', href: '/funcionarios' },
+];
+const progressbar = ref(0);
+
+const showEmployee = (id: number) => {
+    router.visit(`/funcionarios/${id}`);
+};
+
+const exportSelected = () => {
+    if (selectedEmployees.value.length === 0) return;
+    // window.open(`/funcionarios/export?ids=${selectedEmployees.value.join(',')}`, '_blank');
+    showToast('info', 'Funcionalidade de exportação em desenvolvimento.');
+};
+
 
 const importFileUpload = (event: Event) => {
     const input = event.target as HTMLInputElement;
@@ -62,18 +77,18 @@ const importFileUpload = (event: Event) => {
 
 function paginateEmployees() {
     router.get('/funcionarios', {
+        ...currentFilters.value,
         per_page: itemsPerPage.value,
     }, {
         preserveState: true,
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Funcionários paginados com sucesso.');
+             // Success
         },
         onError: () => {
             showToast('error', 'Erro ao paginar funcionários.');
         }
     });
-    console.log(`Paginação para ${itemsPerPage.value} itens por página.`);
 }
 
 /**
@@ -81,9 +96,9 @@ function paginateEmployees() {
  * @returns {void}
  */
 async function searchEmployees() {
+    // Mantendo a busca "live" para o dropdown, independente dos filtros principais da lista
     loadingSearch.value = true;
     if(searchQuery.value.trim() === '') {
-        employees.value = page.props.employees ?? [];
         searchResults.value = false;
         loadingSearch.value = false;
         return;
@@ -95,87 +110,62 @@ async function searchEmployees() {
         },
     })
         .then((response) => {
-            listResults.value = response.data;
+            listResults.value = response.data.data; // Paginate returns data inside data
             searchResults.value = true;
             loadingSearch.value = false;
         })
-        .catch((error) => {
-            showToast('error', 'Não encontrado', `${searchQuery.value} não foi encontrado.`);
+        .catch(() => {
+             // Silent fail or toast
+             loadingSearch.value = false;
         });
 }
-async function showEmployee(id: number) {
-    router.get(`/funcionarios/${id}`, {
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            // Check if the employee was found
-        },
-        onError: () => {
-            alert('Error searching for employee. Check the CPF and try again.');
+
+const handleApplyFilters = (filters: any[]) => {
+    const params: Record<string, any> = {
+        per_page: itemsPerPage.value,
+        query: searchQuery.value,
+    };
+
+    filters.forEach(filter => {
+        const checkedOptions = filter.options
+            .filter((opt: any) => opt.checked)
+            .map((opt: any) => opt.id);
+        
+        if (checkedOptions.length > 0) {
+            params[filter.id] = checkedOptions.join(',');
         }
     });
 
+    router.get('/funcionarios', params, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+    filterMode.value = false;
 }
 
-function importExcel() {
-    if (!importFile.value) {
-        showToast('warning', 'Nenhum arquivo selecionado para importação.');
-        return;
-    }
-    // ToDo: Carregar
-    router.post('/funcionarios/importar-excel',
-        { importFile },
-        { forceFormData: true,
-        only: ['employees'],
-        });
-}
 
-async function generateEmployeeReports () {
-    if (selectedEmployees.value.length === 0) {
-        showToast('warning', 'Nenhum funcionário selecionado para gerar relatórios.');
-        return;
-    }
+const generateEmployeeReports = async () => {
+    if (selectedEmployees.value.length === 0) return;
 
     try {
         const response = await axios.post('/funcionarios/ficha-funcionario', {
-            employee_ids: selectedEmployees.value,
+            employee_ids: selectedEmployees.value
         }, {
-            responseType: 'blob', // Importante para arquivos
+            responseType: 'blob'
         });
 
-        // Cria um link para download do arquivo gerado
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'relatorios_funcionarios.zip'); // Nome do arquivo
+        link.setAttribute('download', 'ficha-funcionarios.pdf');
         document.body.appendChild(link);
         link.click();
-        showToast('success', 'Relatórios gerados com sucesso!');
+        document.body.removeChild(link);
     } catch (error) {
-        console.error('Erro ao gerar relatórios:', error);
-        showToast('error', 'Erro ao gerar relatórios dos funcionários.');
+        showToast('error', 'Erro ao gerar ficha de funcionários.');
+        console.error(error);
     }
-}
-
-/**
- * Observa mudanças nos filtros de busca e status para atualizar a lista de funcionários.
- */
-debouncedWatch(
-    [searchQuery],
-    () => {
-        console.log('Filtros alterados, buscando funcionários...');
-        // Aqui poderia implementar lógica adicional se necessário
-        searchEmployees();
-    },
-    { debounce: 800 },
-);
-
-const handleApplyFilters = (filters: any) => {
-    console.log('Filters applied:', filters);
-    filterMode.value = false;
-    // Implement specific filter logic here
-}
+};
 </script>
 
 <template>
@@ -309,6 +299,9 @@ const handleApplyFilters = (filters: any) => {
                             :open="filterMode"
                             @update:open="filterMode = $event"
                             @apply="handleApplyFilters"
+                            :active-filters="currentFilters"
+                            :job-roles="$page.props.job_roles"
+                            :departments="$page.props.departments"
                         />
                         <Button
                             @click="exportSelected"
@@ -321,7 +314,6 @@ const handleApplyFilters = (filters: any) => {
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
                                 <Button
-                                    @click="exportSelected"
                                     class="btn-primary flex items-center gap-2"
                                     :disabled="selectedEmployees.length === 0"
                                 >
