@@ -22,6 +22,17 @@ const mainNavItems: NavItem[] = [
         href: '/funcionarios',
         icon: HardHat,
     },
+    {
+        title: 'Administração',
+        icon: Cog,
+        subItems: [
+            {
+                title: 'Cargos',
+                href: '/administracao/cargos',
+                icon: LayoutDashboard,
+            },
+        ],
+    }
 ];
 
 const adminNavItem: NavItem[] = [
