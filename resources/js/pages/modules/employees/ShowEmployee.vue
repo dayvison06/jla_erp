@@ -19,11 +19,11 @@ import {
     UserSearch,
     UserRoundPen,
     UserCog,
-    EllipsisIcon
+    EllipsisIcon,
 } from 'lucide-vue-next';
 import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive, onMounted } from 'vue';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Head, usePage, router } from '@inertiajs/vue3';
 import type { Employee } from '@/types/Employees';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -46,7 +46,7 @@ const isDragging = ref(true);
 const isReadonly = ref(true);
 const breadcrumbs = [
     { title: 'Funcionários', href: '/funcionarios' },
-    { title: 'Visualizar', href: `/funcionarios/${employee?.cpf}` }
+    { title: 'Visualizar', href: `/funcionarios/${employee?.cpf}` },
 ];
 console.log('INERTIA DATA EMPLOYEE:', employee);
 /**
@@ -82,10 +82,9 @@ const saveEmployee = () => {
             progressbar.value = 0;
 
             alert('Error updating employee. Please check the form and try again.');
-        }
+        },
     });
-
-}
+};
 
 /**
  * Fecha o formulário de funcionário e reseta o estado.
@@ -103,82 +102,94 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title='Editar'/>
+    <Head title="Editar" />
     <AppLayout :breadcrumbs="breadcrumbs">
+        <section
+            v-if="isReadonly"
+            class="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 rounded-md bg-card px-4 py-3 text-foreground shadow-sm"
+            role="status"
+            aria-live="polite"
+        >
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex flex-col text-sm font-medium">
+                    <div class="flex items-center gap-2">
+                        <Eye class="h-4 w-4" />
+                        <span class="font-semibold">
+                        Modo leitura ativado.
+                    </span>
+                    </div>
+                    <small class="text-xs">
+                        Para editar as informações do funcionário, clique no botão ao lado.
+                    </small>
+                </div>
+                <Button type="button" class="btn-primary" @click="isReadonly = false">
+                    <EditIcon class="mr-2 h-4 w-4" />
+                    Habilitar edição
+                </Button>
+            </div>
+        </section>
         <main>
             <!-- Botão para cancelar a operação -->
-            <Button
-                type="button"
-                @click="returnPageEmployees()"
-                class="btn-primary-v2"
-            >
-                <CornerDownLeft class="w-4 h-4 mr-2"/>
+            <Button type="button" @click="returnPageEmployees()" class="btn-primary-v2 mb-6">
+                <CornerDownLeft class="mr-2 h-4 w-4" />
                 Voltar
             </Button>
-            <div class="text-center">
-                <span class="inline-flex px-2 py-1 text-xs font-semibold text-foreground bg-card shadow-md rounded" :title="isReadonly ? 'Modo leitura' : 'Modo edição'" role="status" :aria-label="isReadonly ? 'Modo leitura' : 'Modo edição'">
-                         <Eye v-if="isReadonly" class="w-4 h-4 mr-1" aria-hidden="true"/>
-                         <span v-if="isReadonly">Modo leitura</span>
-                </span>
-            </div>
-            <header class="flex items-center justify-between mb-4">
+            <header class="mb-4 flex items-center">
                 <div class="flex items-center gap-4">
-                    <h1 class="text-2xl font-bold flex items-center">
-                        <UserSearch v-if="isReadonly" class="w-6 h-6 mr-2"/>
-                        <UserRoundPen v-else class="w-6 h-6 mr-2"/>
-                        {{ formData.name }}
-                    </h1>
-                    <Button
-                        v-if="!isReadonly"
-                        class="btn-primary-v2"
-                    >
-                        <EllipsisIcon class="w-4 h-4"/>
-                    </Button>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Button
-                        v-if="isReadonly"
-                        type="button"
-                        @click="isReadonly = !isReadonly"
-                        class="btn-primary"
-                    >
-                        <EditIcon class="w-4 h-4 mr-2"/>
-                        Alterar Dados
+                    <div class="flex items-center gap-2">
+                        <h1 class="flex items-center text-2xl font-bold">
+                            <UserSearch v-if="isReadonly" class="mr-2 h-6 w-6" />
+                            <UserRoundPen v-else class="mr-2 h-6 w-6" />
+                            {{ formData.name }}
+                        </h1>
+                        <span
+                            class="bg-card rounded px-2 py-1 text-xs font-semibold shadow-md"
+                            :class="{
+                                'text-white bg-green-700': formData.status === 'active',
+                                'bg-red-100': formData.status === 'inactive',
+                            }"
+                            role="status"
+                        >
+                            {{ formData.status === 'active' ? 'Ativo' : 'Inativo' }}
+                        </span>
+                    </div>
+                    <Button v-if="!isReadonly" class="btn-primary-v2">
+                        <EllipsisIcon class="h-4 w-4" />
                     </Button>
                 </div>
             </header>
             <Tabs default-value="personal">
-                <TabsList class="flex gap-2 h-10 mb-6">
+                <TabsList class="mb-6 flex h-10 gap-2">
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="personal">
-                        <UserIcon/>
+                        <UserIcon />
                         Dados Pessoais
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="documents">
-                        <BriefcaseBusiness/>
+                        <BriefcaseBusiness />
                         Documentos Trabalhistas
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="address">
-                        <MapPinHouse/>
+                        <MapPinHouse />
                         Endereço
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="bank">
-                        <Banknote/>
+                        <Banknote />
                         Dados Bancários
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="contract">
-                        <FilePenLine/>
+                        <FilePenLine />
                         Informações Contratuais
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="health">
-                        <Cross/>
+                        <Cross />
                         Saúde e Segurança
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="dependents">
-                        <Users/>
+                        <Users />
                         Dependentes
                     </TabsTrigger>
                     <TabsTrigger class="hover:text-secondary data-[state=active]:text-secondary" value="attachments">
-                        <Paperclip/>
+                        <Paperclip />
                         Anexos
                     </TabsTrigger>
                 </TabsList>
@@ -248,7 +259,6 @@ onMounted(() => {
                 </TabsContent>
                 <TabsContent value="contract">
                     <ContractInformations
-                        v-model:status="formData.status"
                         v-model:role="formData.role"
                         v-model:contract_type="formData.contract_type"
                         v-model:admission_date="formData.admission_date"
@@ -269,43 +279,22 @@ onMounted(() => {
                     />
                 </TabsContent>
                 <TabsContent value="dependents">
-                    <DependentInformations
-                        v-model:dependents="formData.dependents"
-                        v-model:read_only="isReadonly"
-                    />
+                    <DependentInformations v-model:dependents="formData.dependents" v-model:read_only="isReadonly" />
                 </TabsContent>
                 <TabsContent value="attachments">
-                    <AttachmentInformations
-                        v-model:attachments="formData.attachments"
-                    />
+                    <AttachmentInformations v-model:attachments="formData.attachments" />
                     <!-- Tabela de anexos -->
-                    <AttachmentsDisplay :allAttachments="formData.attachments"/>
+                    <AttachmentsDisplay :allAttachments="formData.attachments" />
                 </TabsContent>
             </Tabs>
             <!-- Botões de ação do formulário -->
-            <div class="flex justify-end space-x-4 mt-8 pt-4">
-                <Button
-                    v-if="!isReadonly"
-                    type="button"
-                    @click="isReadonly = true"
-                    class="btn-primary-v2"
-                >
-                    Cancelar
-                </Button>
+            <div class="mt-8 flex justify-end space-x-4 pt-4">
+                <Button v-if="!isReadonly" type="button" @click="isReadonly = true" class="btn-primary-v2"> Cancelar </Button>
                 <!-- Botão para salvar funcionário existente -->
-                <Button
-                    v-if="!isReadonly"
-                    type="button"
-                    @click="saveEmployee"
-                    class="btn-primary"
-                >
-                    Salvar
-                </Button>
+                <Button v-if="!isReadonly" type="button" @click="saveEmployee" class="btn-primary"> Salvar </Button>
             </div>
         </main>
     </AppLayout>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -98,14 +98,11 @@ async function searchEmployees() {
             listResults.value = response.data;
             searchResults.value = true;
             loadingSearch.value = false;
-            console.log('Funcionários atualizados:', listResults.value);
-            showToast('success', 'Funcionários buscados com sucesso!');
         })
         .catch((error) => {
-            showToast('error', 'Erro ao buscar funcionários.');
+            showToast('error', 'Não encontrado', `${searchQuery.value} não foi encontrado.`);
         });
 }
-
 async function showEmployee(id: number) {
     router.get(`/funcionarios/${id}`, {
     }, {
@@ -119,6 +116,19 @@ async function showEmployee(id: number) {
         }
     });
 
+}
+
+function importExcel() {
+    if (!importFile.value) {
+        showToast('warning', 'Nenhum arquivo selecionado para importação.');
+        return;
+    }
+    // ToDo: Carregar
+    router.post('/funcionarios/importar-excel',
+        { importFile },
+        { forceFormData: true,
+        only: ['employees'],
+        });
 }
 
 async function generateEmployeeReports () {
@@ -220,7 +230,7 @@ const handleApplyFilters = (filters: any) => {
 
                     <DialogFooter>
                         <Button
-                            @click="router.post('/funcionarios/importar-csv', { importFile }, { forceFormData: true })"
+                            @click=""
                             class="btn btn-primary flex items-center"
                         >
                             Enviar arquivo

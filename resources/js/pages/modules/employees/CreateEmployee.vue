@@ -258,7 +258,6 @@ debouncedWatch(() => formData, () => {
                 </TabsContent>
                 <TabsContent value="contract">
                     <ContractInformations
-                        v-model:status="formData.status"
                         v-model:role="formData.role"
                         v-model:contract_type="formData.contract_type"
                         v-model:admission_date="formData.admission_date"

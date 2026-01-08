@@ -5,8 +5,8 @@ import { Label } from '@/components/ui/label';
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
 import Checkbox from '@/components/project/Checkbox.vue'
+import {formData} from "@/composables/useStoreEmployees";
 
-const status = defineModel('status');
 const role = defineModel('role');
 const contract_type = defineModel('contract_type');
 const admission_date = defineModel('admission_date');
@@ -76,25 +76,6 @@ onMounted(() => {
 
 <template>
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <!-- Status -->
-        <div class="space-y-2">
-            <Label class="block text-sm font-medium text-foreground">Status *</Label>
-            <Select v-model="status" required :disabled="isReadonly">
-                <SelectTrigger class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500">
-                    <SelectValue placeholder="Selecione"/>
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectGroup>
-                        <SelectItem value="active">Ativo</SelectItem>
-                        <SelectItem value="inactive">Inativo</SelectItem>
-                        <SelectItem value="on_vacation">Em Férias</SelectItem>
-                        <SelectItem value="on_leave">Afastado</SelectItem>
-                        <SelectItem value="terminated">Desligado</SelectItem>
-                    </SelectGroup>
-                </SelectContent>
-            </Select>
-        </div>
-
         <!-- Campo: Cargo/função -->
         <div class="space-y-2">
             <Label class="block text-sm font-medium text-foreground">Cargo/função *</Label>
@@ -150,16 +131,15 @@ onMounted(() => {
         </div>
 
         <!-- Campo: Data de desligamento -->
-        <div class="space-y-2">
+        <div v-if="formData.termination_date" class="space-y-2">
             <Label class="block text-sm font-medium text-foreground">Data de desligamento</Label>
             <Input
+                readonly
                 v-model="termination_date"
                 type="date"
                 class="w-full rounded-md border p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                 :disabled="status !== 'desligado'"
-                :readonly="isReadonly"
             />
-            <p class="text-xs text-gray-500">Aplicável apenas para funcionários desligados</p>
         </div>
 
         <!-- Campo: Salário -->
@@ -179,7 +159,7 @@ onMounted(() => {
         <div class="col-span-1 space-y-2 md:col-span-2 lg:col-span-3">
             <Label class="block text-sm font-medium text-foreground">Benefícios</Label>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div class="flex items-center" v-for="benefit in benefitsList" :key="benefit">
+                <div class="flex items-center" v-for="benefit in benefitsList" :key="benefit.id">
                     <Checkbox
                         v-model="benefits"
                         :value="benefit.id"

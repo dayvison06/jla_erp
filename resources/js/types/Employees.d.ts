@@ -21,7 +21,7 @@ export interface Employee {
     rg: string;
     issuing_agency: string;
     issue_date: string;
-    education_level: 'Ensino Fundamental' | 'Ensino Médio' | 'Ensino Superior Incompleto' | 'Ensino Superior Completo' | 'Pós-Graduação (Especialização/MBA)' | 'Mestrado' | 'Doutorado';
+    education_level: string;
     voter_registration: string;
     military_certificate: string;
     mother_name: string;

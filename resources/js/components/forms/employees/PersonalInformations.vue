@@ -354,10 +354,12 @@ const formatCPF = (e: Event) => {
                         <SelectContent>
                             <SelectGroup>
                                 <SelectItem value="Ensino Fundamental">Ensino Fundamental</SelectItem>
+                                <SelectItem value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</SelectItem>
                                 <SelectItem value="Ensino Médio">Ensino Médio</SelectItem>
                                 <SelectItem value="Ensino Técnico">Ensino Técnico</SelectItem>
+                                <SelectItem value="Ensino Superior Incompleto">Ensino Superior Incompleto</SelectItem>
                                 <SelectItem value="Ensino Superior">Ensino Superior</SelectItem>
-                                <SelectItem value="Pos-graduação">Pós-graduação</SelectItem>
+                                <SelectItem value="Pós-Graduação">Pós-Graduação</SelectItem>
                                 <SelectItem value="Mestrado">Mestrado</SelectItem>
                                 <SelectItem value="Doutorado">Doutorado</SelectItem>
                             </SelectGroup>

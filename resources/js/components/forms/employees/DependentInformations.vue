@@ -11,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
+import {onMounted} from "vue";
 
 const dependents = defineModel('dependents', { type: Array as () => Array<any>, default: () => [] });
 const isReadonly = defineModel('read_only', { type: Boolean, default: false });
@@ -47,7 +48,6 @@ const addDependent = () => {
         rg: '',
         issuing_agency: '',
         issue_date: '',
-        purposes: [],
         civil_state: '',
     });
 }
@@ -81,6 +81,19 @@ const updatePurpose = (checked: boolean, purposeValue: string, dependent: any) =
         }
     }
 }
+
+onMounted(() => {
+    dependents.value.push({
+      name: 'Heitor',
+      relationship: 'filho',
+      birth_date: '2010-08-20',
+      cpf: '164.987.650-00',
+      rg: '12.345.678-9',
+      issuing_agency: 'SSP/SP',
+      issue_date: '2015-05-10',
+      civil_state: 'Solteiro(a)',
+    });
+});
 </script>
 
 <template>
