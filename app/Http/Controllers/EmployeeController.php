@@ -48,20 +48,20 @@ class EmployeeController extends Controller
         // Filtros (job_role, department, status)
         if ($request->filled('status')) {
             $statuses = explode(',', $request->input('status'));
-            $query->whereIn('status', $statuses);
+            $query->whereIn('employees.status', $statuses);
         }
 
         if ($request->filled('job_role')) {
             $roles = explode(',', $request->input('job_role'));
             $query->whereHas('job_roles', function($q) use ($roles) {
-                $q->whereIn('id', $roles);
+                $q->whereIn('job_roles.id', $roles);
             });
         }
 
         if ($request->filled('department')) {
             $depts = explode(',', $request->input('department'));
             $query->whereHas('department', function($q) use ($depts) {
-                $q->whereIn('id', $depts);
+                $q->whereIn('departments.id', $depts);
             });
         }
 

@@ -53,7 +53,7 @@ const filters = ref<Filter[]>([
         options: [
             { id: 'active', label: 'Ativo', checked: false },
             { id: 'inactive', label: 'Inativo', checked: false },
-            { id: 'vacation', label: 'Em Férias', checked: false },
+            { id: 'on_vacation', label: 'Em Férias', checked: false },
             { id: 'on_leave', label: 'Licença Médica', checked: false },
             { id: 'terminated', label: 'Desligado', checked: false },
         ],
@@ -145,9 +145,7 @@ const toggleShowAll = (filterId: string) => {
     }
 }
 
-const hasSelectedFilters = computed(() => {
-    return filters.value.some((filter) => filter.options.some((option) => option.checked))
-})
+
 
 const handleApply = () => {
     emit('apply', filters.value)
@@ -222,7 +220,7 @@ const clearFilters = () => {
                 <Button variant="outline" class="w-full" @click="clearFilters">
                     Limpar
                 </Button>
-                <Button class="w-full" @click="handleApply" :disabled="!hasSelectedFilters">
+                <Button class="w-full" @click="handleApply">
                     Aplicar
                 </Button>
             </SheetFooter>

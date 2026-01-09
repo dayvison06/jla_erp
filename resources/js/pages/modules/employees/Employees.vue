@@ -39,9 +39,22 @@ const page = usePage();
 const selectedEmployees = ref<number[]>([]);
 const employees = computed(() => page.props.employees);
 const viewMode = ref<'list' | 'grid'>('list');
+const jobRoles = computed(() => page.props.job_roles);
+const departments = computed(() => page.props.departments);
 const dialogImport = ref(false);
 const importFile = ref<File | null>(null);
 const currentFilters = computed(() => page.props.filters as Record<string, any> || {});
+const activeFilterCount = computed(() => {
+    const keys = ['status', 'job_role', 'department'];
+    let count = 0;
+    keys.forEach(key => {
+        if (currentFilters.value[key] && currentFilters.value[key].toString().trim() !== '') {
+             const vals = currentFilters.value[key].toString().split(',');
+             count += vals.length;
+        }
+    });
+    return count;
+});
 const searchQuery = ref(currentFilters.value.query || '');
 const searchResults = ref(false);
 const listResults = ref<Employee[]>([]);
@@ -292,16 +305,19 @@ const generateEmployeeReports = async () => {
                         </div>
                     </div>
                     <div class="flex gap-4">
-                        <Button class="btn-primary flex items-center gap-2" @click="filterMode = !filterMode">
+                        <Button class="btn-primary flex items-center gap-2 relative" @click="filterMode = !filterMode">
                             <Filter class="h-4 w-4" />
+                            <span v-if="activeFilterCount > 0" class="absolute -top-2 -right-2 z-50 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm ring-1 ring-white">
+                                {{ activeFilterCount }}
+                            </span>
                         </Button>
                         <FilterSidebar
                             :open="filterMode"
                             @update:open="filterMode = $event"
                             @apply="handleApplyFilters"
                             :active-filters="currentFilters"
-                            :job-roles="$page.props.job_roles"
-                            :departments="$page.props.departments"
+                            :job-roles="jobRoles"
+                            :departments="departments"
                         />
                         <Button
                             @click="exportSelected"
