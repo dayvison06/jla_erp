@@ -21,7 +21,6 @@ import {
     UserCog,
     EllipsisIcon,
 } from 'lucide-vue-next';
-import AttachmentsDisplay from '@/components/AttachmentsDisplay.vue';
 import { ref, reactive, onMounted } from 'vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Head, usePage, router } from '@inertiajs/vue3';
@@ -282,9 +281,11 @@ onMounted(() => {
                     <DependentInformations v-model:dependents="formData.dependents" v-model:read_only="isReadonly" />
                 </TabsContent>
                 <TabsContent value="attachments">
-                    <AttachmentInformations v-model:attachments="formData.attachments" />
-                    <!-- Tabela de anexos -->
-                    <AttachmentsDisplay :allAttachments="formData.attachments" />
+                    <AttachmentInformations 
+                        v-model:attachments="formData.attachments" 
+                        :read-only="isReadonly"
+                        :employee-id="formData.id"
+                    />
                 </TabsContent>
             </Tabs>
             <!-- Botões de ação do formulário -->

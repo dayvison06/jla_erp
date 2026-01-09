@@ -284,9 +284,6 @@ debouncedWatch(() => formData, () => {
                     <AttachmentInformations
                         v-model:attachments="formData.attachments"
                     />
-
-                    <!-- Tabela de anexos -->
-                    <AttachmentsDisplay :allAttachments="formData.attachments" />
                 </TabsContent>
             </Tabs>
             <!-- Botões de ação do formulário -->
