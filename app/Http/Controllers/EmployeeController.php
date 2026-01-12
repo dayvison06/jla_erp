@@ -333,6 +333,7 @@ class EmployeeController extends Controller
         $employeeIds = $validated['employee_ids'];
         $employees = Employee::whereIn('id', $employeeIds)
             ->get();
+            debug('Valores encontrados', $employees);
 
        return Pdf::view('ficha-funcionario', [
             'employees' => $employees,

@@ -304,7 +304,7 @@
                     </div>
                     <div>
                         <span class="label">Salário Base</span>
-                        <span class="value">R$ {{ number_format($employee->salary ?? 0, 2, ',', '.') }}</span>
+                        <span class="value">R$ {{ $employee->salary ?? 0 }}</span>
                     </div>
 
                     <div>
