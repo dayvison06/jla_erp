@@ -50,7 +50,7 @@ class EmployeeController extends Controller
             $statuses = explode(',', $request->input('status'));
             $query->whereIn('employees.status', $statuses);
         }
-
+        debug('Filtros aplicados', $request->all());
         if ($request->filled('job_role')) {
             $roles = explode(',', $request->input('job_role'));
             $query->whereHas('job_roles', function($q) use ($roles) {

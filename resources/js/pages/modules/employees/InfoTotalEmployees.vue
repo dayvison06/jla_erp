@@ -13,7 +13,6 @@ console.log('Employees in Cards.vue:', employees.value)
 
 // Computed properties para estatísticas
 const totalEmployees = computed(() => employees.value.length)
-const activeEmployees = computed(() => employees.value.filter(emp => emp.status === 'Ativo').length)
 const inactiveEmployees = computed(() => employees.value.filter(emp => emp.status === 'Inativo').length)
 </script>
 
@@ -25,11 +24,6 @@ const inactiveEmployees = computed(() => employees.value.filter(emp => emp.statu
                 <Users class="w-5 h-5" />
                 <p class="text-sm font-medium">Funcionários </p>
                 <span class="text-xl font-semibold">{{ totalEmployees }}</span>
-            </div>
-            <div class="flex gap-2 items-center p-2">
-                <UserCheck class="w-5 h-5" />
-                <p class="text-sm font-medium">Ativos</p>
-                <span class="text-xl font-semibold">{{ activeEmployees }}</span>
             </div>
 
             <div class="flex gap-2 items-center p-2">

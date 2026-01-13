@@ -143,7 +143,7 @@ const handleApplyFilters = (filters: any[]) => {
         const checkedOptions = filter.options
             .filter((opt: any) => opt.checked)
             .map((opt: any) => opt.id);
-        
+
         if (checkedOptions.length > 0) {
             params[filter.id] = checkedOptions.join(',');
         }

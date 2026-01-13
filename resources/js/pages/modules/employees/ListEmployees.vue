@@ -15,7 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const paginatedEmployees = computed(() => props.listEmployees)
-
+console.log('PAGINACAO LIST EMPLOYEES', paginatedEmployees.value);
 // Estado reativo
 const selectedEmployees = ref<number[]>([])
 const sortColumn = ref<string>('name')
@@ -273,7 +273,7 @@ const getStatusText = (status: string) => {
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div>
-                            <div class="text-sm font-medium">{{ employee.role }}</div>
+                            <div class="text-sm font-medium">{{ employee.job_roles?.[0]?.name }}</div>
                             <div class="text-sm text-muted-foreground">{{ employee.contract_type }}</div>
                         </div>
                     </td>
@@ -312,11 +312,11 @@ const getStatusText = (status: string) => {
                     </div>
                 </div>
                 <div class="mb-2 text-sm text-foreground">
-                    <span class="font-medium">Cargo:</span> {{ employee.role }}
+                    <span class="font-medium">Função:</span> {{ employee.job_roles?.[0]?.name }}
                 </div>
-                <div class="mb-2 text-sm text-foreground">
-                    <span class="font-medium">Departamento:</span> {{ employee.department[0] }}
-                </div>
+<!--                <div class="mb-2 text-sm text-foreground">-->
+<!--                    <span class="font-medium">Departamento:</span> {{ employee.department[0] }}-->
+<!--                </div>-->
                 <div class="mb-2 text-sm text-foreground">
                     <span class="font-medium">Admissão:</span> {{ formatDate(employee.admission_date) }}
                 </div>
