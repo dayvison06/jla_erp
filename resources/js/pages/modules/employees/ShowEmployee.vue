@@ -104,16 +104,6 @@ function returnPageEmployees() {
     router.get('/funcionarios');
 }
 
-// function loadAttachments() {
-//   axios.get(`/funcionarios/${formData.id}`)
-//       .then(response => {
-//           formData.attachments = response.data.employee.attachments;
-//       })
-//       .catch(() => {
-//           alert('Erro ao carregar anexos.');
-//       });
-// }
-
 onMounted(() => {
     if (employee) {
         Object.assign(formData, employee);
