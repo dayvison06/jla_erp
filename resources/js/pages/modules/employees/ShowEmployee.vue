@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import {
-    ArrowRight,
-    PlusIcon,
-    TrashIcon,
-    UploadCloudIcon,
-    UploadIcon,
     UserIcon,
     BriefcaseBusiness,
     MapPinHouse,
@@ -37,6 +32,7 @@ import HealthInformations from '@/components/forms/employees/HealthInformations.
 import DependentInformations from '@/components/forms/employees/DependentInformations.vue';
 import AttachmentInformations from '@/components/forms/employees/AttachmentInformations.vue';
 import { formData } from '@/composables/useStoreEmployees';
+import axios from 'axios';
 
 const page = usePage();
 const employee: Employee = page.props.employee;
@@ -85,6 +81,21 @@ const saveEmployee = () => {
     });
 };
 
+function loadAttachments() {
+ router.get(`/funcionarios/${formData.id}`, {}, {
+     preserveState: true,
+     preserveScroll: true,
+     only: ['employee'],
+     replace: false,
+     onSuccess: (page) => {
+         formData.attachments = page.props.employee.attachments;
+     },
+     onError: () => {
+         alert('Erro ao carregar anexos.');
+     },
+ });
+}
+
 /**
  * Fecha o formulário de funcionário e reseta o estado.
  * @returns {void}
@@ -92,6 +103,16 @@ const saveEmployee = () => {
 function returnPageEmployees() {
     router.get('/funcionarios');
 }
+
+// function loadAttachments() {
+//   axios.get(`/funcionarios/${formData.id}`)
+//       .then(response => {
+//           formData.attachments = response.data.employee.attachments;
+//       })
+//       .catch(() => {
+//           alert('Erro ao carregar anexos.');
+//       });
+// }
 
 onMounted(() => {
     if (employee) {
@@ -281,10 +302,11 @@ onMounted(() => {
                     <DependentInformations v-model:dependents="formData.dependents" v-model:read_only="isReadonly" />
                 </TabsContent>
                 <TabsContent value="attachments">
-                    <AttachmentInformations 
-                        v-model:attachments="formData.attachments" 
+                    <AttachmentInformations
+                        v-model:attachments="formData.attachments"
                         :read-only="isReadonly"
                         :employee-id="formData.id"
+                        @refreshAttachments="loadAttachments"
                     />
                 </TabsContent>
             </Tabs>

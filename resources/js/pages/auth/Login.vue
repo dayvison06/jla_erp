@@ -21,11 +21,6 @@ const form = useForm({
     remember: false,
 });
 
-// Redireciona para a página de dashboard se o usuário já estiver logado
-if (page.props.auth?.user) {
-    window.location.href = route('dashboard');
-}
-
 const submit = () => {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
