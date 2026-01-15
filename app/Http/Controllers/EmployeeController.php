@@ -23,6 +23,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use ZipArchive;
+use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
@@ -38,7 +40,7 @@ class EmployeeController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function index(Request $request) : Response
+    public function index(Request $request): Response
     {
         $query = Employee::query();
         $jobRoles = JobRole::all();
@@ -53,14 +55,14 @@ class EmployeeController extends Controller
         debug('Filtros aplicados', $request->all());
         if ($request->filled('job_role')) {
             $roles = explode(',', $request->input('job_role'));
-            $query->whereHas('job_roles', function($q) use ($roles) {
+            $query->whereHas('job_roles', function ($q) use ($roles) {
                 $q->whereIn('job_roles.id', $roles);
             });
         }
 
         if ($request->filled('department')) {
             $depts = explode(',', $request->input('department'));
-            $query->whereHas('department', function($q) use ($depts) {
+            $query->whereHas('department', function ($q) use ($depts) {
                 $q->whereIn('departments.id', $depts);
             });
         }
@@ -68,18 +70,18 @@ class EmployeeController extends Controller
         // Search Filter (integrated into main query if passed)
         if ($request->filled('query')) {
             $term = $request->input('query');
-            $query->where(function($q) use ($term) {
-                 $q->where('name', 'LIKE', '%' . $term . '%')
-                   ->orWhere('cpf', 'LIKE', '%' . $term . '%')
-                   ->orWhere('email', 'LIKE', '%' . $term . '%');
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'LIKE', '%' . $term . '%')
+                    ->orWhere('cpf', 'LIKE', '%' . $term . '%')
+                    ->orWhere('email', 'LIKE', '%' . $term . '%');
             });
         }
 
         $employees = $query->with('job_roles', 'department')
-          ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date', 'photo', 'cpf'])
-          ->orderBy('name', 'ASC')
-          ->paginate($per_page)
-          ->withQueryString();
+            ->select(['id', 'name', 'email', 'civil_state', 'status', 'admission_date', 'photo', 'cpf'])
+            ->orderBy('name', 'ASC')
+            ->paginate($per_page)
+            ->withQueryString();
 
         return Inertia::render('modules/employees/Employees', [
             'employees' => $employees,
@@ -102,7 +104,7 @@ class EmployeeController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function search(Request $request) : JsonResponse
+    public function search(Request $request): JsonResponse
     {
         $searchTerm = $request->input('query');
 
@@ -131,7 +133,7 @@ class EmployeeController extends Controller
      * @return RedirectResponse
      * @throws \Throwable
      */
-    public function store (EmployeeRequest $request) : RedirectResponse
+    public function store(EmployeeRequest $request): RedirectResponse
     {
         $payload = $request->except('attachments');
         Log::info('Recebendo dados para cadastro de funcionário', ['payload' => $payload,]);
@@ -181,7 +183,7 @@ class EmployeeController extends Controller
      * @param Employee $employee
      * @return Response
      */
-    public function show ($id, Employee $employee) : Response
+    public function show($id, Employee $employee): Response
     {
         $findEmployee = $employee->where('id', $id)
             ->with('attachments', 'dependents', 'benefits', 'job_roles', 'department')
@@ -233,12 +235,11 @@ class EmployeeController extends Controller
      * @param int $id
      * @return RedirectResponse
      */
-    public function uploadFiles(Request $request, int $id) : RedirectResponse
+    public function uploadFiles(Request $request, int $id): RedirectResponse
     {
         $employee = Employee::where('id', $id)->firstOrFail();
 
         foreach ($request->file('attachments') as $file) {
-            $file = $file['file'];
             $path = $file->store('employees', 'public');
             $employee->attachments()->create([
                 'employee_id' => $employee->id,
@@ -253,8 +254,130 @@ class EmployeeController extends Controller
         return redirect()->back()->with('notify', [
             'type' => 'success',
             'title' => 'Arquivos Enviados',
-            'message' => 'Funcionário ' . $employee->name . ' atualizado com sucesso.',
+            'message' => 'Os arquivos foram enviados com sucesso.',
         ]);
+    }
+
+    /**
+     * Remove um anexo específico.
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function destroyAttachment(int $id): RedirectResponse
+    {
+        try {
+            $attachment = \App\Models\Employee\Attachment::findOrFail($id);
+
+            // Remove o arquivo do storage
+            if (Storage::disk('public')->exists($attachment->path)) {
+                Storage::disk('public')->delete($attachment->path);
+            }
+
+            $attachment->delete();
+
+            return redirect()->back()->with('notify', [
+                'type' => 'success',
+                'title' => 'Sucesso',
+                'message' => 'Anexo removido com sucesso.'
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao remover anexo: ' . $e->getMessage());
+            return redirect()->back()->with('notify', [
+                'type' => 'error',
+                'title' => 'Erro',
+                'message' => 'Não foi possível remover o anexo.'
+            ]);
+        }
+    }
+
+    /**
+     * Remove múltiplos anexos.
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function destroyManyAttachments(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:attachments,id'
+        ]);
+
+        try {
+            $attachments = \App\Models\Employee\Attachment::whereIn('id', $validated['ids'])->get();
+
+            foreach ($attachments as $attachment) {
+                if (Storage::disk('public')->exists($attachment->path)) {
+                    Storage::disk('public')->delete($attachment->path);
+                }
+                $attachment->delete();
+            }
+
+            return redirect()->back()->with('notify', [
+                'type' => 'success',
+                'title' => 'Sucesso',
+                'message' => count($attachments) . ' anexos removidos com sucesso.'
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao remover múltiplos anexos: ' . $e->getMessage());
+            return redirect()->back()->with('notify', [
+                'type' => 'error',
+                'title' => 'Erro',
+                'message' => 'Não foi possível remover os anexos selecionados.'
+            ]);
+        }
+    }
+
+    /**
+     * Exporta múltiplos anexos como ZIP.
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|RedirectResponse
+     */
+    public function exportAttachments(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:attachments,id'
+        ]);
+
+        try {
+            $attachments = \App\Models\Employee\Attachment::whereIn('id', $validated['ids'])->get();
+
+            if ($attachments->isEmpty()) {
+                return redirect()->back()->with('notify', [
+                    'type' => 'warning',
+                    'title' => 'Avis',
+                    'message' => 'Nenhum arquivo encontrado para exportação.'
+                ]);
+            }
+
+            $zipFileName = 'anexos-exportados-' . date('Y-m-d-H-i-s') . '.zip';
+            $zipPath = storage_path('app/public/' . $zipFileName);
+
+            if (!class_exists('ZipArchive')) {
+                throw new \Exception('A extensão ZipArchive não está instalada no servidor PHP.');
+            }
+
+            $zip = new ZipArchive;
+            if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
+                foreach ($attachments as $attachment) {
+                    $filePath = storage_path('app/public/' . $attachment->path);
+                    if (file_exists($filePath)) {
+                        $zip->addFile($filePath, $attachment->name);
+                    }
+                }
+                $zip->close();
+            }
+
+            return response()->download($zipPath)->deleteFileAfterSend(true);
+
+        } catch (\Throwable $e) {
+            Log::error('Erro ao exportar anexos: ' . $e->getMessage());
+            return redirect()->back()->with('notify', [
+                'type' => 'error',
+                'title' => 'Erro',
+                'message' => 'Não foi possível gerar o arquivo ZIP.'
+            ]);
+        }
     }
 
     /**
@@ -263,7 +386,7 @@ class EmployeeController extends Controller
      * @param Employee $employee
      * @return Response
      */
-    public function deactivate(Request $request, Employee $employee) : Response
+    public function deactivate(Request $request, Employee $employee): Response
     {
         try {
             $findEmployee = $employee->where('cpf', $request['cpf'])
@@ -287,7 +410,7 @@ class EmployeeController extends Controller
      * Faz o download do template de importação de funcionários em XLSX.
      * @return BinaryFileResponse
      */
-    public function downloadTemplate() : BinaryFileResponse
+    public function downloadTemplate(): BinaryFileResponse
     {
         return response()->download(public_path('assets/docs/templates/template_import_funcionarios.xlsx'), 'template_import_funcionarios.xlsx');
     }
@@ -298,7 +421,7 @@ class EmployeeController extends Controller
      * @param Employee $employee
      * @return Response
      */
-    public function importExcel(Request $request, Employee $employee) : Response
+    public function importExcel(Request $request, Employee $employee): Response
     {
         try {
             $file = $request->file()['importFile'];
@@ -333,11 +456,11 @@ class EmployeeController extends Controller
         $employeeIds = $validated['employee_ids'];
         $employees = Employee::whereIn('id', $employeeIds)
             ->get();
-            debug('Valores encontrados', $employees);
+        debug('Valores encontrados', $employees);
 
-       return Pdf::view('ficha-funcionario', [
+        return Pdf::view('ficha-funcionario', [
             'employees' => $employees,
-       ])->download('ficha-funcionarios.pdf');
+        ])->download('ficha-funcionarios.pdf');
     }
 
     /**
@@ -345,7 +468,7 @@ class EmployeeController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function jobRoles(Request $request) : Response
+    public function jobRoles(Request $request): Response
     {
         $query = JobRole::query();
 
@@ -366,7 +489,7 @@ class EmployeeController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function departments(Request $request) : Response
+    public function departments(Request $request): Response
     {
         $query = Departament::query();
 
@@ -387,7 +510,7 @@ class EmployeeController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function benefits(Request $request) : Response
+    public function benefits(Request $request): Response
     {
         $query = Benefit::query();
 
@@ -407,7 +530,7 @@ class EmployeeController extends Controller
      * Retorna uma lista de todos os cargos empresariais em formato JSON.
      * @return JsonResponse
      */
-    public function jobRolesList() : JsonResponse
+    public function jobRolesList(): JsonResponse
     {
         $jobRoles = JobRole::all();
         return response()->json($jobRoles);
@@ -417,7 +540,7 @@ class EmployeeController extends Controller
      * Retorna uma lista de todos os departamentos em formato JSON.
      * @return JsonResponse
      */
-    public function departmentsList() : JsonResponse
+    public function departmentsList(): JsonResponse
     {
         $departments = Departament::all();
         return response()->json($departments);
@@ -427,7 +550,7 @@ class EmployeeController extends Controller
      * Retorna uma lista de todos os benefícios em formato JSON.
      * @return JsonResponse
      */
-    public function benefitsList() : JsonResponse
+    public function benefitsList(): JsonResponse
     {
         $benefits = Benefit::all();
         return response()->json($benefits);
@@ -437,7 +560,8 @@ class EmployeeController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function storeJobRole(Request $request) {
+    public function storeJobRole(Request $request)
+    {
         $baseSalary = $request->input('base_salary');
         $baseSalary = str_replace(['.', ','], ['', '.'], $baseSalary);
 
@@ -463,18 +587,19 @@ class EmployeeController extends Controller
     /**
      * Atualiza um cargo.
      */
-    public function updateJobRole(Request $request, $id) {
+    public function updateJobRole(Request $request, $id)
+    {
         $role = JobRole::findOrFail($id);
 
         $baseSalary = $request->input('base_salary');
-        if($baseSalary) {
-             $baseSalary = str_replace(['.', ','], ['', '.'], $baseSalary);
+        if ($baseSalary) {
+            $baseSalary = str_replace(['.', ','], ['', '.'], $baseSalary);
         }
 
         $role->update([
-             'name' => $request->input('name'),
-             'base_salary' => $baseSalary ?? $role->base_salary,
-             'description' => $request->input('description'),
+            'name' => $request->input('name'),
+            'base_salary' => $baseSalary ?? $role->base_salary,
+            'description' => $request->input('description'),
         ]);
 
         return redirect()->back()->with('notify', [
@@ -487,11 +612,12 @@ class EmployeeController extends Controller
     /**
      * Remove um cargo.
      */
-    public function destroyJobRole($id) {
+    public function destroyJobRole($id)
+    {
         $role = JobRole::findOrFail($id);
         $role->delete();
 
-         return redirect()->back()->with('notify', [
+        return redirect()->back()->with('notify', [
             'type' => 'success',
             'title' => 'Sucesso',
             'message' => 'Cargo removido com sucesso.'
@@ -501,11 +627,12 @@ class EmployeeController extends Controller
     /**
      * Cria um novo departamento.
      */
-    public function storeDepartment(Request $request) {
+    public function storeDepartment(Request $request)
+    {
         $request->validate(['name' => 'required|string|max:255']);
         Departament::create($request->only('name', 'description'));
 
-         return redirect()->back()->with('notify', [
+        return redirect()->back()->with('notify', [
             'type' => 'success',
             'title' => 'Sucesso',
             'message' => 'Departamento criado com sucesso.'
@@ -515,7 +642,8 @@ class EmployeeController extends Controller
     /**
      * Atualiza um departamento.
      */
-    public function updateDepartment(Request $request, $id) {
+    public function updateDepartment(Request $request, $id)
+    {
         $dept = Departament::findOrFail($id);
         $dept->update($request->only('name', 'description'));
 
@@ -529,7 +657,8 @@ class EmployeeController extends Controller
     /**
      * Remove um departamento.
      */
-    public function destroyDepartment($id) {
+    public function destroyDepartment($id)
+    {
         $dept = Departament::findOrFail($id);
         $dept->delete();
 
@@ -543,11 +672,12 @@ class EmployeeController extends Controller
     /**
      * Cria um novo benefício.
      */
-    public function storeBenefit(Request $request) {
+    public function storeBenefit(Request $request)
+    {
         $request->validate(['name' => 'required|string|max:255']);
         Benefit::create($request->only('name', 'description', 'active'));
 
-         return redirect()->back()->with('notify', [
+        return redirect()->back()->with('notify', [
             'type' => 'success',
             'title' => 'Sucesso',
             'message' => 'Benefício criado com sucesso.'
@@ -557,11 +687,12 @@ class EmployeeController extends Controller
     /**
      * Atualiza um benefício.
      */
-    public function updateBenefit(Request $request, $id) {
+    public function updateBenefit(Request $request, $id)
+    {
         $benefit = Benefit::findOrFail($id);
         $benefit->update($request->only('name', 'description', 'active'));
 
-         return redirect()->back()->with('notify', [
+        return redirect()->back()->with('notify', [
             'type' => 'success',
             'title' => 'Sucesso',
             'message' => 'Benefício atualizado com sucesso.'
@@ -571,11 +702,12 @@ class EmployeeController extends Controller
     /**
      * Remove um benefício.
      */
-    public function destroyBenefit($id) {
+    public function destroyBenefit($id)
+    {
         $benefit = Benefit::findOrFail($id);
         $benefit->delete();
 
-         return redirect()->back()->with('notify', [
+        return redirect()->back()->with('notify', [
             'type' => 'success',
             'title' => 'Sucesso',
             'message' => 'Benefício removido com sucesso.'

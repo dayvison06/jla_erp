@@ -13,6 +13,10 @@ const props = defineProps<{
     readOnly?: boolean;
 }>();
 
+const emit = defineEmits<{
+    (e: 'refreshAttachments'): void;
+}>();
+
 // Model for attachments
 const attachments = defineModel('attachments', { type: Array as () => Attachment[], default: () => [] });
 
@@ -21,13 +25,13 @@ const isUploading = ref(false);
 const uploadProgress = ref(0);
 
 /**
- * Handles adding files (either local draft or live upload).
+ * Gerencia a adição de arquivos (seja rascunho local ou upload direto).
  */
 const addFiles = (files: File[]) => {
-    if (props.readOnly) return; 
+    if (props.readOnly) return;
 
-    // Filter duplicates based on name and size
-    const newFiles = files.filter(file => 
+    // Filtra duplicatas baseado em nome e tamanho
+    const newFiles = files.filter(file =>
         !attachments.value.some(a => a.name === file.name && Number(a.size) === file.size)
     );
 
@@ -41,27 +45,28 @@ const addFiles = (files: File[]) => {
 };
 
 /**
- * Adds files to the local array (Draft mode).
+ * Adiciona arquivos ao array local (Modo Rascunho).
  */
 const addFilesLocally = (files: File[]) => {
     const newAttachments = files.map(file => ({
-        id: Date.now() + Math.random(), // Temporary ID
+        id: Date.now() + Math.random(), // ID Temporário
         name: file.name,
         type: file.type || 'application/octet-stream',
         size: file.size,
-        file: file, // Keep raw file for later submission
-        path: URL.createObjectURL(file), // Preview URL
+        file: file, // Mantém arquivo raw para envio posterior
+        path: URL.createObjectURL(file), // URL de visualização
         created_at: new Date().toISOString(),
         uploaded_by: 'Eu', // Placeholder
-    } as unknown as Attachment)); // Cast to satisfy type, 'file' is extra
+    } as unknown as Attachment)); // Cast para satisfazer tipo
 
     attachments.value.push(...newAttachments);
 };
 
 /**
- * Uploads files to the backend (Live mode).
+ * Envia arquivos para o backend (Modo Tempo Real).
  */
 const uploadFilesToBackend = (files: File[]) => {
+    console.log('Uploading files to backend:', files);
     if (!props.employeeId) return;
 
     const formData = new FormData();
@@ -69,7 +74,7 @@ const uploadFilesToBackend = (files: File[]) => {
         formData.append('attachments[]', file);
     });
 
-    router.post(`/funcionarios/upload/${props.employeeId}`, formData, {
+    router.post(route('employees.upload', props.employeeId), formData, {
         forceFormData: true,
         preserveScroll: true,
         onStart: () => {
@@ -82,7 +87,7 @@ const uploadFilesToBackend = (files: File[]) => {
             }
         },
         onSuccess: () => {
-             showToast('success', 'Upload concluído', 'Arquivos enviados com sucesso.');
+            emit('refreshAttachments');
         },
         onError: () => {
             showToast('error', 'Erro', 'Falha ao enviar arquivos.');
@@ -95,75 +100,117 @@ const uploadFilesToBackend = (files: File[]) => {
 };
 
 /**
- * Handles file deletion.
+ * Remove um anexo (local ou remoto).
  */
 const handleDelete = (attachment: Attachment) => {
     if (props.readOnly) return;
 
-    // If it has a temporary ID or we are in draft mode without an ID, delete locally
-    // However, createEmployee doesn't have employeeId. 
-    // real attachments from DB usually have distinct numeric IDs. 
-    // Let's assume if we are in draft mode (no props.employeeId), it's local.
-    
+    // Se não tiver ID de funcionário verificado, trata como rascunho.
     if (!props.employeeId) {
         const index = attachments.value.findIndex(a => a.id === attachment.id);
         if (index !== -1) {
-            // Revoke URL if it was local
+            // Revoga URL se for local (blob)
             if (attachments.value[index].path && attachments.value[index].path.startsWith('blob:')) {
                 URL.revokeObjectURL(attachments.value[index].path);
             }
             attachments.value.splice(index, 1);
         }
     } else {
-        // Live delete
-        // We probably need a delete route. 
-        // Assuming router.delete or similar. 
-        // NOTE: The previous code didn't show a specific attachment delete route in Controller.
-        // It showed `deactivate` for employee. 
-        // I should stick to emitting or handling it if there is a route.
-        // I will assume there isn't one ready or I missed it.
-        // Wait, typical resource controller: DELETE /attachments/{id}?
-        // Let's implement a standard Inertia delete call assuming the backend handles it, 
-        // or just emit 'delete' if the parent handles it.
-        // But the user asked to centralize logic.
-        // Let's try to delete. 
-        
-        // Actually, looking at the user request "Permita adicionar, remover, atualizar".
-        // I'll assume we need to implement the delete action.
-        
-        // Let's assume a generic route or emit.
-        // Since I don't recall a `destroyAttachment` in `EmployeeController`, I might need to add it?
-        // Wait, `Employees.vue` uses `deleteEmployee`. 
-        
-        // Ideally I should check `routes/web.php` but I can't see it right now.
-        // I will implement the Frontend logic to call a delete endpoint.
-        
-        // For now, let's just emit an event or remove from list if it was a local add (mixed mode?), 
-        // but typically 'employeeId' means all are persisted.
-        
-        // I'll call a hypothetical endpoint. If it fails, I'll fix it later.
-        // Using `router.delete`.
-        
-        // Correction: If the backend logic isn't there, this will fail. 
-        // I'll implement "Remove" as "Ask parent to remove" or "Optimistic update"? 
-        // No, let's try to call the backend.
-        // Actually, I'll stick to removing LOCAL files if they are local, 
-        // and calling API if they are remote.
-        // How to distinguish? Local files have `file` property (File object). Remote ones don't usually.
-        
-        if ((attachment as any).file) {
-             const index = attachments.value.findIndex(a => a.id === attachment.id);
-             if (index !== -1) attachments.value.splice(index, 1);
-        } else {
-            // It's a persisted file.
-             router.delete(`/funcionarios/anexos/${attachment.id}`, {
-                 preserveScroll: true,
-                  onSuccess: () => {
-                     showToast('success', 'Sucesso', 'Anexo removido.');
-                 }
-             });
+        // Exclusão remota através da API
+        if (confirm(`Tem certeza que deseja remover o anexo "${attachment.name}"?`)) {
+             try {
+                 router.delete(route('employees.attachment.destroy', attachment.id), {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        showToast('success', 'Sucesso', 'Anexo removido do sistema.');
+                        // Atualiza lista local
+                        const index = attachments.value.findIndex(a => a.id === attachment.id);
+                        if (index !== -1) attachments.value.splice(index, 1);
+                    },
+                    onError: (errors) => {
+                        console.error('Erro ao excluir anexo:', errors);
+                        showToast('error', 'Erro', 'Falha ao remover o anexo.');
+                    }
+                 });
+             } catch (e) {
+                 // Fallback caso 'route' helper não esteja disponível ou erro na chamada
+                 router.delete(`/funcionarios/anexos/${attachment.id}`, {
+                     preserveScroll: true,
+                     onSuccess: () => {
+                         showToast('success', 'Sucesso', 'Anexo removido do sistema.');
+                         const index = attachments.value.findIndex(a => a.id === attachment.id);
+                         if (index !== -1) attachments.value.splice(index, 1);
+                     },
+                     onError: () => {
+                         showToast('error', 'Erro', 'Falha ao remover o anexo.');
+                     }
+                 });
+             }
         }
     }
+};
+
+/**
+ * Remove um anexo (local ou remoto).
+ */
+const handleDeleteSelected = (ids: number[]) => {
+    if (props.readOnly || ids.length === 0) return;
+
+    if (!props.employeeId) {
+        // Rascunho - remove localmente
+        ids.forEach(id => {
+            const index = attachments.value.findIndex(a => a.id === id);
+            if (index !== -1) {
+                if (attachments.value[index].path && attachments.value[index].path.startsWith('blob:')) {
+                    URL.revokeObjectURL(attachments.value[index].path);
+                }
+                attachments.value.splice(index, 1);
+            }
+        });
+    } else {
+        // Remoto
+         if (confirm(`Tem certeza que deseja remover ${ids.length} anexo(s)?`)) {
+            // Usamos POST com _method DELETE para garantir que o corpo da requisição seja enviado corretamente
+            router.post(route('employees.attachments.destroy_many'), {
+                _method: 'DELETE',
+                ids: ids
+            }, {
+                preserveScroll: true,
+                onSuccess: () => {
+                   showToast('success', 'Sucesso', 'Anexos removidos com sucesso.');
+                   emit('refreshAttachments');
+                    // Remove localmente para refletir imediatamente
+                   ids.forEach(id => {
+                       const index = attachments.value.findIndex(a => a.id === id);
+                       if (index !== -1) attachments.value.splice(index, 1);
+                   });
+                },
+                onError: (errors) => {
+                    console.error('Erro ao excluir múltiplos anexos:', errors);
+                    showToast('error', 'Erro', 'Falha ao remover anexos selecionados.');
+                }
+            });
+         }
+    }
+};
+
+/**
+ * Exporta múltiplos anexos (apenas remoto).
+ */
+const handleExportSelected = (ids: number[]) => {
+    if (props.readOnly || ids.length === 0) return;
+
+    if (!props.employeeId) {
+        showToast('error', 'Erro', 'Salve o funcionário antes de exportar anexos.');
+        return;
+    }
+
+    // Usando GET via window.open para facilitar o download
+    const url = route('employees.attachments.export');
+    const queryString = ids.map(id => `ids[]=${id}`).join('&');
+    const fullUrl = `${url}?${queryString}`;
+    
+    window.open(fullUrl, '_blank');
 };
 
 const handleFileUpload = (event: Event) => {
@@ -222,7 +269,7 @@ const handleFileDrop = (event: DragEvent) => {
                     Suporta imagens, PDFs e documentos de texto até 10MB
                 </p>
             </div>
-            
+
             <!-- Progress Overlay -->
              <div v-if="isUploading" class="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-[1px] transition-all">
                 <div class="w-1/2 max-w-xs space-y-2 text-center">
@@ -235,9 +282,11 @@ const handleFileDrop = (event: DragEvent) => {
         </div>
 
         <!-- Lista de anexos -->
-        <AttachmentsDisplay 
-            :allAttachments="attachments" 
+        <AttachmentsDisplay
+            :allAttachments="attachments"
             @delete="handleDelete"
+            @delete-selected="handleDeleteSelected"
+            @export-selected="handleExportSelected"
         />
     </div>
 </template>
